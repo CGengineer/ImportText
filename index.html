@@ -77,7 +77,7 @@ h1 {
 textarea { display: none; }
 </style>
 
-<!-- Firebase SDK -->
+<!-- Firebase SDK（正しい読み込み） -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
@@ -108,6 +108,7 @@ textarea { display: none; }
     <button id="edit">📝 本文編集</button>
     <button id="save" style="display:none">💾 保存</button>
     <button id="copyUrl">🔗 URLコピー</button>
+    <button id="exportNotebookLM">🧠 NotebookLM用にコピー</button>
   </div>
 
   <div id="content"></div>
@@ -115,7 +116,7 @@ textarea { display: none; }
 </div>
 
 <script>
-/* ===== Firebase設定（自分のに置き換え） ===== */
+/* ===== Firebase設定 ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
   authDomain: "importtext-b229d.firebaseapp.com",
@@ -125,24 +126,24 @@ const firebaseConfig = {
   appId: "1:746746157474:web:b4143b7bc94515e2a4bafb",
   measurementId: "G-7397MZJDXD"
 };
-``
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* ===== 要素 ===== */
-const sidebar   = document.getElementById("sidebar");
-const pageList  = document.getElementById("pageList");
-const search    = document.getElementById("search");
+/* ===== DOM ===== */
+const sidebar = document.getElementById("sidebar");
+const pageList = document.getElementById("pageList");
+const search = document.getElementById("search");
 const pageTitle = document.getElementById("pageTitle");
-const content   = document.getElementById("content");
-const editor    = document.getElementById("editor");
-const editBtn   = document.getElementById("edit");
-const saveBtn   = document.getElementById("save");
+const content = document.getElementById("content");
+const editor = document.getElementById("editor");
+const editBtn = document.getElementById("edit");
+const saveBtn = document.getElementById("save");
 
 /* ===== データ ===== */
 let data = { pages: [] };
 
-/* ===== URL制御 ===== */
+/* ===== URL ===== */
 function getIndex() {
   const i = parseInt(location.hash.replace("#page-", ""), 10);
   return isNaN(i) ? 0 : i;
@@ -171,7 +172,7 @@ function renderPage() {
   content.textContent = p.text;
 }
 
-/* ===== Firebase同期 ===== */
+/* ===== Firestore同期 ===== */
 db.collection("app").doc("pages").onSnapshot(doc => {
   if (doc.exists) {
     data = doc.data();
@@ -182,11 +183,12 @@ db.collection("app").doc("pages").onSnapshot(doc => {
   renderList();
   renderPage();
 });
+
 function saveAll() {
   db.collection("app").doc("pages").set({ pages: data.pages });
 }
 
-/* ===== 本文編集 ===== */
+/* ===== 編集 ===== */
 editBtn.onclick = () => {
   editor.value = content.textContent;
   content.style.display = "none";
@@ -194,6 +196,7 @@ editBtn.onclick = () => {
   editBtn.style.display = "none";
   saveBtn.style.display = "inline";
 };
+
 saveBtn.onclick = () => {
   data.pages[getIndex()].text = editor.value;
   saveAll();
@@ -203,7 +206,7 @@ saveBtn.onclick = () => {
   saveBtn.style.display = "none";
 };
 
-/* ===== タイトル編集 ===== */
+/* ===== タイトル ===== */
 document.getElementById("editTitle").onclick = () => {
   const i = getIndex();
   const t = prompt("ページタイトル", data.pages[i].title);
@@ -213,17 +216,15 @@ document.getElementById("editTitle").onclick = () => {
   }
 };
 
-/* ===== ページ追加・削除 ===== */
+/* ===== ページ管理 ===== */
 document.getElementById("add").onclick = () => {
   data.pages.push({ title: "新しいページ", text: "" });
   saveAll();
   setIndex(data.pages.length - 1);
 };
+
 document.getElementById("remove").onclick = () => {
-  if (data.pages.length <= 1) {
-    alert("最後のページは削除できません");
-    return;
-  }
+  if (data.pages.length <= 1) return alert("最後のページは削除できません");
   const i = getIndex();
   if (!confirm(`「${data.pages[i].title}」を削除しますか？`)) return;
   data.pages.splice(i, 1);
@@ -236,17 +237,29 @@ document.getElementById("copyUrl").onclick = async () => {
   const url = location.href;
   try {
     await navigator.clipboard.writeText(url);
-    alert("URLをコピーしました！");
+    alert("URLをコピーしました");
   } catch {
-    prompt("コピーできない場合はこちらをコピーしてください", url);
+    prompt("コピーできない場合はこちら", url);
+  }
+};
+
+/* ===== NotebookLM エクスポート ===== */
+document.getElementById("exportNotebookLM").onclick = async () => {
+  let text = "◆ NotebookLM 用エクスポート\n\n";
+  data.pages.forEach((p, i) => {
+    text += `【${i + 1}】${p.title}\n${p.text}\n\n-----------------\n\n`;
+  });
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("NotebookLM用にコピーしました");
+  } catch {
+    prompt("手動コピー用", text);
   }
 };
 
 /* ===== UI ===== */
 search.oninput = renderList;
-document.getElementById("toggle").onclick = () => {
-  sidebar.classList.toggle("hidden");
-};
+document.getElementById("toggle").onclick = () => sidebar.classList.toggle("hidden");
 window.addEventListener("hashchange", renderPage);
 </script>
 
