@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>インポートテキスト管理</title>
 
-<!-- ===== PWA設定 ===== -->
+<!-- ===== PWA ===== -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -20,7 +20,7 @@ body {
   display: flex;
 }
 
-/* ===== 認証 ===== */
+/* ===== ログイン ===== */
 #auth {
   margin: auto;
   padding: 20px;
@@ -35,18 +35,12 @@ body {
   box-sizing: border-box;
   display: none;
   flex-direction: column;
-  background: white;
+  background: #fff;
 }
 #search {
   padding: 8px;
   font-size: 16px;
   margin-bottom: 6px;
-}
-.sidebar-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
 }
 #pageList {
   flex: 1;
@@ -103,7 +97,7 @@ button {
 }
 textarea { display: none; }
 
-/* ===== スマホ対応 ===== */
+/* ===== スマホ ===== */
 @media (max-width: 768px) {
   body { flex-direction: column; }
   #sidebar {
@@ -111,16 +105,16 @@ textarea { display: none; }
     left: 0;
     top: 0;
     height: 100%;
-    z-index: 1000;
     width: 80%;
     max-width: 300px;
+    z-index: 1000;
     display: none;
   }
   #sidebar.show { display: flex; }
 }
 </style>
 
-<!-- Firebase SDK -->
+<!-- ===== Firebase SDK（※絶対に壊さない） ===== -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -128,7 +122,7 @@ textarea { display: none; }
 
 <body>
 
-<!-- ===== ログイン ===== -->
+<!-- ===== ログイン画面 ===== -->
 <div id="auth">
   <h2>ログイン / 新規登録</h2>
   <input id="email" placeholder="メールアドレス"><br><br>
@@ -139,12 +133,8 @@ textarea { display: none; }
 <!-- ===== サイドバー ===== -->
 <div id="sidebar">
   <input id="search" placeholder="🔍 ページ検索">
-
-  <div class="sidebar-actions">
-    <button id="add">＋ ページ追加</button>
-    <button id="remove">🗑 削除</button>
-  </div>
-
+  <button id="add">＋ ページ追加</button>
+  <button id="remove">🗑 削除</button>
   <div id="pageList"></div>
 </div>
 
@@ -163,7 +153,7 @@ textarea { display: none; }
     <button id="edit">📝 本文編集</button>
     <button id="save" style="display:none">💾 保存</button>
     <button id="copyUrl">🔗 URLコピー</button>
-    <button id="exportNotebookLM">🧠 NotebookLM用にコピー</button>
+    <button id="export">🧠 NotebookLM用にコピー</button>
   </div>
 
   <div id="content"></div>
@@ -185,6 +175,11 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
+/* ===== DOM ===== */
+const authDiv = document.getElementById("auth");
+const sidebar = document.getElementById("sidebar");
+const main = document.getElementById("main");
+
 /* ===== 認証 ===== */
 login.onclick = async () => {
   try {
@@ -196,7 +191,7 @@ login.onclick = async () => {
 logout.onclick = () => auth.signOut();
 
 auth.onAuthStateChanged(user => {
-  auth.style.display = user ? "none" : "block";
+  authDiv.style.display = user ? "none" : "block";
   sidebar.style.display = user ? "flex" : "none";
   main.style.display = user ? "flex" : "none";
 });
@@ -204,7 +199,6 @@ auth.onAuthStateChanged(user => {
 /* ===== データ ===== */
 let data = { pages: [] };
 
-/* URL */
 function getIndex() {
   const i = parseInt(location.hash.replace("#page-", ""), 10);
   return isNaN(i) ? 0 : i;
@@ -213,7 +207,6 @@ function setIndex(i) {
   location.hash = `page-${i}`;
 }
 
-/* 描画 */
 function renderList() {
   pageList.innerHTML = "";
   const kw = search.value.toLowerCase();
@@ -232,17 +225,15 @@ function renderPage() {
   content.textContent=p.text;
 }
 
-/* Firestore */
 db.collection("app").doc("pages").onSnapshot(doc=>{
   if(doc.exists) data=doc.data();
-  else { data={pages:[{title:"ページ1",text:""}]}; saveAll(); }
+  else {
+    data={pages:[{title:"ページ1",text:""}]};
+    db.collection("app").doc("pages").set(data);
+  }
   renderList(); renderPage();
 });
-function saveAll() {
-  db.collection("app").doc("pages").set({pages:data.pages});
-}
 
-/* 編集 */
 edit.onclick=()=>{
   editor.value=content.textContent;
   content.style.display="none";
@@ -252,38 +243,42 @@ edit.onclick=()=>{
 };
 save.onclick=()=>{
   data.pages[getIndex()].text=editor.value;
-  saveAll();
+  db.collection("app").doc("pages").set(data);
   editor.style.display="none";
   content.style.display="block";
   edit.style.display="inline";
   save.style.display="none";
 };
 
-/* ボタン */
 editTitle.onclick=()=>{
   const i=getIndex();
   const t=prompt("タイトル",data.pages[i].title);
-  if(t){ data.pages[i].title=t; saveAll(); }
+  if(t){ data.pages[i].title=t; db.collection("app").doc("pages").set(data); }
 };
+
 add.onclick=()=>{
   data.pages.push({title:"新しいページ",text:""});
-  saveAll(); setIndex(data.pages.length-1);
+  db.collection("app").doc("pages").set(data);
+  setIndex(data.pages.length-1);
 };
 remove.onclick=()=>{
   if(!confirm("削除しますか？")) return;
   data.pages.splice(getIndex(),1);
-  saveAll(); setIndex(0);
+  db.collection("app").doc("pages").set(data);
+  setIndex(0);
 };
+
 copyUrl.onclick=()=>{
   navigator.clipboard.writeText(location.href);
-  alert("URLコピー");
+  alert("URLをコピーしました");
 };
-exportNotebookLM.onclick=()=>{
+export.onclick=()=>{
   let t="◆ NotebookLM用\n\n";
   data.pages.forEach((p,i)=>t+=`【${i+1}】${p.title}\n${p.text}\n\n`);
   navigator.clipboard.writeText(t);
-  alert("NotebookLM用にコピー");
+  alert("NotebookLM用にコピーしました");
 };
+
 toggle.onclick=()=>sidebar.classList.toggle("show");
 search.oninput=renderList;
 window.addEventListener("hashchange",renderPage);
