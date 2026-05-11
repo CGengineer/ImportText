@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>インポートテキスト管理 + Gemini RAG</title>
+<title>インポートテキスト管理</title>
 
 <style>
 html, body {
@@ -23,44 +23,63 @@ body { display: flex; }
 }
 #sidebar.hidden { display: none; }
 #search { padding: 6px; margin-bottom: 6px; }
-.sidebar-actions { display: flex; gap:6px; margin-bottom:8px; }
-#pageList { flex: 1; overflow-y: auto; }
+.sidebar-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+#pageList {
+  flex: 1;
+  overflow-y: auto;
+}
 #pageList button {
   width: 100%;
   text-align: left;
   margin-bottom: 4px;
 }
 
-/* ===== メインエリア ===== */
-.screen {
+/* ===== メイン ===== */
+#main {
   flex: 1;
-  display: none;
+  display: flex;
   flex-direction: column;
   padding: 12px;
   box-sizing: border-box;
 }
-.screen.active { display: flex; }
-
+header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+h1 {
+  margin: 0;
+  font-size: 20px;
+}
+.header-actions {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
 #content, textarea {
   flex: 1;
   width: 100%;
   border: 1px solid #ccc;
   padding: 10px;
   white-space: pre-wrap;
+  box-sizing: border-box;
 }
 textarea { display: none; }
 
-/* ===== RAG ===== */
-#rag {
-  border-top: 1px solid #ccc;
-  margin-top: 10px;
-  padding-top: 10px;
-}
-#answer, #aiAnswer {
-  margin-top: 10px;
-  white-space: pre-wrap;
-  border: 1px solid #ccc;
-  padding: 8px;
+/* ===== ログイン ===== */
+#login {
+  position: fixed;
+  inset: 0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
 </style>
 
@@ -72,26 +91,36 @@ textarea { display: none; }
 
 <body>
 
+<!-- ===== ログイン画面 ===== -->
+<div id="login">
+  <div>
+    <h2>ログイン</h2>
+    <input id="email" placeholder="メール"><br><br>
+    <input id="password" type="password" placeholder="パスワード"><br><br>
+    <button id="loginBtn">ログイン</button>
+    <button id="registerBtn">新規登録</button>
+    <p id="loginMsg" style="color:red"></p>
+  </div>
+</div>
+
 <!-- ===== サイドバー ===== -->
 <div id="sidebar">
   <input id="search" placeholder="🔍 ページ検索">
   <div class="sidebar-actions">
     <button id="add">＋ ページ追加</button>
-    <button id="remove">🗑 削除</button>
+    <button id="remove">🗑 ページ削除</button>
   </div>
-  <button onclick="openAIScreen()">🤖 AIに聞く（ソース選択）</button>
-  <hr>
   <div id="pageList"></div>
 </div>
 
-<!-- ===== メイン画面 ===== -->
-<div id="mainScreen" class="screen active">
+<!-- ===== メイン ===== -->
+<div id="main">
   <header>
     <button id="toggle">≡</button>
     <h1 id="pageTitle"></h1>
   </header>
 
-  <div>
+  <div class="header-actions">
     <button id="editTitle">✏️ タイトル編集</button>
     <button id="edit">📝 本文編集</button>
     <button id="save" style="display:none">💾 保存</button>
@@ -100,198 +129,175 @@ textarea { display: none; }
 
   <div id="content"></div>
   <textarea id="editor"></textarea>
-
-  <!-- 既存RAG（全文対象） -->
-  <div id="rag">
-    <input id="question" placeholder="このメモについて質問…" style="width:100%">
-    <button id="ask">🤖 AIに聞く（全文）</button>
-    <div id="answer"></div>
-  </div>
-</div>
-
-<!-- ===== AI専用画面（追加機能） ===== -->
-<div id="aiScreen" class="screen">
-  <button onclick="closeAIScreen()">← 戻る</button>
-  <h2>AIに質問（ソース選択）</h2>
-
-  <p>使用するページを選択（複数可）</p>
-  <div id="sourceList"></div>
-
-  <br>
-  <input id="aiQuestion" placeholder="質問を入力…" style="width:100%">
-  <button id="runAI">🤖 実行</button>
-
-  <div id="aiAnswer"></div>
 </div>
 
 <script>
-/* ===== Gemini ===== */
-const GEMINI_API_KEY = "AIzaSyB84Y0O_qGHqSR0YTEzAwqt6ifgt6-xCrw";
-
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
   authDomain: "importtext-b229d.firebaseapp.com",
   projectId: "importtext-b229d"
 });
-firebase.auth().signInAnonymously();
+const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* ===== 状態 ===== */
-let data = { pages: [] };
-let currentIndex = 0;
-
-/* ===== Firestore ===== */
-const ref = db.collection("app").doc("pages");
-ref.onSnapshot(doc => {
-  data = doc.exists ? doc.data() : { pages:[{title:"ページ1",text:""}] };
-  if(!doc.exists) ref.set(data);
-  render();
+/* ===== ログイン制御 ===== */
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("login").style.display = "none";
+    initApp(user.uid);
+  } else {
+    document.getElementById("login").style.display = "flex";
+  }
 });
 
-/* ===== 描画 ===== */
-function render() {
-  pageList.innerHTML = "";
-  data.pages.forEach((p,i)=>{
-    const b = document.createElement("button");
-    b.textContent = p.title;
-    b.onclick = ()=>{ currentIndex=i; render(); };
-    pageList.appendChild(b);
-  });
-  pageTitle.textContent = data.pages[currentIndex]?.title || "";
-  content.textContent = data.pages[currentIndex]?.text || "";
-}
-
-/* ===== ページ操作 ===== */
-add.onclick = () => {
-  data.pages.push({title:"新しいページ",text:""});
-  ref.set(data);
-};
-remove.onclick = () => {
-  if(data.pages.length<=1) return alert("最後のページは削除不可");
-  data.pages.splice(currentIndex,1);
-  currentIndex=0;
-  ref.set(data);
-};
-edit.onclick = () => {
-  editor.value = content.textContent;
-  content.style.display="none";
-  editor.style.display="block";
-  edit.style.display="none";
-  save.style.display="inline";
-};
-save.onclick = () => {
-  data.pages[currentIndex].text = editor.value;
-  ref.set(data);
-  content.style.display="block";
-  editor.style.display="none";
-  edit.style.display="inline";
-  save.style.display="none";
-};
-copyText.onclick = async () => {
-  const txt = editor.style.display==="block"?editor.value:content.textContent;
-  await navigator.clipboard.writeText(txt);
-  alert("本文をコピーしました");
-};
-editTitle.onclick = () => {
-  const t = prompt("タイトル", data.pages[currentIndex].title);
-  if(t){ data.pages[currentIndex].title=t; ref.set(data); }
-};
-
-/* ===== 既存RAG（全文） ===== */
-ask.onclick = async () => {
-  runGemini(
-    data.pages.map(p=>`【${p.title}】\n${p.text}`).join("\n\n"),
-    question.value,
-    answer
-  );
-};
-
-/* ===== AI画面 ===== */
-function openAIScreen(){
-  mainScreen.classList.remove("active");
-  aiScreen.classList.add("active");
-  sourceList.innerHTML="";
-  data.pages.forEach((p,i)=>{
-    const d=document.createElement("div");
-    d.innerHTML=`<label><input type="checkbox" value="${i}" checked> ${p.title}</label>`;
-    sourceList.appendChild(d);
-  });
-}
-function closeAIScreen(){
-  aiScreen.classList.remove("active");
-  mainScreen.classList.add("active");
-}
-
-/* ===== AI実行（選択RAG） ===== */
-runAI.onclick = () => {
-  const pages=[...sourceList.querySelectorAll("input:checked")]
-    .map(cb=>data.pages[cb.value]);
-  runGemini(
-    pages.map(p=>`【${p.title}】\n${p.text}`).join("\n\n"),
-    aiQuestion.value,
-    aiAnswer
-  );
-};
-
-/* ===== Gemini共通処理 ===== */
-/* ===== Gemini共通処理 ===== */
-async function runGemini(context, q, out){
-  if (!q || !q.trim()) {
-    alert("質問を入力してください");
-    return;
-  }
-
-  if (!context || !context.trim()) {
-    alert("AIに渡す本文がありません");
-    return;
-  }
-
-  out.textContent = "考え中…";
-
-  const prompt = `
-以下の文書のみを根拠に質問に答えてください。
-文書に書かれていないことは推測せず、「分かりません」と答えてください。
-
-【文書】
-${context}
-
-【質問】
-${q}
-`;
-
+loginBtn.onclick = async () => {
   try {
-    const res = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: prompt }]
-            }
-          ]
-        })
-      }
-    );
+    await auth.signInWithEmailAndPassword(email.value, password.value);
+  } catch (e) {
+    loginMsg.textContent = e.message;
+  }
+};
 
-    const json = await res.json();
+registerBtn.onclick = async () => {
+  try {
+    await auth.createUserWithEmailAndPassword(email.value, password.value);
+  } catch (e) {
+    loginMsg.textContent = e.message;
+  }
+};
 
-    if (json.error) {
-      out.textContent = "Geminiエラー: " + json.error.message;
+/* ===== アプリ本体 ===== */
+function initApp(uid) {
+  const ref = db.collection("app").doc(uid);
+
+  let data = { pages: [] };
+  let isEditing = false;
+
+  const sidebar = document.getElementById("sidebar");
+  const pageList = document.getElementById("pageList");
+  const search = document.getElementById("search");
+  const pageTitle = document.getElementById("pageTitle");
+  const content = document.getElementById("content");
+  const editor = document.getElementById("editor");
+  const editBtn = document.getElementById("edit");
+  const saveBtn = document.getElementById("save");
+  const copyTextBtn = document.getElementById("copyText");
+
+  function getIndex() {
+    const i = parseInt(location.hash.replace("#page-", ""), 10);
+    return isNaN(i) ? 0 : i;
+  }
+
+  function setIndex(i) {
+    location.hash = `page-${i}`;
+    renderPage();
+  }
+
+  function renderList() {
+    pageList.innerHTML = "";
+    const kw = search.value.toLowerCase();
+    data.pages.forEach((p, i) => {
+      if (!p.title.toLowerCase().includes(kw)) return;
+      const b = document.createElement("button");
+      b.textContent = p.title;
+      if (i === getIndex()) b.style.fontWeight = "bold";
+      b.onclick = () => setIndex(i);
+      pageList.appendChild(b);
+    });
+  }
+
+  function renderPage() {
+    const p = data.pages[getIndex()];
+    if (!p) return;
+    pageTitle.textContent = p.title;
+    content.textContent = p.text;
+  }
+
+  ref.onSnapshot(doc => {
+    if (isEditing) return;
+    if (doc.exists) {
+      data = doc.data();
+    } else {
+      data = { pages: [{ title: "ページ1", text: "" }] };
+      ref.set(data);
+    }
+    renderList();
+    renderPage();
+  });
+
+  function saveAll() {
+    return ref.set({ pages: data.pages }, { merge: true });
+  }
+
+  editBtn.onclick = () => {
+    isEditing = true;
+    editor.value = content.textContent;
+    content.style.display = "none";
+    editor.style.display = "block";
+    editBtn.style.display = "none";
+    saveBtn.style.display = "inline";
+  };
+
+  saveBtn.onclick = async () => {
+    data.pages[getIndex()].text = editor.value;
+    await saveAll();
+    isEditing = false;
+    editor.style.display = "none";
+    content.style.display = "block";
+    editBtn.style.display = "inline";
+    saveBtn.style.display = "none";
+    renderPage();
+  };
+
+  document.getElementById("editTitle").onclick = async () => {
+    const i = getIndex();
+    const t = prompt("ページタイトル", data.pages[i].title);
+    if (!t) return;
+    data.pages[i].title = t;
+    await saveAll();
+    renderList();
+    renderPage();
+  };
+
+  document.getElementById("add").onclick = async () => {
+    data.pages.push({ title: "新しいページ", text: "" });
+    await saveAll();
+    setIndex(data.pages.length - 1);
+  };
+
+  document.getElementById("remove").onclick = async () => {
+    if (data.pages.length <= 1) return alert("最後のページは削除できません");
+    data.pages.splice(getIndex(), 1);
+    await saveAll();
+    setIndex(0);
+  };
+
+  /* ===== 本文コピー ===== */
+  copyTextBtn.onclick = async () => {
+    const text =
+      editor.style.display === "block"
+        ? editor.value
+        : content.textContent;
+
+    if (!text.trim()) {
+      alert("コピーする本文がありません");
       return;
     }
 
-    const result =
-      json.candidates?.[0]?.content?.parts?.[0]?.text;
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("本文をコピーしました");
+    } catch {
+      prompt("コピーできない場合はこちら", text);
+    }
+  };
 
-    out.textContent = result || "回答がありませんでした";
-
-  } catch (e) {
-    out.textContent = "通信エラー: " + e.message;
-  }
+  search.oninput = renderList;
+  document.getElementById("toggle").onclick =
+    () => sidebar.classList.toggle("hidden");
 }
+</script>
+
+</body>
+</html>
