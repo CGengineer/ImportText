@@ -14,13 +14,20 @@ body {
   display: flex;
 }
 
+/* ===== 認証 ===== */
+#auth {
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+}
+
 /* ===== サイドバー ===== */
 #sidebar {
   width: 260px;
   border-right: 1px solid #ccc;
   padding: 10px;
   box-sizing: border-box;
-  display: flex;
+  display: none;
   flex-direction: column;
 }
 #sidebar.hidden { display: none; }
@@ -47,7 +54,7 @@ body {
 /* ===== メイン ===== */
 #main {
   flex: 1;
-  display: flex;
+  display: none;
   flex-direction: column;
   padding: 12px;
   box-sizing: border-box;
@@ -77,14 +84,23 @@ h1 {
 textarea { display: none; }
 </style>
 
-<!-- Firebase SDK（正しい読み込み） -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 
 <body>
 
-<!-- 左：ページ一覧 -->
+<!-- ===== 認証画面 ===== -->
+<div id="auth">
+  <h2>ログイン / 新規登録</h2>
+  <input id="email" placeholder="メールアドレス"><br><br>
+  <input id="password" type="password" placeholder="パスワード"><br><br>
+  <button id="login">ログイン / 登録</button>
+</div>
+
+<!-- ===== 左：ページ一覧 ===== -->
 <div id="sidebar">
   <input id="search" placeholder="🔍 ページ検索">
 
@@ -94,9 +110,11 @@ textarea { display: none; }
   </div>
 
   <div id="pageList"></div>
+
+  <button id="logout">ログアウト</button>
 </div>
 
-<!-- 右：内容 -->
+<!-- ===== 右：内容 ===== -->
 <div id="main">
   <header>
     <button id="toggle">≡</button>
@@ -123,22 +141,54 @@ const firebaseConfig = {
   projectId: "importtext-b229d",
   storageBucket: "importtext-b229d.firebasestorage.app",
   messagingSenderId: "746746157474",
-  appId: "1:746746157474:web:b4143b7bc94515e2a4bafb",
-  measurementId: "G-7397MZJDXD"
+  appId: "1:746746157474:web:b4143b7bc94515e2a4bafb"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
 /* ===== DOM ===== */
+const authDiv = document.getElementById("auth");
 const sidebar = document.getElementById("sidebar");
+const main = document.getElementById("main");
+
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+
 const pageList = document.getElementById("pageList");
 const search = document.getElementById("search");
 const pageTitle = document.getElementById("pageTitle");
 const content = document.getElementById("content");
 const editor = document.getElementById("editor");
+
 const editBtn = document.getElementById("edit");
 const saveBtn = document.getElementById("save");
+
+/* ===== 認証 ===== */
+document.getElementById("login").onclick = async () => {
+  const email = emailInput.value;
+  const pwd = passwordInput.value;
+  try {
+    await auth.signInWithEmailAndPassword(email, pwd);
+  } catch {
+    await auth.createUserWithEmailAndPassword(email, pwd);
+  }
+};
+
+document.getElementById("logout").onclick = () => auth.signOut();
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    authDiv.style.display = "none";
+    sidebar.style.display = "flex";
+    main.style.display = "flex";
+  } else {
+    authDiv.style.display = "block";
+    sidebar.style.display = "none";
+    main.style.display = "none";
+  }
+});
 
 /* ===== データ ===== */
 let data = { pages: [] };
@@ -196,7 +246,6 @@ editBtn.onclick = () => {
   editBtn.style.display = "none";
   saveBtn.style.display = "inline";
 };
-
 saveBtn.onclick = () => {
   data.pages[getIndex()].text = editor.value;
   saveAll();
@@ -206,7 +255,7 @@ saveBtn.onclick = () => {
   saveBtn.style.display = "none";
 };
 
-/* ===== タイトル ===== */
+/* ===== ボタン類 ===== */
 document.getElementById("editTitle").onclick = () => {
   const i = getIndex();
   const t = prompt("ページタイトル", data.pages[i].title);
@@ -216,7 +265,6 @@ document.getElementById("editTitle").onclick = () => {
   }
 };
 
-/* ===== ページ管理 ===== */
 document.getElementById("add").onclick = () => {
   data.pages.push({ title: "新しいページ", text: "" });
   saveAll();
@@ -232,32 +280,30 @@ document.getElementById("remove").onclick = () => {
   setIndex(Math.max(0, i - 1));
 };
 
-/* ===== URLコピー ===== */
 document.getElementById("copyUrl").onclick = async () => {
   const url = location.href;
   try {
     await navigator.clipboard.writeText(url);
     alert("URLをコピーしました");
   } catch {
-    prompt("コピーできない場合はこちら", url);
+    prompt("コピー", url);
   }
 };
 
-/* ===== NotebookLM エクスポート ===== */
 document.getElementById("exportNotebookLM").onclick = async () => {
   let text = "◆ NotebookLM 用エクスポート\n\n";
-  data.pages.forEach((p, i) => {
-    text += `【${i + 1}】${p.title}\n${p.text}\n\n-----------------\n\n`;
+  data.pages.forEach((p,i)=>{
+    text += `【${i+1}】${p.title}\n${p.text}\n\n-----------------\n\n`;
   });
   try {
     await navigator.clipboard.writeText(text);
     alert("NotebookLM用にコピーしました");
   } catch {
-    prompt("手動コピー用", text);
+    prompt("手動コピー", text);
   }
 };
 
-/* ===== UI ===== */
+/* UI */
 search.oninput = renderList;
 document.getElementById("toggle").onclick = () => sidebar.classList.toggle("hidden");
 window.addEventListener("hashchange", renderPage);
