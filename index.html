@@ -1,0 +1,62 @@
+
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>インポート用テキスト</title>
+  <style>
+    body { font-family: system-ui; margin: 20px; }
+    #content {
+      white-space: pre-wrap;
+      border: 1px solid #ccc;
+      padding: 10px;
+      min-height: 60vh;
+    }
+    textarea {
+      width: 100%;
+      height: 60vh;
+    }
+    button { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h1>インポート用テキスト</h1>
+
+<div id="content"></div>
+<textarea id="editor" style="display:none;"></textarea>
+
+<button id="edit">✏️ 編集</button>
+<button id="save" style="display:none;">💾 保存</button>
+
+<script>
+const content = document.getElementById("content");
+const editor = document.getElementById("editor");
+const edit = document.getElementById("edit");
+const save = document.getElementById("save");
+
+content.textContent =
+  localStorage.getItem("importText") ||
+  "スマホからここを編集できます";
+
+edit.onclick = () => {
+  editor.value = content.textContent;
+  content.style.display = "none";
+  editor.style.display = "block";
+  edit.style.display = "none";
+  save.style.display = "inline";
+};
+
+save.onclick = () => {
+  content.textContent = editor.value;
+  localStorage.setItem("importText", editor.value);
+  content.style.display = "block";
+  editor.style.display = "none";
+  edit.style.display = "inline";
+  save.style.display = "none";
+};
+</script>
+
+</body>
+</html>
