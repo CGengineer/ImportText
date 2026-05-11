@@ -1,62 +1,173 @@
-
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>インポート用テキスト</title>
-  <style>
-    body { font-family: system-ui; margin: 20px; }
-    #content {
-      white-space: pre-wrap;
-      border: 1px solid #ccc;
-      padding: 10px;
-      min-height: 60vh;
-    }
-    textarea {
-      width: 100%;
-      height: 60vh;
-    }
-    button { margin-top: 10px; }
-  </style>
+<meta charset="UTF-8">
+<title>インポートテキスト管理</title>
+
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+nav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin: 10px 0;
+}
+
+nav button {
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+#content, textarea {
+  flex: 1;
+  width: 100%;
+  border: 1px solid #ccc;
+  padding: 10px;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  font-size: 14px;
+}
+
+textarea {
+  display: none;
+}
+
+footer {
+  margin-top: 10px;
+}
+</style>
 </head>
+
 <body>
 
-<h1>インポート用テキスト</h1>
+<header>
+  <h1 id="title"></h1>
+  <button id="editTitle">✏️ タイトル編集</button>
+</header>
+
+<nav id="pages"></nav>
 
 <div id="content"></div>
-<textarea id="editor" style="display:none;"></textarea>
+<textarea id="editor"></textarea>
 
-<button id="edit">✏️ 編集</button>
-<button id="save" style="display:none;">💾 保存</button>
+<footer>
+  <button id="edit">✏️ 編集</button>
+  <button id="save" style="display:none;">💾 保存</button>
+  <button id="addPage">＋ ページ追加</button>
+</footer>
 
 <script>
+/* ---------- データ ---------- */
+const data = JSON.parse(localStorage.getItem("data")) || {
+  title: "インポート用テキスト",
+  pages: [{ name: "ページ1", text: "" }],
+  current: 0
+};
+
+const titleEl = document.getElementById("title");
+const pagesEl = document.getElementById("pages");
 const content = document.getElementById("content");
 const editor = document.getElementById("editor");
-const edit = document.getElementById("edit");
-const save = document.getElementById("save");
 
-content.textContent =
-  localStorage.getItem("importText") ||
-  "スマホからここを編集できます";
+function saveAll() {
+  localStorage.setItem("data", JSON.stringify(data));
+}
 
-edit.onclick = () => {
+/* ---------- タイトル ---------- */
+function renderTitle() {
+  titleEl.textContent = data.title;
+}
+
+document.getElementById("editTitle").onclick = () => {
+  const t = prompt("タイトルを入力", data.title);
+  if (t !== null) {
+    data.title = t;
+    saveAll();
+    renderTitle();
+  }
+};
+
+/* ---------- ページ ---------- */
+function renderPages() {
+  pagesEl.innerHTML = "";
+  data.pages.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.textContent = p.name;
+    if (i === data.current) b.style.fontWeight = "bold";
+    b.onclick = () => {
+      data.current = i;
+      saveAll();
+      render();
+    };
+    pagesEl.appendChild(b);
+  });
+}
+
+document.getElementById("addPage").onclick = () => {
+  const name = prompt("ページ名");
+  if (!name) return;
+  data.pages.push({ name, text: "" });
+  data.current = data.pages.length - 1;
+  saveAll();
+  render();
+};
+
+/* ---------- 本文 ---------- */
+function renderContent() {
+  content.textContent = data.pages[data.current].text || "";
+}
+
+document.getElementById("edit").onclick = () => {
   editor.value = content.textContent;
   content.style.display = "none";
   editor.style.display = "block";
-  edit.style.display = "none";
-  save.style.display = "inline";
+  document.getElementById("edit").style.display = "none";
+  document.getElementById("save").style.display = "inline";
 };
 
-save.onclick = () => {
-  content.textContent = editor.value;
-  localStorage.setItem("importText", editor.value);
-  content.style.display = "block";
+document.getElementById("save").onclick = () => {
+  data.pages[data.current].text = editor.value;
+  saveAll();
   editor.style.display = "none";
-  edit.style.display = "inline";
-  save.style.display = "none";
+  content.style.display = "block";
+  document.getElementById("edit").style.display = "inline";
+  document.getElementById("save").style.display = "none";
+  renderContent();
 };
+
+/* ---------- 初期描画 ---------- */
+function render() {
+  renderTitle();
+  renderPages();
+  renderContent();
+}
+
+render();
 </script>
 
 </body>
 </html>
+``
