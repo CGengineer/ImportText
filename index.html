@@ -77,26 +77,22 @@ h1 {
 textarea { display: none; }
 </style>
 
-<!-- Firebase SDK（正しい読み込み） -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 
 <body>
 
-<!-- 左：ページ一覧 -->
 <div id="sidebar">
   <input id="search" placeholder="🔍 ページ検索">
-
   <div class="sidebar-actions">
     <button id="add">＋ ページ追加</button>
     <button id="remove">🗑 ページ削除</button>
   </div>
-
   <div id="pageList"></div>
 </div>
 
-<!-- 右：内容 -->
 <div id="main">
   <header>
     <button id="toggle">≡</button>
@@ -116,19 +112,14 @@ textarea { display: none; }
 </div>
 
 <script>
-/* ===== Firebase設定 ===== */
-const firebaseConfig = {
+/* ===== Firebase ===== */
+firebase.initializeApp({
   apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
   authDomain: "importtext-b229d.firebaseapp.com",
-  projectId: "importtext-b229d",
-  storageBucket: "importtext-b229d.firebasestorage.app",
-  messagingSenderId: "746746157474",
-  appId: "1:746746157474:web:b4143b7bc94515e2a4bafb",
-  measurementId: "G-7397MZJDXD"
-};
-
-firebase.initializeApp(firebaseConfig);
+  projectId: "importtext-b229d"
+});
 const db = firebase.firestore();
+const ref = db.collection("app").doc("pages");
 
 /* ===== DOM ===== */
 const sidebar = document.getElementById("sidebar");
@@ -140,16 +131,18 @@ const editor = document.getElementById("editor");
 const editBtn = document.getElementById("edit");
 const saveBtn = document.getElementById("save");
 
-/* ===== データ ===== */
+/* ===== 状態 ===== */
 let data = { pages: [] };
+let isEditing = false;
 
 /* ===== URL ===== */
 function getIndex() {
   const i = parseInt(location.hash.replace("#page-", ""), 10);
-  return isNaN(i) ? 0 : i;
+  return (!isNaN(i) && data.pages[i]) ? i : 0;
 }
 function setIndex(i) {
   location.hash = `page-${i}`;
+  renderPage();
 }
 
 /* ===== 描画 ===== */
@@ -172,8 +165,9 @@ function renderPage() {
   content.textContent = p.text;
 }
 
-/* ===== Firestore同期 ===== */
-db.collection("app").doc("pages").onSnapshot(doc => {
+/* ===== Firestore 同期 ===== */
+ref.onSnapshot(doc => {
+  if (isEditing) return;     // ★編集・保存中は無視
   if (doc.exists) {
     data = doc.data();
   } else {
@@ -185,11 +179,12 @@ db.collection("app").doc("pages").onSnapshot(doc => {
 });
 
 function saveAll() {
-  db.collection("app").doc("pages").set({ pages: data.pages });
+  return ref.set({ pages: data.pages }, { merge: true });
 }
 
 /* ===== 編集 ===== */
 editBtn.onclick = () => {
+  isEditing = true;
   editor.value = content.textContent;
   content.style.display = "none";
   editor.style.display = "block";
@@ -197,42 +192,54 @@ editBtn.onclick = () => {
   saveBtn.style.display = "inline";
 };
 
-saveBtn.onclick = () => {
+saveBtn.onclick = async () => {
   data.pages[getIndex()].text = editor.value;
-  saveAll();
+  await saveAll();
+  isEditing = false;
+
   editor.style.display = "none";
   content.style.display = "block";
   editBtn.style.display = "inline";
   saveBtn.style.display = "none";
+
+  renderPage();
 };
 
 /* ===== タイトル ===== */
-document.getElementById("editTitle").onclick = () => {
+document.getElementById("editTitle").onclick = async () => {
   const i = getIndex();
   const t = prompt("ページタイトル", data.pages[i].title);
-  if (t) {
-    data.pages[i].title = t;
-    saveAll();
-  }
+  if (!t) return;
+  data.pages[i].title = t;
+  await saveAll();
+  renderList();
+  renderPage();
 };
 
 /* ===== ページ管理 ===== */
-document.getElementById("add").onclick = () => {
+document.getElementById("add").onclick = async () => {
   data.pages.push({ title: "新しいページ", text: "" });
-  saveAll();
+  await saveAll();
   setIndex(data.pages.length - 1);
+  renderList();
 };
 
-document.getElementById("remove").onclick = () => {
-  if (data.pages.length <= 1) return alert("最後のページは削除できません");
+document.getElementById("remove").onclick = async () => {
+  if (data.pages.length <= 1)
+    return alert("最後のページは削除できません");
   const i = getIndex();
   if (!confirm(`「${data.pages[i].title}」を削除しますか？`)) return;
   data.pages.splice(i, 1);
-  saveAll();
+  await saveAll();
   setIndex(Math.max(0, i - 1));
+  renderList();
 };
 
-/* ===== URLコピー ===== */
+/* ===== その他 ===== */
+search.oninput = renderList;
+document.getElementById("toggle").onclick = () =>
+  sidebar.classList.toggle("hidden");
+
 document.getElementById("copyUrl").onclick = async () => {
   const url = location.href;
   try {
@@ -243,7 +250,6 @@ document.getElementById("copyUrl").onclick = async () => {
   }
 };
 
-/* ===== NotebookLM エクスポート ===== */
 document.getElementById("exportNotebookLM").onclick = async () => {
   let text = "◆ NotebookLM 用エクスポート\n\n";
   data.pages.forEach((p, i) => {
@@ -257,9 +263,6 @@ document.getElementById("exportNotebookLM").onclick = async () => {
   }
 };
 
-/* ===== UI ===== */
-search.oninput = renderList;
-document.getElementById("toggle").onclick = () => sidebar.classList.toggle("hidden");
 window.addEventListener("hashchange", renderPage);
 </script>
 
