@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>インポートテキスト管理</title>
+<title>インポートテキスト管理 + Gemini RAG</title>
 
 <style>
 html, body {
@@ -71,6 +71,19 @@ h1 {
 }
 textarea { display: none; }
 
+/* ===== RAG UI ===== */
+#rag {
+  border-top: 1px solid #ccc;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+#answer {
+  margin-top: 10px;
+  white-space: pre-wrap;
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
 /* ===== ログイン ===== */
 #login {
   position: fixed;
@@ -129,9 +142,19 @@ textarea { display: none; }
 
   <div id="content"></div>
   <textarea id="editor"></textarea>
+
+  <!-- ===== RAG ===== -->
+  <div id="rag">
+    <input id="question" placeholder="このメモについて質問…" style="width:100%">
+    <button id="ask">🤖 AIに聞く</button>
+    <div id="answer"></div>
+  </div>
 </div>
 
 <script>
+/* ===== Gemini APIキー ===== */
+const GEMINI_API_KEY = "AIzaSyB84Y0O_qGHqSR0YTEzAwqt6ifgt6-xCrw";
+
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
@@ -158,7 +181,6 @@ loginBtn.onclick = async () => {
     loginMsg.textContent = e.message;
   }
 };
-
 registerBtn.onclick = async () => {
   try {
     await auth.createUserWithEmailAndPassword(email.value, password.value);
@@ -180,9 +202,6 @@ function initApp(uid) {
   const pageTitle = document.getElementById("pageTitle");
   const content = document.getElementById("content");
   const editor = document.getElementById("editor");
-  const editBtn = document.getElementById("edit");
-  const saveBtn = document.getElementById("save");
-  const copyTextBtn = document.getElementById("copyText");
 
   function getIndex() {
     const i = parseInt(location.hash.replace("#page-", ""), 10);
@@ -214,6 +233,12 @@ function initApp(uid) {
     content.textContent = p.text;
   }
 
+  function collectAllText() {
+    return data.pages
+      .map(p => `【${p.title}】\n${p.text}`)
+      .join("\n\n---\n\n");
+  }
+
   ref.onSnapshot(doc => {
     if (isEditing) return;
     if (doc.exists) {
@@ -226,71 +251,41 @@ function initApp(uid) {
     renderPage();
   });
 
-  function saveAll() {
-    return ref.set({ pages: data.pages }, { merge: true });
-  }
-
-  editBtn.onclick = () => {
-    isEditing = true;
-    editor.value = content.textContent;
-    content.style.display = "none";
-    editor.style.display = "block";
-    editBtn.style.display = "none";
-    saveBtn.style.display = "inline";
-  };
-
-  saveBtn.onclick = async () => {
-    data.pages[getIndex()].text = editor.value;
-    await saveAll();
-    isEditing = false;
-    editor.style.display = "none";
-    content.style.display = "block";
-    editBtn.style.display = "inline";
-    saveBtn.style.display = "none";
-    renderPage();
-  };
-
-  document.getElementById("editTitle").onclick = async () => {
-    const i = getIndex();
-    const t = prompt("ページタイトル", data.pages[i].title);
-    if (!t) return;
-    data.pages[i].title = t;
-    await saveAll();
-    renderList();
-    renderPage();
-  };
-
-  document.getElementById("add").onclick = async () => {
-    data.pages.push({ title: "新しいページ", text: "" });
-    await saveAll();
-    setIndex(data.pages.length - 1);
-  };
-
-  document.getElementById("remove").onclick = async () => {
-    if (data.pages.length <= 1) return alert("最後のページは削除できません");
-    data.pages.splice(getIndex(), 1);
-    await saveAll();
-    setIndex(0);
-  };
-
-  /* ===== 本文コピー ===== */
-  copyTextBtn.onclick = async () => {
-    const text =
-      editor.style.display === "block"
-        ? editor.value
-        : content.textContent;
-
-    if (!text.trim()) {
-      alert("コピーする本文がありません");
+  document.getElementById("ask").onclick = async () => {
+    const q = document.getElementById("question").value.trim();
+    if (!q) {
+      alert("質問を入力してください");
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("本文をコピーしました");
-    } catch {
-      prompt("コピーできない場合はこちら", text);
-    }
+    const prompt = `
+以下は自分のメモです。
+この内容「だけ」を根拠に答えてください。
+
+## メモ
+${collectAllText()}
+
+## 質問
+${q}
+`;
+
+    document.getElementById("answer").textContent = "考え中…";
+
+    const res = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }]
+        })
+      }
+    );
+
+    const json = await res.json();
+    document.getElementById("answer").textContent =
+      json.candidates?.[0]?.content?.parts?.[0]?.text
+      || "回答を取得できませんでした";
   };
 
   search.oninput = renderList;
