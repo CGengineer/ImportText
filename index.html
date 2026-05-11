@@ -20,11 +20,11 @@ body {
 
 header {
   display: flex;
+  gap: 8px;
   align-items: center;
-  gap: 10px;
 }
 
-header h1 {
+h1 {
   margin: 0;
   font-size: 20px;
 }
@@ -32,13 +32,12 @@ header h1 {
 nav {
   display: flex;
   gap: 6px;
-  overflow-x: auto;
   margin: 10px 0;
+  overflow-x: auto;
 }
 
 nav button {
   padding: 6px 10px;
-  white-space: nowrap;
 }
 
 #content, textarea {
@@ -48,7 +47,6 @@ nav button {
   padding: 10px;
   box-sizing: border-box;
   white-space: pre-wrap;
-  font-size: 14px;
 }
 
 textarea {
@@ -64,86 +62,72 @@ footer {
 <body>
 
 <header>
-  <h1 id="title"></h1>
-  <button id="editTitle">✏️ タイトル編集</button>
+  <h1 id="pageTitle"></h1>
+  <button id="editTitle">✏️ ページタイトル編集</button>
 </header>
 
-<nav id="pages"></nav>
+<nav id="nav"></nav>
 
 <div id="content"></div>
 <textarea id="editor"></textarea>
 
 <footer>
-  <button id="editBtn">✏️ 編集</button>
-  <button id="saveBtn" style="display:none;">💾 保存</button>
-  <button id="addPage">＋ ページ追加</button>
+  <button id="edit">✏️ 編集</button>
+  <button id="save" style="display:none">💾 保存</button>
+  <button id="add">＋ ページ追加</button>
 </footer>
 
 <script>
-/* ========= ボタン取得 ========= */
-const editBtn = document.getElementById("editBtn");
-const saveBtn = document.getElementById("saveBtn");
-
-/* ========= データ ========= */
-const data = JSON.parse(localStorage.getItem("data")) || {
-  title: "インポート用テキスト",
-  pages: [{ name: "ページ1", text: "" }],
-  current: 0
+/* ===== データ ===== */
+const data = JSON.parse(localStorage.getItem("pages")) || {
+  pages: [
+    { title: "ページ1", text: "" }
+  ]
 };
 
-const titleEl = document.getElementById("title");
-const pagesEl = document.getElementById("pages");
+const nav = document.getElementById("nav");
 const content = document.getElementById("content");
 const editor = document.getElementById("editor");
+const pageTitle = document.getElementById("pageTitle");
+const editBtn = document.getElementById("edit");
+const saveBtn = document.getElementById("save");
 
 function saveAll() {
-  localStorage.setItem("data", JSON.stringify(data));
+  localStorage.setItem("pages", JSON.stringify(data));
 }
 
-/* ========= タイトル ========= */
-function renderTitle() {
-  titleEl.textContent = data.title;
+/* ===== URLからページ番号取得 ===== */
+function getPageIndex() {
+  const hash = location.hash.replace("#page-", "");
+  const index = parseInt(hash, 10);
+  return isNaN(index) ? 0 : index;
 }
 
-document.getElementById("editTitle").onclick = () => {
-  const t = prompt("タイトルを入力", data.title);
-  if (t !== null) {
-    data.title = t;
-    saveAll();
-    renderTitle();
-  }
-};
+function setPageIndex(i) {
+  location.hash = `page-${i}`;
+}
 
-/* ========= ページ ========= */
-function renderPages() {
-  pagesEl.innerHTML = "";
+/* ===== 描画 ===== */
+function renderNav() {
+  nav.innerHTML = "";
   data.pages.forEach((p, i) => {
-    const b = document.createElement("button");
-    b.textContent = p.name;
-    if (i === data.current) b.style.fontWeight = "bold";
-    b.onclick = () => {
-      data.current = i;
-      saveAll();
-      render();
-    };
-    pagesEl.appendChild(b);
+    const btn = document.createElement("button");
+    btn.textContent = p.title;
+    btn.onclick = () => setPageIndex(i);
+    nav.appendChild(btn);
   });
 }
 
-document.getElementById("addPage").onclick = () => {
-  const name = prompt("ページ名");
-  if (!name) return;
-  data.pages.push({ name, text: "" });
-  data.current = data.pages.length - 1;
-  saveAll();
-  render();
-};
+function renderPage() {
+  const i = getPageIndex();
+  const page = data.pages[i];
+  if (!page) return;
 
-/* ========= 本文 ========= */
-function renderContent() {
-  content.textContent = data.pages[data.current].text || "";
+  pageTitle.textContent = page.title;
+  content.textContent = page.text;
 }
 
+/* ===== 編集 ===== */
 editBtn.onclick = () => {
   editor.value = content.textContent;
   content.style.display = "none";
@@ -153,23 +137,41 @@ editBtn.onclick = () => {
 };
 
 saveBtn.onclick = () => {
-  data.pages[data.current].text = editor.value;
+  const i = getPageIndex();
+  data.pages[i].text = editor.value;
   saveAll();
   editor.style.display = "none";
   content.style.display = "block";
   editBtn.style.display = "inline";
   saveBtn.style.display = "none";
-  renderContent();
+  renderPage();
 };
 
-/* ========= 初期描画 ========= */
-function render() {
-  renderTitle();
-  renderPages();
-  renderContent();
-}
+/* ===== タイトル編集 ===== */
+document.getElementById("editTitle").onclick = () => {
+  const i = getPageIndex();
+  const t = prompt("ページタイトル", data.pages[i].title);
+  if (t) {
+    data.pages[i].title = t;
+    saveAll();
+    renderNav();
+    renderPage();
+  }
+};
 
-render();
+/* ===== ページ追加 ===== */
+document.getElementById("add").onclick = () => {
+  data.pages.push({ title: "新しいページ", text: "" });
+  saveAll();
+  const i = data.pages.length - 1;
+  setPageIndex(i);
+};
+
+/* ===== 初期化 ===== */
+window.addEventListener("hashchange", renderPage);
+
+renderNav();
+renderPage();
 </script>
 
 </body>
