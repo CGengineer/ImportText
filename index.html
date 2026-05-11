@@ -114,7 +114,7 @@ textarea { display: none; }
 }
 </style>
 
-<!-- ===== Firebase SDK（※絶対に壊さない） ===== -->
+<!-- ===== Firebase SDK（壊さない） ===== -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -122,7 +122,7 @@ textarea { display: none; }
 
 <body>
 
-<!-- ===== ログイン画面 ===== -->
+<!-- ===== ログイン ===== -->
 <div id="auth">
   <h2>ログイン / 新規登録</h2>
   <input id="email" placeholder="メールアドレス"><br><br>
@@ -175,11 +175,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-/* ===== DOM ===== */
-const authDiv = document.getElementById("auth");
-const sidebar = document.getElementById("sidebar");
-const main = document.getElementById("main");
-
 /* ===== 認証 ===== */
 login.onclick = async () => {
   try {
@@ -188,9 +183,11 @@ login.onclick = async () => {
     await auth.createUserWithEmailAndPassword(email.value, password.value);
   }
 };
+
 logout.onclick = () => auth.signOut();
 
 auth.onAuthStateChanged(user => {
+  auth.style;
   authDiv.style.display = user ? "none" : "block";
   sidebar.style.display = user ? "flex" : "none";
   main.style.display = user ? "flex" : "none";
@@ -210,79 +207,99 @@ function setIndex(i) {
 function renderList() {
   pageList.innerHTML = "";
   const kw = search.value.toLowerCase();
-  data.pages.forEach((p,i)=>{
-    if(!p.title.toLowerCase().includes(kw)) return;
-    const b=document.createElement("button");
-    b.textContent=p.title;
-    b.onclick=()=>setIndex(i);
+  data.pages.forEach((p, i) => {
+    if (!p.title.toLowerCase().includes(kw)) return;
+    const b = document.createElement("button");
+    b.textContent = p.title;
+    b.onclick = () => setIndex(i);
     pageList.appendChild(b);
   });
 }
+
 function renderPage() {
-  const p=data.pages[getIndex()];
-  if(!p) return;
-  pageTitle.textContent=p.title;
-  content.textContent=p.text;
+  const p = data.pages[getIndex()];
+  if (!p) return;
+  pageTitle.textContent = p.title;
+  content.textContent = p.text;
 }
 
-db.collection("app").doc("pages").onSnapshot(doc=>{
-  if(doc.exists) data=doc.data();
-  else {
-    data={pages:[{title:"ページ1",text:""}]};
+/* ===== Firestore 読み込み（エラー対策済） ===== */
+db.collection("app").doc("pages").onSnapshot(
+  doc => {
+    if (doc.exists) {
+      data = doc.data();
+    } else {
+      data = { pages: [{ title: "ページ1", text: "" }] };
+      db.collection("app").doc("pages").set(data);
+    }
+    renderList();
+    renderPage();
+  },
+  error => {
+    alert("Firestoreの権限エラーです。\nルールを確認してください。");
+    console.error(error);
+  }
+);
+
+/* ===== 編集 ===== */
+edit.onclick = () => {
+  editor.value = content.textContent;
+  content.style.display = "none";
+  editor.style.display = "block";
+  edit.style.display = "none";
+  save.style.display = "inline";
+};
+
+save.onclick = () => {
+  data.pages[getIndex()].text = editor.value;
+  db.collection("app").doc("pages").set(data);
+  editor.style.display = "none";
+  content.style.display = "block";
+  edit.style.display = "inline";
+  save.style.display = "none";
+};
+
+editTitle.onclick = () => {
+  const i = getIndex();
+  const t = prompt("タイトル", data.pages[i].title);
+  if (t) {
+    data.pages[i].title = t;
     db.collection("app").doc("pages").set(data);
   }
-  renderList(); renderPage();
-});
-
-edit.onclick=()=>{
-  editor.value=content.textContent;
-  content.style.display="none";
-  editor.style.display="block";
-  edit.style.display="none";
-  save.style.display="inline";
 };
-save.onclick=()=>{
-  data.pages[getIndex()].text=editor.value;
+
+add.onclick = () => {
+  data.pages.push({ title: "新しいページ", text: "" });
   db.collection("app").doc("pages").set(data);
-  editor.style.display="none";
-  content.style.display="block";
-  edit.style.display="inline";
-  save.style.display="none";
+  setIndex(data.pages.length - 1);
 };
 
-editTitle.onclick=()=>{
-  const i=getIndex();
-  const t=prompt("タイトル",data.pages[i].title);
-  if(t){ data.pages[i].title=t; db.collection("app").doc("pages").set(data); }
-};
-
-add.onclick=()=>{
-  data.pages.push({title:"新しいページ",text:""});
-  db.collection("app").doc("pages").set(data);
-  setIndex(data.pages.length-1);
-};
-remove.onclick=()=>{
-  if(!confirm("削除しますか？")) return;
-  data.pages.splice(getIndex(),1);
+remove.onclick = () => {
+  if (!confirm("削除しますか？")) return;
+  data.pages.splice(getIndex(), 1);
   db.collection("app").doc("pages").set(data);
   setIndex(0);
 };
 
-copyUrl.onclick=()=>{
+copyUrl.onclick = () => {
   navigator.clipboard.writeText(location.href);
   alert("URLをコピーしました");
 };
-export.onclick=()=>{
-  let t="◆ NotebookLM用\n\n";
-  data.pages.forEach((p,i)=>t+=`【${i+1}】${p.title}\n${p.text}\n\n`);
+
+export.onclick = () => {
+  let t = "◆ NotebookLM用\n\n";
+  data.pages.forEach((p, i) => {
+    t += `【${i+1}】${p.title}\n${p.text}\n\n`;
+  });
   navigator.clipboard.writeText(t);
   alert("NotebookLM用にコピーしました");
 };
 
-toggle.onclick=()=>sidebar.classList.toggle("show");
-search.oninput=renderList;
-window.addEventListener("hashchange",renderPage);
+toggle.onclick = () => sidebar.classList.toggle("show");
+search.oninput = renderList;
+window.addEventListener("hashchange", renderPage);
 </script>
 
 </body>
 </html>
+``
