@@ -1,265 +1,242 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>インポートテキスト管理</title>
 
 <style>
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  background: #f5f5f5;
+html,body{
+  height:100%;
+  margin:0;
+  font-family:system-ui,sans-serif;
 }
-body {
-  display: flex;
-}
-
-/* ===== ログイン ===== */
-#auth {
-  margin: auto;
-  background: #fff;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.1);
-}
-#auth input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  font-size: 16px;
-}
-#auth button {
-  width: 100%;
-  margin-top: 12px;
-  padding: 10px;
-  font-size: 16px;
-}
-
-/* ===== レイアウト ===== */
-#app {
-  display: none;
-  flex: 1;
+body{
+  display:flex;
 }
 
 /* ===== サイドバー ===== */
-#sidebar {
-  width: 280px;
-  background: #f3f3f3;
-  padding: 12px;
-  box-sizing: border-box;
+#sidebar{
+  width:260px;
+  border-right:1px solid #ccc;
+  padding:10px;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
 }
-#search {
-  width: 100%;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+#sidebar.hidden{display:none;}
+
+#search{
+  padding:6px;
+  margin-bottom:6px;
 }
-.side-actions button {
-  width: 100%;
-  margin-top: 6px;
-  padding: 8px;
-  border-radius: 8px;
+#sidebar .actions{
+  display:flex;
+  gap:6px;
+  margin-bottom:10px;
+  flex-wrap:wrap;
 }
-#pageList button {
-  width: 100%;
-  text-align: left;
-  margin-top: 6px;
-  padding: 8px;
-  border-radius: 8px;
-  background: #e6e6e6;
-  border: none;
+#pageList{
+  flex:1;
+  overflow-y:auto;
+}
+#pageList button{
+  width:100%;
+  text-align:left;
+  margin-bottom:4px;
 }
 
 /* ===== メイン ===== */
-#main {
-  flex: 1;
-  padding: 16px;
-  box-sizing: border-box;
-  background: #fff;
+#main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:12px;
+  box-sizing:border-box;
 }
-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+header{
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
-header h1 {
-  margin: 0;
-  font-size: 22px;
+h1{
+  margin:0;
+  font-size:20px;
 }
-.actions {
-  margin: 12px 0;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.header-actions{
+  display:flex;
+  gap:6px;
 }
-.actions button {
-  padding: 8px 12px;
-  border-radius: 999px;
+
+#content,textarea{
+  flex:1;
+  width:100%;
+  border:1px solid #ccc;
+  padding:10px;
+  white-space:pre-wrap;
+  box-sizing:border-box;
 }
-#content, #editor {
-  width: 100%;
-  height: calc(100% - 140px);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 12px;
-  box-sizing: border-box;
-  white-space: pre-wrap;
-}
-#editor { display: none; }
+textarea{display:none;}
 </style>
 
-<!-- ✅ Firebase SDK（絶対にこの3行だけ） -->
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 
 <body>
 
-<!-- ===== ログイン ===== -->
-<div id="auth">
-  <h2>ログイン / 新規登録</h2>
-  <input id="email" placeholder="メールアドレス">
-  <input id="password" type="password" placeholder="パスワード">
-  <button id="login">ログイン / 登録</button>
+<!-- ===== サイドバー ===== -->
+<div id="sidebar">
+  <input id="search" placeholder="🔍 ページ検索">
+
+  <div class="actions">
+    <button id="add">＋ 追加</button>
+    <button id="remove">🗑 削除</button>
+  </div>
+
+  <div id="pageList"></div>
 </div>
 
-<!-- ===== アプリ ===== -->
-<div id="app">
-  <div id="sidebar">
-    <input id="search" placeholder="🔍 ページ検索">
-    <div class="side-actions">
-      <button id="add">＋ ページ追加</button>
-      <button id="remove">🗑 ページ削除</button>
-    </div>
-    <div id="pageList"></div>
+<!-- ===== メイン ===== -->
+<div id="main">
+  <header>
+    <button id="toggle">≡</button>
+@@ -107,127 +107,142 @@ <h1 id="pageTitle"></h1>
+    <button id="editTitle">✏️ タイトル編集</button>
+    <button id="edit">📝 本文編集</button>
+    <button id="save" style="display:none">💾 保存</button>
+
   </div>
 
-  <div id="main">
-    <header>
-      <h1 id="pageTitle"></h1>
-      <button id="logout">ログアウト</button>
-    </header>
-
-    <div class="actions">
-      <button id="editTitle">✏️ タイトル編集</button>
-      <button id="edit">📝 本文編集</button>
-      <button id="save" style="display:none">💾 保存</button>
-      <button id="copyUrl">🔗 URLコピー</button>
-      <button id="export">🧠 NotebookLM用にコピー</button>
-    </div>
-
-    <div id="content"></div>
-    <textarea id="editor"></textarea>
-  </div>
+  <div id="content"></div>
+  <textarea id="editor"></textarea>
 </div>
 
 <script>
-/* ===== Firebase 初期化 ===== */
-firebase.initializeApp({
-  apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
-  authDomain: "importtext-b229d.firebaseapp.com",
-  projectId: "importtext-b229d"
-});
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-/* ===== 認証 ===== */
-login.onclick = async () => {
-  try {
-    await auth.signInWithEmailAndPassword(email.value, password.value);
-  } catch {
-    await auth.createUserWithEmailAndPassword(email.value, password.value);
-  }
+/* ===== Firebase設定 ===== */
+const firebaseConfig={
+  apiKey:"YOUR_API_KEY",
+  authDomain:"YOUR_PROJECT.firebaseapp.com",
+  projectId:"YOUR_PROJECT_ID",
 };
-logout.onclick = () => auth.signOut();
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
 
-auth.onAuthStateChanged(user => {
-  auth.style;
-  authDiv.style.display = user ? "none" : "block";
-  app.style.display = user ? "flex" : "none";
-});
+/* ===== 要素 ===== */
+const sidebar=document.getElementById("sidebar");
+const pageList=document.getElementById("pageList");
+const search=document.getElementById("search");
+const pageTitle=document.getElementById("pageTitle");
+const content=document.getElementById("content");
+const editor=document.getElementById("editor");
+const editBtn=document.getElementById("edit");
+const saveBtn=document.getElementById("save");
 
 /* ===== データ ===== */
-let data = { pages: [] };
-let index = 0;
+let data={pages:[]};
 
-function renderList() {
-  pageList.innerHTML = "";
-  const kw = search.value.toLowerCase();
+/* ===== URL ===== */
+function getIndex(){
+  const i=parseInt(location.hash.replace("#page-",""),10);
+  return isNaN(i)?0:i;
+}
+function setIndex(i){
+  location.hash=`page-${i}`;
+}
+
+/* ===== 描画 ===== */
+function renderList(){
+  pageList.innerHTML="";
+  const kw=search.value.toLowerCase();
   data.pages.forEach((p,i)=>{
-    if (!p.title.toLowerCase().includes(kw)) return;
-    const b = document.createElement("button");
-    b.textContent = p.title;
-    b.onclick = ()=>{ index=i; renderPage(); };
+    if(!p.title.toLowerCase().includes(kw))return;
+    const b=document.createElement("button");
+    b.textContent=p.title;
+    if(i===getIndex())b.style.fontWeight="bold";
+    b.onclick=()=>setIndex(i);
     pageList.appendChild(b);
   });
 }
-function renderPage() {
-  const p = data.pages[index];
-  if (!p) return;
-  pageTitle.textContent = p.title;
-  content.textContent = p.text;
+function renderPage(){
+  const p=data.pages[getIndex()];
+  if(!p)return;
+  pageTitle.textContent=p.title;
+  content.textContent=p.text;
 }
 
+/* ===== Firebase同期 ===== */
 db.collection("app").doc("pages").onSnapshot(doc=>{
-  if (doc.exists) data = doc.data();
-  else {
-    data = { pages:[{title:"自分用",text:""}] };
-    db.collection("app").doc("pages").set(data);
+  if(doc.exists){
+    data=doc.data();
+  }else{
+    data={pages:[{title:"ページ1",text:""}]};
+    saveAll();
   }
-  renderList(); renderPage();
+  renderList();
+  renderPage();
 });
+function saveAll(){
+  db.collection("app").doc("pages").set({pages:data.pages});
+}
 
-/* ===== 操作 ===== */
-edit.onclick = ()=>{
-  editor.value = content.textContent;
+/* ===== 編集 ===== */
+editBtn.onclick=()=>{
+  editor.value=content.textContent;
   content.style.display="none";
   editor.style.display="block";
-  edit.style.display="none";
-  save.style.display="inline";
+  editBtn.style.display="none";
+  saveBtn.style.display="inline";
 };
-save.onclick = ()=>{
-  data.pages[index].text = editor.value;
-  db.collection("app").doc("pages").set(data);
+saveBtn.onclick=()=>{
+  data.pages[getIndex()].text=editor.value;
+  saveAll();
   editor.style.display="none";
   content.style.display="block";
-  edit.style.display="inline";
-  save.style.display="none";
+  editBtn.style.display="inline";
+  saveBtn.style.display="none";
 };
-editTitle.onclick = ()=>{
-  const t = prompt("タイトル", data.pages[index].title);
-  if (t) {
-    data.pages[index].title = t;
-    db.collection("app").doc("pages").set(data);
+
+/* ===== タイトル ===== */
+document.getElementById("editTitle").onclick=()=>{
+  const i=getIndex();
+  const t=prompt("ページタイトル",data.pages[i].title);
+  if(t){
+    data.pages[i].title=t;
+    saveAll();
   }
 };
-add.onclick = ()=>{
+
+/* ===== 追加削除 ===== */
+document.getElementById("add").onclick=()=>{
   data.pages.push({title:"新しいページ",text:""});
-  db.collection("app").doc("pages").set(data);
+  saveAll();
+  setIndex(data.pages.length-1);
 };
-remove.onclick = ()=>{
-  if (!confirm("削除しますか？")) return;
-  data.pages.splice(index,1);
-  index=0;
-  db.collection("app").doc("pages").set(data);
+document.getElementById("remove").onclick=()=>{
+  if(data.pages.length<=1)return alert("最後のページは削除できません");
+  const i=getIndex();
+  if(!confirm(`「${data.pages[i].title}」を削除しますか？`))return;
+  data.pages.splice(i,1);
+
+
+
+  saveAll();
+  setIndex(Math.max(0,i-1));
+
+
+
+
+
+
+
+
+
+
+
 };
-copyUrl.onclick = ()=>{
-  navigator.clipboard.writeText(location.href);
-  alert("URLをコピーしました");
+
+/* ===== UI ===== */
+search.oninput=renderList;
+document.getElementById("toggle").onclick=()=>{
+  sidebar.classList.toggle("hidden");
 };
-export.onclick = ()=>{
-  let t="◆ NotebookLM用\n\n";
-  data.pages.forEach((p,i)=>{
-    t+=`【${i+1}】${p.title}\n${p.text}\n\n`;
-  });
-  navigator.clipboard.writeText(t);
-  alert("コピーしました");
-};
-search.oninput = renderList;
+window.addEventListener("hashchange",renderPage);
 </script>
 
 </body>
-</html>
