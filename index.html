@@ -15,68 +15,60 @@ body {
   display: flex;
 }
 
-/* ===== ログイン ===== */
-#auth {
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #999;
-}
-
 /* ===== サイドバー ===== */
 #sidebar {
-  width: 240px;
+  width: 260px;
   border-right: 1px solid #999;
-  padding: 8px;
-  display: none;
+  padding: 10px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
-#sidebar button, #sidebar input {
-  width: 100%;
+#search {
+  padding: 6px;
   margin-bottom: 6px;
+}
+#pageList button {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 4px;
 }
 
 /* ===== メイン ===== */
 #main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 10px;
-  display: none;
   box-sizing: border-box;
 }
 #pageTitle {
   font-size: 24px;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
 }
 #content, #editor {
-  width: 100%;
-  height: 60vh;
+  flex: 1;
   border: 1px solid #000;
   padding: 10px;
-  box-sizing: border-box;
   white-space: pre-wrap;
 }
 #editor { display: none; }
 
+.footer {
+  margin-top: 8px;
+}
 .footer button {
   width: 100%;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 </style>
 
-<!-- ✅ Firebase SDK（正しい・壊れない） -->
+<!-- Firebase SDK（Firestoreのみ使用） -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 
 <body>
-
-<!-- ===== ログイン ===== -->
-<div id="auth">
-  <h3>ログイン / 新規登録</h3>
-  <input id="email" placeholder="メールアドレス"><br><br>
-  <input id="password" type="password" placeholder="パスワード"><br><br>
-  <button id="login">ログイン / 登録</button>
-</div>
 
 <!-- ===== サイドバー ===== -->
 <div id="sidebar">
@@ -99,45 +91,22 @@ body {
     <button id="save" style="display:none">保存</button>
     <button id="copyUrl">URLコピー</button>
     <button id="export">NotebookLM用にコピー</button>
-    <button id="logout">ログアウト</button>
   </div>
 </div>
 
 <script>
-/* ===== Firebase 初期化 ===== */
+/* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
-  authDomain: "importtext-b229d.firebaseapp.com",
   projectId: "importtext-b229d"
 });
-const auth = firebase.auth();
 const db = firebase.firestore();
-
-/* ===== 認証 ===== */
-login.onclick = async () => {
-  try {
-    await auth.signInWithEmailAndPassword(email.value, password.value);
-  } catch (e1) {
-    try {
-      await auth.createUserWithEmailAndPassword(email.value, password.value);
-    } catch (e2) {
-      alert(e2.message);
-    }
-  }
-};
-logout.onclick = () => auth.signOut();
-
-auth.onAuthStateChanged(user => {
-  auth.style;
-  authDiv.style.display = user ? "none" : "block";
-  sidebar.style.display = user ? "block" : "none";
-  main.style.display = user ? "block" : "none";
-});
 
 /* ===== データ ===== */
 let data = { pages: [] };
 let index = 0;
 
+/* ===== 描画 ===== */
 function renderList() {
   pageList.innerHTML = "";
   const kw = search.value.toLowerCase();
@@ -161,7 +130,7 @@ db.collection("app").doc("pages").onSnapshot(doc=>{
   if (doc.exists) {
     data = doc.data();
   } else {
-    data = { pages:[{title:"自分用", text:""}] };
+    data = { pages:[{title:"自分用",text:""}] };
     db.collection("app").doc("pages").set(data);
   }
   renderList();
@@ -192,18 +161,18 @@ editTitle.onclick = ()=>{
   }
 };
 add.onclick = ()=>{
-  data.pages.push({title:"新しいページ", text:""});
+  data.pages.push({title:"新しいページ",text:""});
   db.collection("app").doc("pages").set(data);
 };
 remove.onclick = ()=>{
   if (!confirm("削除しますか？")) return;
   data.pages.splice(index,1);
-  index = 0;
+  index=0;
   db.collection("app").doc("pages").set(data);
 };
 copyUrl.onclick = ()=>{
   navigator.clipboard.writeText(location.href);
-  alert("URLをコピーしました");
+  alert("URLコピーしました");
 };
 export.onclick = ()=>{
   let t="◆ NotebookLM用\n\n";
