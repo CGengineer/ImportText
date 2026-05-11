@@ -11,33 +11,59 @@ html, body {
   font-family: system-ui, sans-serif;
 }
 
+/* レイアウト */
 body {
+  display: flex;
+}
+
+#sidebar {
+  width: 240px;
+  border-right: 1px solid #ccc;
+  box-sizing: border-box;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+#sidebar.hidden {
+  display: none;
+}
+
+#main {
+  flex: 1;
   display: flex;
   flex-direction: column;
   padding: 12px;
   box-sizing: border-box;
 }
 
+/* サイドバー */
+#search {
+  padding: 6px;
+  margin-bottom: 8px;
+}
+
+#pageList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+#pageList button {
+  width: 100%;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+/* メイン */
 header {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 8px;
 }
 
 h1 {
   margin: 0;
   font-size: 20px;
-}
-
-nav {
-  display: flex;
-  gap: 6px;
-  margin: 10px 0;
-  overflow-x: auto;
-}
-
-nav button {
-  padding: 6px 10px;
 }
 
 #content, textarea {
@@ -54,126 +80,160 @@ textarea {
 }
 
 footer {
-  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <h1 id="pageTitle"></h1>
-  <button id="editTitle">✏️ ページタイトル編集</button>
-</header>
+<!-- サイドバー -->
+<div id="sidebar">
+  <input id="search" placeholder="🔍 ページ検索">
 
-<nav id="nav"></nav>
+  <div id="pageList"></div>
 
-<div id="content"></div>
-<textarea id="editor"></textarea>
-
-<footer>
-  <button id="edit">✏️ 編集</button>
-  <button id="save" style="display:none">💾 保存</button>
   <button id="add">＋ ページ追加</button>
-</footer>
+  <button id="remove">🗑 ページ削除</button>
+</div>
+
+<!-- メイン -->
+<div id="main">
+  <header>
+    <button id="toggle">≡</button>
+    <h1 id="pageTitle"></h1>
+    <button id="editTitle">✏️ タイトル編集</button>
+  </header>
+
+  <div id="content"></div>
+  <textarea id="editor"></textarea>
+
+  <footer>
+    <button id="edit">✏️ 編集</button>
+    <button id="save" style="display:none">💾 保存</button>
+  </footer>
+</div>
 
 <script>
-/* ===== データ ===== */
+/* ==== データ ==== */
 const data = JSON.parse(localStorage.getItem("pages")) || {
-  pages: [
-    { title: "ページ1", text: "" }
-  ]
+  pages: [{ title: "ページ1", text: "" }]
 };
 
-const nav = document.getElementById("nav");
+const sidebar = document.getElementById("sidebar");
+const pageList = document.getElementById("pageList");
+const search = document.getElementById("search");
+const pageTitle = document.getElementById("pageTitle");
 const content = document.getElementById("content");
 const editor = document.getElementById("editor");
-const pageTitle = document.getElementById("pageTitle");
-const editBtn = document.getElementById("edit");
-const saveBtn = document.getElementById("save");
 
+/* ==== 保存 ==== */
 function saveAll() {
   localStorage.setItem("pages", JSON.stringify(data));
 }
 
-/* ===== URLからページ番号取得 ===== */
-function getPageIndex() {
-  const hash = location.hash.replace("#page-", "");
-  const index = parseInt(hash, 10);
-  return isNaN(index) ? 0 : index;
+/* ==== URL ==== */
+function getIndex() {
+  const i = parseInt(location.hash.replace("#page-", ""), 10);
+  return isNaN(i) ? 0 : i;
 }
-
-function setPageIndex(i) {
+function setIndex(i) {
   location.hash = `page-${i}`;
 }
 
-/* ===== 描画 ===== */
-function renderNav() {
-  nav.innerHTML = "";
+/* ==== 描画 ==== */
+function renderList() {
+  pageList.innerHTML = "";
+  const keyword = search.value.toLowerCase();
+
   data.pages.forEach((p, i) => {
-    const btn = document.createElement("button");
-    btn.textContent = p.title;
-    btn.onclick = () => setPageIndex(i);
-    nav.appendChild(btn);
+    if (!p.title.toLowerCase().includes(keyword)) return;
+
+    const b = document.createElement("button");
+    b.textContent = p.title;
+    if (i === getIndex()) b.style.fontWeight = "bold";
+    b.onclick = () => setIndex(i);
+    pageList.appendChild(b);
   });
 }
 
 function renderPage() {
-  const i = getPageIndex();
-  const page = data.pages[i];
-  if (!page) return;
-
-  pageTitle.textContent = page.title;
-  content.textContent = page.text;
+  const p = data.pages[getIndex()];
+  if (!p) return;
+  pageTitle.textContent = p.title;
+  content.textContent = p.text;
 }
 
-/* ===== 編集 ===== */
-editBtn.onclick = () => {
+/* ==== 検索 ==== */
+search.oninput = renderList;
+
+/* ==== 編集 ==== */
+document.getElementById("edit").onclick = () => {
   editor.value = content.textContent;
   content.style.display = "none";
   editor.style.display = "block";
-  editBtn.style.display = "none";
-  saveBtn.style.display = "inline";
+  edit.style.display = "none";
+  save.style.display = "inline";
 };
 
-saveBtn.onclick = () => {
-  const i = getPageIndex();
-  data.pages[i].text = editor.value;
+document.getElementById("save").onclick = () => {
+  data.pages[getIndex()].text = editor.value;
   saveAll();
   editor.style.display = "none";
   content.style.display = "block";
-  editBtn.style.display = "inline";
-  saveBtn.style.display = "none";
+  edit.style.display = "inline";
+  save.style.display = "none";
   renderPage();
 };
 
-/* ===== タイトル編集 ===== */
+/* ==== タイトル ==== */
 document.getElementById("editTitle").onclick = () => {
-  const i = getPageIndex();
+  const i = getIndex();
   const t = prompt("ページタイトル", data.pages[i].title);
   if (t) {
     data.pages[i].title = t;
     saveAll();
-    renderNav();
+    renderList();
     renderPage();
   }
 };
 
-/* ===== ページ追加 ===== */
+/* ==== 追加・削除 ==== */
 document.getElementById("add").onclick = () => {
   data.pages.push({ title: "新しいページ", text: "" });
   saveAll();
-  const i = data.pages.length - 1;
-  setPageIndex(i);
+  setIndex(data.pages.length - 1);
 };
 
-/* ===== 初期化 ===== */
-window.addEventListener("hashchange", renderPage);
+document.getElementById("remove").onclick = () => {
+  if (data.pages.length <= 1) {
+    alert("最後のページは削除できません");
+    return;
+  }
+  const i = getIndex();
+  if (!confirm(`「${data.pages[i].title}」を削除しますか？`)) return;
+  data.pages.splice(i, 1);
+  saveAll();
+  setIndex(Math.max(0, i - 1));
+};
 
-renderNav();
+/* ==== サイドバー開閉 ==== */
+document.getElementById("toggle").onclick = () => {
+  sidebar.classList.toggle("hidden");
+};
+
+/* ==== 初期 ==== */
+window.addEventListener("hashchange", () => {
+  renderList();
+  renderPage();
+});
+
+renderList();
 renderPage();
 </script>
 
 </body>
 </html>
-``
