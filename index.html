@@ -12,7 +12,7 @@ html, body {
 }
 body { display: flex; }
 
-/* ===== サイドバー ===== */
+/* ===== レイアウト ===== */
 #sidebar {
   width: 260px;
   border-right: 1px solid #ccc;
@@ -22,48 +22,20 @@ body { display: flex; }
   flex-direction: column;
 }
 #sidebar.hidden { display: none; }
-#search { padding: 6px; margin-bottom: 6px; }
-.sidebar-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-#pageList {
+#main {
   flex: 1;
-  overflow-y: auto;
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 #pageList button {
   width: 100%;
   text-align: left;
   margin-bottom: 4px;
 }
-
-/* ===== メイン ===== */
-#main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-  box-sizing: border-box;
-}
-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-h1 {
-  margin: 0;
-  font-size: 20px;
-}
-.header-actions {
-  display: flex;
-  gap: 8px;
-  margin: 10px 0;
-}
 #content, textarea {
   flex: 1;
-  width: 100%;
   border: 1px solid #ccc;
   padding: 10px;
   white-space: pre-wrap;
@@ -71,7 +43,7 @@ h1 {
 }
 textarea { display: none; }
 
-/* ===== RAG UI ===== */
+/* ===== RAG ===== */
 #rag {
   border-top: 1px solid #ccc;
   margin-top: 10px;
@@ -81,18 +53,9 @@ textarea { display: none; }
   margin-top: 10px;
   white-space: pre-wrap;
   border: 1px solid #ccc;
-  padding: 8px;
-}
-
-/* ===== ログイン ===== */
-#login {
-  position: fixed;
-  inset: 0;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
+  padding: 10px;
+  background: #f9f9f9;
+  font-size: 14px;
 }
 </style>
 
@@ -104,40 +67,18 @@ textarea { display: none; }
 
 <body>
 
-<!-- ===== ログイン画面 ===== -->
-<div id="login">
-  <div>
-    <h2>ログイン</h2>
-    <input id="email" placeholder="メール"><br><br>
-    <input id="password" type="password" placeholder="パスワード"><br><br>
-    <button id="loginBtn">ログイン</button>
-    <button id="registerBtn">新規登録</button>
-    <p id="loginMsg" style="color:red"></p>
-  </div>
-</div>
-
-<!-- ===== サイドバー ===== -->
 <div id="sidebar">
-  <input id="search" placeholder="🔍 ページ検索">
-  <div class="sidebar-actions">
-    <button id="add">＋ ページ追加</button>
-    <button id="remove">🗑 ページ削除</button>
-  </div>
+  <button id="add">＋ ページ追加</button>
   <div id="pageList"></div>
 </div>
 
-<!-- ===== メイン ===== -->
 <div id="main">
-  <header>
-    <button id="toggle">≡</button>
-    <h1 id="pageTitle"></h1>
-  </header>
+  <h2 id="pageTitle"></h2>
 
-  <div class="header-actions">
-    <button id="editTitle">✏️ タイトル編集</button>
-    <button id="edit">📝 本文編集</button>
-    <button id="save" style="display:none">💾 保存</button>
-    <button id="copyText">📋 本文コピー</button>
+  <div>
+    <button id="edit">編集</button>
+    <button id="save" style="display:none">保存</button>
+    <button id="copyText">本文コピー</button>
   </div>
 
   <div id="content"></div>
@@ -152,8 +93,8 @@ textarea { display: none; }
 </div>
 
 <script>
-/* ===== Gemini APIキー ===== */
-const GEMINI_API_KEY = "AIzaSyB84Y0O_qGHqSR0YTEzAwqt6ifgt6-xCrw";
+/* ===== ★ Gemini API キー（必ず自分のものに置換） ===== */
+const GEMINI_API_KEY = "ここに自分のGemini_API_KEY";
 
 /* ===== Firebase ===== */
 firebase.initializeApp({
@@ -164,135 +105,141 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* ===== ログイン制御 ===== */
-auth.onAuthStateChanged(user => {
-  if (user) {
-    document.getElementById("login").style.display = "none";
-    initApp(user.uid);
-  } else {
-    document.getElementById("login").style.display = "flex";
-  }
-});
+/* ===== データ ===== */
+let data = { pages: [] };
+let index = 0;
+let editing = false;
 
-loginBtn.onclick = async () => {
-  try {
-    await auth.signInWithEmailAndPassword(email.value, password.value);
-  } catch (e) {
-    loginMsg.textContent = e.message;
-  }
-};
-registerBtn.onclick = async () => {
-  try {
-    await auth.createUserWithEmailAndPassword(email.value, password.value);
-  } catch (e) {
-    loginMsg.textContent = e.message;
-  }
-};
+const pageList = document.getElementById("pageList");
+const titleEl = document.getElementById("pageTitle");
+const contentEl = document.getElementById("content");
+const editorEl = document.getElementById("editor");
 
-/* ===== アプリ本体 ===== */
-function initApp(uid) {
-  const ref = db.collection("app").doc(uid);
-
-  let data = { pages: [] };
-  let isEditing = false;
-
-  const sidebar = document.getElementById("sidebar");
-  const pageList = document.getElementById("pageList");
-  const search = document.getElementById("search");
-  const pageTitle = document.getElementById("pageTitle");
-  const content = document.getElementById("content");
-  const editor = document.getElementById("editor");
-
-  function getIndex() {
-    const i = parseInt(location.hash.replace("#page-", ""), 10);
-    return isNaN(i) ? 0 : i;
-  }
-
-  function setIndex(i) {
-    location.hash = `page-${i}`;
-    renderPage();
-  }
-
-  function renderList() {
-    pageList.innerHTML = "";
-    const kw = search.value.toLowerCase();
-    data.pages.forEach((p, i) => {
-      if (!p.title.toLowerCase().includes(kw)) return;
-      const b = document.createElement("button");
-      b.textContent = p.title;
-      if (i === getIndex()) b.style.fontWeight = "bold";
-      b.onclick = () => setIndex(i);
-      pageList.appendChild(b);
-    });
-  }
-
-  function renderPage() {
-    const p = data.pages[getIndex()];
-    if (!p) return;
-    pageTitle.textContent = p.title;
-    content.textContent = p.text;
-  }
-
-  function collectAllText() {
-    return data.pages
-      .map(p => `【${p.title}】\n${p.text}`)
-      .join("\n\n---\n\n");
-  }
+/* ===== Firestore ===== */
+auth.signInAnonymously().then(() => {
+  const ref = db.collection("app").doc("pages");
 
   ref.onSnapshot(doc => {
-    if (isEditing) return;
     if (doc.exists) {
       data = doc.data();
     } else {
-      data = { pages: [{ title: "ページ1", text: "" }] };
+      data = { pages: [{ title:"ページ1", text:"" }]};
       ref.set(data);
     }
-    renderList();
-    renderPage();
+    render();
   });
 
+  function save() {
+    ref.set(data);
+  }
+
+  document.getElementById("add").onclick = () => {
+    data.pages.push({ title:"新しいページ", text:"" });
+    index = data.pages.length - 1;
+    save();
+  };
+
+  document.getElementById("edit").onclick = () => {
+    editing = true;
+    editorEl.value = contentEl.textContent;
+    editorEl.style.display = "block";
+    contentEl.style.display = "none";
+    saveBtn.style.display = "inline";
+  };
+
+  document.getElementById("save").onclick = () => {
+    data.pages[index].text = editorEl.value;
+    editing = false;
+    editorEl.style.display = "none";
+    contentEl.style.display = "block";
+    saveBtn.style.display = "none";
+    save();
+  };
+
+  document.getElementById("copyText").onclick = async () => {
+    const text = editing ? editorEl.value : contentEl.textContent;
+    await navigator.clipboard.writeText(text);
+    alert("コピーしました");
+  };
+
+  function render() {
+    pageList.innerHTML = "";
+    data.pages.forEach((p,i)=>{
+      const b = document.createElement("button");
+      b.textContent = p.title;
+      b.onclick = ()=>{ index=i; render(); };
+      pageList.appendChild(b);
+    });
+    titleEl.textContent = data.pages[index].title;
+    contentEl.textContent = data.pages[index].text;
+  }
+
+  /* ===== RAG 本体（診断付き） ===== */
   document.getElementById("ask").onclick = async () => {
-    const q = document.getElementById("question").value.trim();
-    if (!q) {
-      alert("質問を入力してください");
-      return;
-    }
+    const q = question.value.trim();
+    const answer = document.getElementById("answer");
+    if (!q) return alert("質問を入力して");
+
+    const memo = data.pages.map(
+      p => `【${p.title}】\n${p.text}`
+    ).join("\n\n---\n\n");
 
     const prompt = `
 以下は自分のメモです。
-この内容「だけ」を根拠に答えてください。
+この内容だけを根拠に答えてください。
 
-## メモ
-${collectAllText()}
+${memo}
 
-## 質問
-${q}
+質問: ${q}
 `;
 
-    document.getElementById("answer").textContent = "考え中…";
+    answer.textContent = "Gemini通信中…";
 
-    const res = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }]
-        })
+    try {
+      const res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: prompt }] }]
+          })
+        }
+      );
+
+      const raw = await res.text();
+      console.log("Gemini raw:", raw);
+
+      let json;
+      try {
+        json = JSON.parse(raw);
+      } catch {
+        answer.textContent = "JSON解析失敗:\n" + raw;
+        return;
       }
-    );
 
-    const json = await res.json();
-    document.getElementById("answer").textContent =
-      json.candidates?.[0]?.content?.parts?.[0]?.text
-      || "回答を取得できませんでした";
+      if (json.error) {
+        answer.textContent = "Gemini API エラー:\n" +
+          JSON.stringify(json.error, null, 2);
+        return;
+      }
+
+      const text =
+        json.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!text) {
+        answer.textContent =
+          "形式不正:\n" + JSON.stringify(json, null, 2);
+        return;
+      }
+
+      answer.textContent = text;
+
+    } catch (e) {
+      answer.textContent = "通信エラー:\n" + e.message;
+    }
   };
-
-  search.oninput = renderList;
-  document.getElementById("toggle").onclick =
-    () => sidebar.classList.toggle("hidden");
-}
+});
 </script>
-
 </body>
 </html>
