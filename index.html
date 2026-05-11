@@ -1,20 +1,293 @@
-{
-  "name": "インポートテキスト管理",
-  "short_name": "ImportText",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>インポートテキスト管理</title>
+
+<!-- ===== PWA設定 ===== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, sans-serif;
 }
+body {
+  display: flex;
+}
+
+/* ===== 認証 ===== */
+#auth {
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+}
+
+/* ===== サイドバー ===== */
+#sidebar {
+  width: 260px;
+  border-right: 1px solid #ccc;
+  padding: 10px;
+  box-sizing: border-box;
+  display: none;
+  flex-direction: column;
+  background: white;
+}
+#search {
+  padding: 8px;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+.sidebar-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+#pageList {
+  flex: 1;
+  overflow-y: auto;
+}
+#pageList button {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 6px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+/* ===== メイン ===== */
+#main {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  padding: 12px;
+  box-sizing: border-box;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+header .left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+h1 {
+  margin: 0;
+  font-size: 20px;
+}
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+button {
+  font-size: 16px;
+  padding: 10px 12px;
+}
+#content, textarea {
+  flex: 1;
+  width: 100%;
+  border: 1px solid #ccc;
+  padding: 12px;
+  font-size: 16px;
+  white-space: pre-wrap;
+  box-sizing: border-box;
+}
+textarea { display: none; }
+
+/* ===== スマホ対応 ===== */
+@media (max-width: 768px) {
+  body { flex-direction: column; }
+  #sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 1000;
+    width: 80%;
+    max-width: 300px;
+    display: none;
+  }
+  #sidebar.show { display: flex; }
+}
+</style>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+
+<!-- ===== ログイン ===== -->
+<div id="auth">
+  <h2>ログイン / 新規登録</h2>
+  <input id="email" placeholder="メールアドレス"><br><br>
+  <input id="password" type="password" placeholder="パスワード"><br><br>
+  <button id="login">ログイン / 登録</button>
+</div>
+
+<!-- ===== サイドバー ===== -->
+<div id="sidebar">
+  <input id="search" placeholder="🔍 ページ検索">
+
+  <div class="sidebar-actions">
+    <button id="add">＋ ページ追加</button>
+    <button id="remove">🗑 削除</button>
+  </div>
+
+  <div id="pageList"></div>
+</div>
+
+<!-- ===== メイン ===== -->
+<div id="main">
+  <header>
+    <div class="left">
+      <button id="toggle">≡</button>
+      <h1 id="pageTitle"></h1>
+    </div>
+    <button id="logout">ログアウト</button>
+  </header>
+
+  <div class="header-actions">
+    <button id="editTitle">✏️ タイトル編集</button>
+    <button id="edit">📝 本文編集</button>
+    <button id="save" style="display:none">💾 保存</button>
+    <button id="copyUrl">🔗 URLコピー</button>
+    <button id="exportNotebookLM">🧠 NotebookLM用にコピー</button>
+  </div>
+
+  <div id="content"></div>
+  <textarea id="editor"></textarea>
+</div>
+
+<script>
+/* ===== Firebase設定 ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
+  authDomain: "importtext-b229d.firebaseapp.com",
+  projectId: "importtext-b229d",
+  storageBucket: "importtext-b229d.firebasestorage.app",
+  messagingSenderId: "746746157474",
+  appId: "1:746746157474:web:b4143b7bc94515e2a4bafb"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+/* ===== 認証 ===== */
+login.onclick = async () => {
+  try {
+    await auth.signInWithEmailAndPassword(email.value, password.value);
+  } catch {
+    await auth.createUserWithEmailAndPassword(email.value, password.value);
+  }
+};
+logout.onclick = () => auth.signOut();
+
+auth.onAuthStateChanged(user => {
+  auth.style.display = user ? "none" : "block";
+  sidebar.style.display = user ? "flex" : "none";
+  main.style.display = user ? "flex" : "none";
+});
+
+/* ===== データ ===== */
+let data = { pages: [] };
+
+/* URL */
+function getIndex() {
+  const i = parseInt(location.hash.replace("#page-", ""), 10);
+  return isNaN(i) ? 0 : i;
+}
+function setIndex(i) {
+  location.hash = `page-${i}`;
+}
+
+/* 描画 */
+function renderList() {
+  pageList.innerHTML = "";
+  const kw = search.value.toLowerCase();
+  data.pages.forEach((p,i)=>{
+    if(!p.title.toLowerCase().includes(kw)) return;
+    const b=document.createElement("button");
+    b.textContent=p.title;
+    b.onclick=()=>setIndex(i);
+    pageList.appendChild(b);
+  });
+}
+function renderPage() {
+  const p=data.pages[getIndex()];
+  if(!p) return;
+  pageTitle.textContent=p.title;
+  content.textContent=p.text;
+}
+
+/* Firestore */
+db.collection("app").doc("pages").onSnapshot(doc=>{
+  if(doc.exists) data=doc.data();
+  else { data={pages:[{title:"ページ1",text:""}]}; saveAll(); }
+  renderList(); renderPage();
+});
+function saveAll() {
+  db.collection("app").doc("pages").set({pages:data.pages});
+}
+
+/* 編集 */
+edit.onclick=()=>{
+  editor.value=content.textContent;
+  content.style.display="none";
+  editor.style.display="block";
+  edit.style.display="none";
+  save.style.display="inline";
+};
+save.onclick=()=>{
+  data.pages[getIndex()].text=editor.value;
+  saveAll();
+  editor.style.display="none";
+  content.style.display="block";
+  edit.style.display="inline";
+  save.style.display="none";
+};
+
+/* ボタン */
+editTitle.onclick=()=>{
+  const i=getIndex();
+  const t=prompt("タイトル",data.pages[i].title);
+  if(t){ data.pages[i].title=t; saveAll(); }
+};
+add.onclick=()=>{
+  data.pages.push({title:"新しいページ",text:""});
+  saveAll(); setIndex(data.pages.length-1);
+};
+remove.onclick=()=>{
+  if(!confirm("削除しますか？")) return;
+  data.pages.splice(getIndex(),1);
+  saveAll(); setIndex(0);
+};
+copyUrl.onclick=()=>{
+  navigator.clipboard.writeText(location.href);
+  alert("URLコピー");
+};
+exportNotebookLM.onclick=()=>{
+  let t="◆ NotebookLM用\n\n";
+  data.pages.forEach((p,i)=>t+=`【${i+1}】${p.title}\n${p.text}\n\n`);
+  navigator.clipboard.writeText(t);
+  alert("NotebookLM用にコピー");
+};
+toggle.onclick=()=>sidebar.classList.toggle("show");
+search.oninput=renderList;
+window.addEventListener("hashchange",renderPage);
+</script>
+
+</body>
+</html>
