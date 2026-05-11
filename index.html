@@ -11,7 +11,6 @@ html, body {
   font-family: system-ui, sans-serif;
 }
 
-/* レイアウト */
 body {
   display: flex;
 }
@@ -19,8 +18,8 @@ body {
 #sidebar {
   width: 240px;
   border-right: 1px solid #ccc;
-  box-sizing: border-box;
   padding: 8px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
@@ -37,7 +36,6 @@ body {
   box-sizing: border-box;
 }
 
-/* サイドバー */
 #search {
   padding: 6px;
   margin-bottom: 8px;
@@ -54,7 +52,6 @@ body {
   text-align: left;
 }
 
-/* メイン */
 header {
   display: flex;
   align-items: center;
@@ -71,8 +68,8 @@ h1 {
   width: 100%;
   border: 1px solid #ccc;
   padding: 10px;
-  box-sizing: border-box;
   white-space: pre-wrap;
+  box-sizing: border-box;
 }
 
 textarea {
@@ -83,24 +80,19 @@ footer {
   display: flex;
   gap: 8px;
   margin-top: 8px;
-  flex-wrap: wrap;
 }
 </style>
 </head>
 
 <body>
 
-<!-- サイドバー -->
 <div id="sidebar">
   <input id="search" placeholder="🔍 ページ検索">
-
   <div id="pageList"></div>
-
   <button id="add">＋ ページ追加</button>
   <button id="remove">🗑 ページ削除</button>
 </div>
 
-<!-- メイン -->
 <div id="main">
   <header>
     <button id="toggle">≡</button>
@@ -118,24 +110,26 @@ footer {
 </div>
 
 <script>
-/* ==== データ ==== */
-const data = JSON.parse(localStorage.getItem("pages")) || {
-  pages: [{ title: "ページ1", text: "" }]
-};
-
+/* ===== 要素取得 ===== */
 const sidebar = document.getElementById("sidebar");
 const pageList = document.getElementById("pageList");
 const search = document.getElementById("search");
 const pageTitle = document.getElementById("pageTitle");
 const content = document.getElementById("content");
 const editor = document.getElementById("editor");
+const editBtn = document.getElementById("edit");
+const saveBtn = document.getElementById("save");
 
-/* ==== 保存 ==== */
+/* ===== データ ===== */
+const data = JSON.parse(localStorage.getItem("pages")) || {
+  pages: [{ title: "ページ1", text: "" }]
+};
+
 function saveAll() {
   localStorage.setItem("pages", JSON.stringify(data));
 }
 
-/* ==== URL ==== */
+/* ===== URL ===== */
 function getIndex() {
   const i = parseInt(location.hash.replace("#page-", ""), 10);
   return isNaN(i) ? 0 : i;
@@ -144,14 +138,13 @@ function setIndex(i) {
   location.hash = `page-${i}`;
 }
 
-/* ==== 描画 ==== */
+/* ===== 描画 ===== */
 function renderList() {
   pageList.innerHTML = "";
-  const keyword = search.value.toLowerCase();
+  const kw = search.value.toLowerCase();
 
   data.pages.forEach((p, i) => {
-    if (!p.title.toLowerCase().includes(keyword)) return;
-
+    if (!p.title.toLowerCase().includes(kw)) return;
     const b = document.createElement("button");
     b.textContent = p.title;
     if (i === getIndex()) b.style.fontWeight = "bold";
@@ -167,29 +160,26 @@ function renderPage() {
   content.textContent = p.text;
 }
 
-/* ==== 検索 ==== */
-search.oninput = renderList;
-
-/* ==== 編集 ==== */
-document.getElementById("edit").onclick = () => {
+/* ===== 編集 ===== */
+editBtn.onclick = () => {
   editor.value = content.textContent;
   content.style.display = "none";
   editor.style.display = "block";
-  edit.style.display = "none";
-  save.style.display = "inline";
+  editBtn.style.display = "none";
+  saveBtn.style.display = "inline";
 };
 
-document.getElementById("save").onclick = () => {
+saveBtn.onclick = () => {
   data.pages[getIndex()].text = editor.value;
   saveAll();
   editor.style.display = "none";
   content.style.display = "block";
-  edit.style.display = "inline";
-  save.style.display = "none";
+  editBtn.style.display = "inline";
+  saveBtn.style.display = "none";
   renderPage();
 };
 
-/* ==== タイトル ==== */
+/* ===== タイトル ===== */
 document.getElementById("editTitle").onclick = () => {
   const i = getIndex();
   const t = prompt("ページタイトル", data.pages[i].title);
@@ -201,7 +191,7 @@ document.getElementById("editTitle").onclick = () => {
   }
 };
 
-/* ==== 追加・削除 ==== */
+/* ===== 追加削除 ===== */
 document.getElementById("add").onclick = () => {
   data.pages.push({ title: "新しいページ", text: "" });
   saveAll();
@@ -220,12 +210,13 @@ document.getElementById("remove").onclick = () => {
   setIndex(Math.max(0, i - 1));
 };
 
-/* ==== サイドバー開閉 ==== */
+/* ===== 検索 & 開閉 ===== */
+search.oninput = renderList;
 document.getElementById("toggle").onclick = () => {
   sidebar.classList.toggle("hidden");
 };
 
-/* ==== 初期 ==== */
+/* ===== 初期 ===== */
 window.addEventListener("hashchange", () => {
   renderList();
   renderPage();
