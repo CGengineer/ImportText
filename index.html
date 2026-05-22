@@ -288,6 +288,22 @@
       margin-top: 24px;
     }
 
+    #historyArea {
+      max-height: 520px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .historyGroupLabel {
+      font-size: 11px;
+      font-weight: bold;
+      color: #b07090;
+      letter-spacing: 0.05em;
+      padding: 10px 0 4px;
+      border-bottom: 1px solid #ffd6e3;
+      margin-bottom: 8px;
+    }
+
     .historyItem {
       display: flex;
       align-items: center;
@@ -722,9 +738,12 @@ function openVideo() {
 
   if (!page.seen.includes(currentVideo.id)) {
     page.seen.push(currentVideo.id);
-    save();
   }
 
+  if (!page.history) page.history = [];
+  page.history.push({ id: currentVideo.id, at: Date.now() });
+
+  save();
   updateProgress();
   updateHistory();
 
@@ -747,28 +766,62 @@ function updateProgress() {
 }
 
 /* ===== 視聴履歴 ===== */
+function getDaysDiff(timestamp) {
+  const entryDay = new Date(timestamp);
+  entryDay.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((today - entryDay) / 86400000);
+}
+
 function updateHistory() {
   const page = data.pages[getIndex()];
   const historyArea = document.getElementById("historyArea");
+  const history = page.history || [];
 
-  if (!page.seen || !page.seen.length) {
+  if (!history.length) {
     historyArea.innerHTML = "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>";
     return;
   }
 
-  const seenVideos = [...page.seen].reverse()
-    .map(id => videos.find(v => v.id === id))
-    .filter(Boolean);
+  const groups = [
+    { label: "今日",   items: [], max: 0 },
+    { label: "昨日",   items: [], max: 1 },
+    { label: "一昨日", items: [], max: 2 },
+    { label: "1週間前", items: [], max: 7 },
+    { label: "1ヶ月前", items: [], max: 30 },
+    { label: "2ヶ月前", items: [], max: 60 },
+    { label: "3ヶ月前", items: [], max: 90 },
+    { label: "半年前",  items: [], max: 180 },
+    { label: "1年前",   items: [], max: 365 },
+    { label: "2年前",   items: [], max: 730 },
+    { label: "それ以前", items: [], max: Infinity },
+  ];
 
-  historyArea.innerHTML = seenVideos.map(v => `
-    <div class="historyItem">
-      <div class="historyThumb" onclick="window.open('https://youtube.com/watch?v=${v.id}')">
-        <img src="${v.thumb}" alt="">
-        <div class="playBtn">▶</div>
-      </div>
-      <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
-    </div>
-  `).join("");
+  [...history].reverse().forEach(entry => {
+    const v = videos.find(v => v.id === entry.id);
+    if (!v) return;
+    const d = getDaysDiff(entry.at);
+    const group = groups.find(g => d <= g.max);
+    if (group) group.items.push(v);
+  });
+
+  const html = groups
+    .filter(g => g.items.length > 0)
+    .map(g => `
+      <div class="historyGroupLabel">${g.label}</div>
+      ${g.items.map(v => `
+        <div class="historyItem">
+          <div class="historyThumb" onclick="window.open('https://youtube.com/watch?v=${v.id}')">
+            <img src="${v.thumb}" alt="">
+            <div class="playBtn">▶</div>
+          </div>
+          <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
+        </div>
+      `).join("")}
+    `).join("");
+
+  historyArea.innerHTML = html || "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>";
 }
 
 /* ===== ログイン ===== */
