@@ -240,11 +240,17 @@ editCh.onclick=()=>{
   const i=getIndex()
   const id=prompt("チャンネルID",data.pages[i].channelId)
   if(id===null)return
+
+  
+  // ✅ ここで即ローディング表示
+  showLoading()
+
   data.pages[i].channelId=id
   data.pages[i].seen=[]
   data.pages[i].videos=[] // ←追加
   videos=[]
 
+  
   // ✅ キャッシュ削除（ここが追加ポイント）
   db.collection("app").doc(currentUser).update({
     videos: null,
@@ -252,6 +258,9 @@ editCh.onclick=()=>{
   })
 
   save().then(render)
+
+    // ✅ すぐ取得開始（loadVideo内でhideLoadingされる）
+    await loadVid
 }
 
 /* ===== 動画取得 ===== */
