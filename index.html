@@ -233,7 +233,7 @@ body { display:flex; font-family:sans-serif; margin:0 }
 }
   
 /* sidebar */
-#sidebar { width:250px; border-right:1px solid #ccc; padding:10px }
+#sidebar { width:300px; border-right:1px solid #ccc; padding:10px }
 #pageList button { width:100%; margin-bottom:4px }
 
 /* main */
@@ -329,8 +329,8 @@ body { display:flex; font-family:sans-serif; margin:0 }
   
   
 <div id="sidebar">
-<button id="add">ﾁｬﾝﾈﾙ追加</button>
-<button id="remove">ﾁｬﾝﾈﾙ削除</button>
+<button id="add">チャンネル追加</button>
+<button id="remove">チャンネル削除</button>
 <div id="pageList"></div>
 </div>
 
@@ -484,10 +484,13 @@ add.onclick=()=>{
   save().then(render)
 }
 
-remove.onclick=()=>{
+remove.onclick = () => {
+  const ok = confirm("チャンネルを削除するよ。ほんとに大丈夫？")
+
+  if(!ok) return  // キャンセルなら中止
+
   data.pages.splice(getIndex(),1)
-  save().then(()=>setIndex(0))
-}
+  save().then(()=>set
 
 editTitle.onclick=()=>{
   const i=getIndex()
