@@ -179,8 +179,8 @@
       background: #fff0f5;
     }
 
-    /* ヘルプモーダル */
-    #helpModal {
+    /* モーダル共通 */
+    #helpModal, #meritModal {
       position: fixed;
       top: 50%;
       left: 50%;
@@ -356,6 +356,7 @@
   <div id="appTitle">
     <div id="appName">🎀未知リンク</div>
     <button id="helpBtn" class="headerBtn">使い方💡</button>
+    <button id="meritBtn" class="headerBtn">使うメリット✨</button>
   </div>
   <div id="userArea">
     <span id="userEmail"></span>
@@ -400,6 +401,39 @@
   <p>⑦ このアプリの「チャンネルID設定」に貼り付けよう！✨</p>
   <br>
   <button onclick="closeHelp()">閉じる</button>
+</div>
+
+<div id="meritModal">
+  <h3>✨ 未知リンクでできること</h3>
+
+  <p>📺 <b>登録チャンネルの動画をランダムで再生</b><br>
+  好きなYouTubeチャンネルを登録しておくだけで、未視聴の動画を1本ランダムで選んでくれるよ！</p>
+
+  <p>✅ <b>視聴済みを自動で記録</b><br>
+  再生した動画は自動的に「視聴済み」になるから、同じ動画が何度も出てこない！</p>
+
+  <p>📊 <b>残り本数・進捗がひと目でわかる</b><br>
+  あと何本残ってるか、どこまで見たかバーで確認できるよ。</p>
+
+  <p>📝 <b>視聴履歴を時期別に確認</b><br>
+  いつ何を見たか、今日・昨日・1週間前…と時期ごとに整理されて表示されるよ。</p>
+
+  <p>🆕 <b>新着動画を自動チェック</b><br>
+  起動するたびに最新動画を確認して、新しくアップされた本数を表示してくれる！</p>
+
+  <h3>💡 こんな時に使ってみて</h3>
+
+  <p>🤔 「何見よう…」って迷ったとき<br>
+  → ランダムボタン1回で解決！</p>
+
+  <p>📦 お気に入りチャンネルの過去動画を全部見たいとき<br>
+  → 既読管理してくれるから取りこぼしなし！</p>
+
+  <p>🕐 隙間時間にサクッと動画を見たいとき<br>
+  → 開いてボタン押すだけ、選ぶ手間ゼロ！</p>
+
+  <br>
+  <button onclick="closeMerit()">閉じる</button>
 </div>
 
 <div id="login">
@@ -467,6 +501,18 @@ helpBtn.onclick = () => {
 
 function closeHelp() {
   document.getElementById("helpModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+}
+
+const meritBtn = document.getElementById("meritBtn");
+
+meritBtn.onclick = () => {
+  document.getElementById("meritModal").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+};
+
+function closeMerit() {
+  document.getElementById("meritModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
 }
 
