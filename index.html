@@ -156,7 +156,8 @@ let currentUser = null;
 let data = { pages:[] }
 let videos = []
 let currentVideo = null
-
+let newCount = 0
+  
 /* ===== 初期化 ===== */
 async function init(){
   firebase.auth().onAuthStateChanged(user => {
@@ -295,9 +296,13 @@ try{
         thumb: v.snippet.thumbnails.medium.url
       }))
 
+
+    newCount = 0   // ← 毎回リセット
+    
     latest.forEach(v => {
       if(!videos.find(x => x.id === v.id)){
         videos.unshift(v)
+        newCount++          // ← 新着カウント
       }
     })
 
@@ -422,7 +427,7 @@ function updateProgress(){
 
   document.getElementById("remain").textContent = remain
   document.getElementById("done").textContent = done
-  ocument.getElementById("newCount").textContent = newCount
+  document.getElementById("newCount").textContent = newCount
   const percent = (done / total) * 100
   document.getElementById("progressFill").style.width = percent + "%"
 
@@ -458,6 +463,9 @@ registerBtn.onclick = async () => {
     
 // ✅ これ追加（最初のページを表示）
   setIndex(0)
+
+// ✅ 起動時に新着チェックを必ず1回
+loadVideo()
 
 }
 </script>
