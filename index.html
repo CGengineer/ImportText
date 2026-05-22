@@ -204,13 +204,14 @@ editCh.onclick = async () => {
   const id = prompt("チャンネルID", data.pages[i].channelId)
   if(id === null) return
 
-  // ✅ OK押下“直後”にローディング表示
-  showLoading()
-
+  // ✅ まず即反映（ここがポイント）
   data.pages[i].channelId = id
   data.pages[i].seen = []
   data.pages[i].videos = []
   videos = []
+
+  render()        // ← 先に画面へ反映
+  showLoading()   // ← その後ローディング
 
   await db.collection("app").doc(currentUser).update({
     videos: null,
@@ -218,10 +219,8 @@ editCh.onclick = async () => {
   })
 
   await save()
-  render()
 
-  // ✅ ここから実際の取得開始
-  // loadVideo() の finally で hideLoading() される
+  // ✅ 実際の取得開始
   await loadVideo()
 }
 
