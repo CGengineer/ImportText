@@ -7,7 +7,25 @@
   
 
 <style>
+#helpModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 
+  background: #fff8fb;
+  padding: 20px;
+  border-radius: 12px;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  border: 2px solid #ffd6e3;
+
+  width: 300px;
+  max-width: 90%;
+
+  display: none;
+  z-index: 1000;
+}
 button {
   margin-bottom: 10px;  /* ← 追加 */
 }
@@ -89,6 +107,7 @@ button:active {
   box-shadow: 0 2px 6px rgba(255, 182, 193, 0.3);
 }
 #header {
+  
   background: #ffe4ec;
   border-bottom: 1px solid #f8cbd8;
 }
@@ -288,8 +307,10 @@ body { display:flex; font-family:sans-serif; margin:0 }
 
 <div id="header">
   <div id="appName">🎀未知リンク</div>
-
+    
     <div id="userArea">
+    <button id="helpBtn">❓ 使い方</button>
+
     <span id="userEmail"></span>
     <div id="userIcon" onclick="toggleMenu()"></div>
   </div>
@@ -304,6 +325,47 @@ body { display:flex; font-family:sans-serif; margin:0 }
   <div>読み込み中…</div>
 </div>
 <div id="overlay"></div>
+<div id="helpModal">
+  <h3>📺 チャンネルの追加方法</h3>
+
+  <p>
+① お好きなYouTubeのURLをコピー
+  </p>
+
+  <p>
+② 下のサイトにアクセスして貼り付け
+  </p>
+
+  <p>
+<a href="https://commentpicker.com/youtube-channel-id.php" target="_blank">
+YouTube Channel ID取得サイト
+</a>
+  </p>
+
+  <p>
+③ 「YouTube channel link, video link or username」に貼り付け
+  </p>
+
+  <p>
+④ Solve sum を入力
+  </p>
+
+  <p>
+⑤ 「WATCH & GET YOUTUBE CHANNEL ID」を押す
+  </p>
+
+  <p>
+⑥ 下に出てくる Channel ID をコピー
+  </p>
+
+  <p>
+⑦ このアプリの「チャンネルID設定」に貼り付けよう！✨
+  </p>
+
+  <br>
+
+  <button onclick="closeHelp()">閉じる</button>
+</div>
 
 <div id="login">
 <h3>ログイン</h3>
@@ -360,6 +422,18 @@ body { display:flex; font-family:sans-serif; margin:0 }
 </div>
 
 <script>
+
+const helpBtn = document.getElementById("helpBtn")
+
+helpBtn.onclick = () => {
+  document.getElementById("helpModal").style.display = "block"
+  document.getElementById("overlay").style.display = "block"
+}
+
+function closeHelp(){
+  document.getElementById("helpModal").style.display = "none"
+  document.getElementById("overlay").style.display = "none"
+}
 
 function toggleMenu(){
   const menu = document.getElementById("userMenu")
