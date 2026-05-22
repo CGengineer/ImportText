@@ -7,6 +7,49 @@
 <style>
 body { display:flex; font-family:sans-serif; margin:0 }
 
+  #header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 1000;
+}
+
+#appName {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+#userArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+
+#sidebar {
+  margin-top: 50px;
+}
+
+#main {
+  margin
+
+  
+#userIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #aaa;
+}
+  
   #loading {
   position: fixed;
   inset: 0;
@@ -87,6 +130,15 @@ body { display:flex; font-family:sans-serif; margin:0 }
 
 <body>
 
+<div id="header">
+  <div id="appName">未知リンク</div>
+
+  <div id="userArea">
+    <span id="userEmail"></span>
+    <div id="userIcon"></div>
+  </div>
+</div>
+
   
 <div id="loading">
   <div class="spinner"></div>
@@ -164,6 +216,11 @@ async function init(){
     if(user){
       currentUser = user.uid
       document.getElementById("login").style.display = "none"
+      
+    // ✅ ここ追加
+    document.getElementById("userEmail").textContent = user.email
+const color = "#" + user.uid.slice(0, 6)
+document.getElementById("userIcon").style.background = color
       initApp()
     }else{
       document.getElementById("login").style.display = "block"
