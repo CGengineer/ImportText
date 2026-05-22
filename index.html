@@ -231,7 +231,10 @@ async function randomVideo(){
     <div class="playBtn">▶</div>
   </div>
 
-  <h4>${v.title}</h4>
+  <a href="https://youtube.com/watch?v=${v.id}" target="_blank">
+    ${v.title}
+  </a>
+  
   <button onclick="openVideo()">開く</button>`
 
 }
