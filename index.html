@@ -7,6 +7,32 @@
 <style>
 body { display:flex; font-family:sans-serif; margin:0 }
 
+  #loading {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.9);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-size: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ddd;
+  border-top: 4px solid #065fd4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+  
 /* sidebar */
 #sidebar { width:250px; border-right:1px solid #ccc; padding:10px }
 #pageList button { width:100%; margin-bottom:4px }
@@ -61,6 +87,13 @@ body { display:flex; font-family:sans-serif; margin:0 }
 
 <body>
 
+  
+<div id="loading">
+  <div class="spinner"></div>
+  <div>読み込み中…</div>
+</div>
+
+
 <div id="login">
 <h3>ログイン</h3>
 <input id="email" placeholder="メール"><br><br>
@@ -99,7 +132,13 @@ body { display:flex; font-family:sans-serif; margin:0 }
 </div>
 
 <script>
+function showLoading(){
+  document.getElementById("loading").style.display = "flex";
+}
 
+function hideLoading(){
+  document.getElementById("loading").style.display = "none";
+}
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey:"AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
@@ -228,7 +267,7 @@ editCh.onclick = async () => {
 /* ===== 動画取得 ===== */
  /* ===== 動画取得 ===== */
 async function loadVideo(){
-
+try{
   const pageIndex = getIndex()
   const p = data.pages[pageIndex]
 
@@ -304,6 +343,9 @@ async function loadVideo(){
   p.videos = videos
   save()
   updateProgress()
+} finally{
+      hideLoading(); // ← 追加（必ず消える）
+}
 }
 /* ===== ランダム ===== */
 async function randomVideo(){
