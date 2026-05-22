@@ -5,11 +5,161 @@
   <title>🎀未知リンク</title>
 
   <style>
+    /* ===== テーマ変数 ===== */
+    :root {
+      --bg: #fff5f9;
+      --header-bg: #fff;
+      --header-border: #ddd;
+      --sidebar-border: #ccc;
+      --btn-bg: #ffd6e3;
+      --btn-border: #f8cbd8;
+      --btn-hover: #ffbdd0;
+      --btn-color: #444;
+      --btn-shadow: rgba(255,182,193,0.4);
+      --btn-active-shadow: rgba(255,182,193,0.3);
+      --header-btn-bg: white;
+      --header-btn-border: #f3c4d2;
+      --header-btn-hover: #fff5f9;
+      --login-bg: white;
+      --modal-bg: #fff8fb;
+      --modal-border: #ffd6e3;
+      --menu-bg: white;
+      --menu-hover: #f0f0f0;
+      --history-item-bg: white;
+      --history-item-border: #ffd6e3;
+      --history-group-color: #b07090;
+      --history-group-border: #ffd6e3;
+      --text-color: #444;
+      --text-light: #aaa;
+      --progress-bg: #ddd;
+      --link-color: #1a73e8;
+      --input-bg: white;
+      --input-border: #ddd;
+      --select-bg: white;
+      --select-border: #f3c4d2;
+      --select-color: #444;
+    }
+
+    [data-theme="white"] {
+      --bg: #fafafa;
+      --header-bg: #ffffff;
+      --header-border: #e0e0e0;
+      --sidebar-border: #e0e0e0;
+      --btn-bg: #efefef;
+      --btn-border: #ddd;
+      --btn-hover: #e0e0e0;
+      --btn-color: #333;
+      --btn-shadow: rgba(0,0,0,0.1);
+      --btn-active-shadow: rgba(0,0,0,0.08);
+      --header-btn-bg: #f5f5f5;
+      --header-btn-border: #ddd;
+      --header-btn-hover: #e8e8e8;
+      --login-bg: white;
+      --modal-bg: #ffffff;
+      --modal-border: #e0e0e0;
+      --menu-bg: white;
+      --menu-hover: #f0f0f0;
+      --history-item-bg: #f5f5f5;
+      --history-item-border: #e0e0e0;
+      --history-group-color: #888;
+      --history-group-border: #ddd;
+      --text-color: #333;
+      --text-light: #999;
+      --progress-bg: #ddd;
+      --link-color: #1a73e8;
+      --input-bg: white;
+      --input-border: #ccc;
+      --select-bg: white;
+      --select-border: #ddd;
+      --select-color: #333;
+    }
+
+    [data-theme="gray"] {
+      --bg: #e8e8e8;
+      --header-bg: #d4d4d4;
+      --header-border: #bbb;
+      --sidebar-border: #bbb;
+      --btn-bg: #c8c8c8;
+      --btn-border: #aaa;
+      --btn-hover: #b8b8b8;
+      --btn-color: #333;
+      --btn-shadow: rgba(0,0,0,0.15);
+      --btn-active-shadow: rgba(0,0,0,0.12);
+      --header-btn-bg: #d8d8d8;
+      --header-btn-border: #bbb;
+      --header-btn-hover: #ccc;
+      --login-bg: #e0e0e0;
+      --modal-bg: #d8d8d8;
+      --modal-border: #bbb;
+      --menu-bg: #d8d8d8;
+      --menu-hover: #ccc;
+      --history-item-bg: #d4d4d4;
+      --history-item-border: #bbb;
+      --history-group-color: #666;
+      --history-group-border: #bbb;
+      --text-color: #333;
+      --text-light: #777;
+      --progress-bg: #bbb;
+      --link-color: #1a5fb4;
+      --input-bg: #ddd;
+      --input-border: #aaa;
+      --select-bg: #d8d8d8;
+      --select-border: #aaa;
+      --select-color: #333;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a2e;
+      --header-bg: #16213e;
+      --header-border: #0f3460;
+      --sidebar-border: #0f3460;
+      --btn-bg: #0f3460;
+      --btn-border: #1a4a7a;
+      --btn-hover: #1a4a7a;
+      --btn-color: #e0e0e0;
+      --btn-shadow: rgba(15,52,96,0.5);
+      --btn-active-shadow: rgba(15,52,96,0.3);
+      --header-btn-bg: #1a2a4a;
+      --header-btn-border: #0f3460;
+      --header-btn-hover: #1e3050;
+      --login-bg: #16213e;
+      --modal-bg: #16213e;
+      --modal-border: #0f3460;
+      --menu-bg: #16213e;
+      --menu-hover: #1a2a4a;
+      --history-item-bg: #16213e;
+      --history-item-border: #0f3460;
+      --history-group-color: #7a9fd4;
+      --history-group-border: #0f3460;
+      --text-color: #e0e0e0;
+      --text-light: #888;
+      --progress-bg: #0f3460;
+      --link-color: #7aadff;
+      --input-bg: #1a2a4a;
+      --input-border: #0f3460;
+      --select-bg: #1a2a4a;
+      --select-border: #0f3460;
+      --select-color: #e0e0e0;
+    }
+
     body {
       display: flex;
       font-family: "Hiragino Maru Gothic Pro", "Arial Rounded MT", sans-serif;
       margin: 0;
-      background: #fff5f9;
+      background: var(--bg);
+      color: var(--text-color);
+    }
+
+    h1, h2, h3 { color: var(--text-color); }
+
+    a { color: var(--link-color); }
+
+    input {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: var(--text-color);
+      padding: 6px 10px;
+      border-radius: 6px;
     }
 
     /* ヘッダー */
@@ -19,8 +169,8 @@
       left: 0;
       right: 0;
       height: 50px;
-      background: #fff;
-      border-bottom: 1px solid #ddd;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--header-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -58,8 +208,8 @@
       position: absolute;
       top: 50px;
       right: 16px;
-      background: white;
-      border: 1px solid #ddd;
+      background: var(--menu-bg);
+      border: 1px solid var(--header-border);
       border-radius: 6px;
       display: none;
       z-index: 1001;
@@ -68,22 +218,23 @@
     #userMenu div {
       padding: 8px 12px;
       cursor: pointer;
+      color: var(--text-color);
     }
 
     #userMenu div:hover {
-      background: #f0f0f0;
+      background: var(--menu-hover);
     }
 
     /* ボタン */
     button {
-      background: #ffd6e3;
-      border: 1px solid #f8cbd8;
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
       padding: 10px 14px;
       border-radius: 20px;
       cursor: pointer;
       font-size: 14px;
-      color: #444;
-      box-shadow: 0 4px 10px rgba(255, 182, 193, 0.4);
+      color: var(--btn-color);
+      box-shadow: 0 4px 10px var(--btn-shadow);
       transition: all 0.2s ease;
       margin-bottom: 10px;
       position: relative;
@@ -103,7 +254,7 @@
     }
 
     button:hover {
-      background: #ffbdd0;
+      background: var(--btn-hover);
       transform: translateY(-2px);
     }
 
@@ -113,12 +264,13 @@
 
     button:active {
       transform: translateY(1px);
-      box-shadow: 0 2px 6px rgba(255, 182, 193, 0.3);
+      box-shadow: 0 2px 6px var(--btn-active-shadow);
     }
 
     .headerBtn {
-      background: white;
-      border: 1px solid #f3c4d2;
+      background: var(--header-btn-bg);
+      border: 1px solid var(--header-btn-border);
+      color: var(--btn-color);
       padding: 6px 10px;
       font-size: 12px;
       border-radius: 12px;
@@ -127,7 +279,21 @@
     }
 
     .headerBtn:hover {
-      background: #fff5f9;
+      background: var(--header-btn-hover);
+    }
+
+    /* テーマ選択 */
+    #themeSelect {
+      background: var(--select-bg);
+      border: 1px solid var(--select-border);
+      color: var(--select-color);
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      outline: none;
+      transform: translateY(6px);
+      font-family: inherit;
     }
 
     /* ログイン */
@@ -145,11 +311,12 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: white;
+      background: var(--login-bg);
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       z-index: 1000;
+      color: var(--text-color);
     }
 
     .fullBtn {
@@ -185,16 +352,17 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: #fff8fb;
+      background: var(--modal-bg);
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      border: 2px solid #ffd6e3;
+      border: 2px solid var(--modal-border);
       width: 280px;
       max-width: 90%;
       max-height: 50vh;
       display: none;
       flex-direction: column;
       z-index: 1002;
+      color: var(--text-color);
     }
 
     .modalBody {
@@ -243,7 +411,7 @@
     /* サイドバー */
     #sidebar {
       width: 300px;
-      border-right: 1px solid #ccc;
+      border-right: 1px solid var(--sidebar-border);
       padding: 10px;
       margin-top: 50px;
     }
@@ -290,7 +458,7 @@
     #progressBar {
       width: 300px;
       height: 10px;
-      background: #ddd;
+      background: var(--progress-bg);
       margin-top: 10px;
     }
 
@@ -314,10 +482,10 @@
     .historyGroupLabel {
       font-size: 11px;
       font-weight: bold;
-      color: #b07090;
+      color: var(--history-group-color);
       letter-spacing: 0.05em;
       padding: 10px 0 4px;
-      border-bottom: 1px solid #ffd6e3;
+      border-bottom: 1px solid var(--history-group-border);
       margin-bottom: 8px;
     }
 
@@ -327,9 +495,9 @@
       gap: 12px;
       margin-bottom: 10px;
       padding: 8px;
-      background: white;
+      background: var(--history-item-bg);
       border-radius: 10px;
-      border: 1px solid #ffd6e3;
+      border: 1px solid var(--history-item-border);
     }
 
     .historyThumb {
@@ -352,7 +520,7 @@
 
     .historyItem a {
       font-size: 13px;
-      color: #1a73e8;
+      color: var(--link-color);
       text-decoration: none;
       font-weight: 500;
     }
@@ -372,10 +540,16 @@
 <div id="header">
   <div id="appTitle">
     <div id="appName">🎀未知リンク</div>
-    <button id="helpBtn" class="headerBtn">使い方💡</button>
     <button id="meritBtn" class="headerBtn">使うメリット✨</button>
+    <button id="helpBtn" class="headerBtn">使い方💡</button>
   </div>
   <div id="userArea">
+    <select id="themeSelect">
+      <option value="pink">🌸 ピンク</option>
+      <option value="white">⬜ ホワイト</option>
+      <option value="gray">🩶 グレー</option>
+      <option value="dark">🌙 ダーク</option>
+    </select>
     <span id="userEmail"></span>
     <div id="userIcon" onclick="toggleMenu()"></div>
   </div>
@@ -394,15 +568,6 @@
 
 <div id="helpModal">
   <div class="modalBody">
-    <h3>🤔このアプリはどんなもの？</h3>
-    <p>
-      指定したYouTubeチャンネルたちから、<br>
-      ランダムで1本再生してくれる、未知へのリンク∞ワクワク発見アプリです💖
-    </p>
-    <p>
-      👀 合計本数や視聴済みもひと目で分かる！<br>
-      🆕　新着動画もチェックできるよ(^^)/
-    </p>
 
     <h3>📺 チャンネルの追加方法</h3>
     <p>① お好きなYouTubeのリンクをコピー</p>
@@ -513,6 +678,19 @@
 </div>
 
 <script>
+
+/* ===== テーマ ===== */
+const themeSelect = document.getElementById("themeSelect");
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+  themeSelect.value = theme;
+}
+
+applyTheme(localStorage.getItem("theme") || "pink");
+
+themeSelect.onchange = () => applyTheme(themeSelect.value);
 
 const helpBtn = document.getElementById("helpBtn");
 
