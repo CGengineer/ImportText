@@ -186,16 +186,31 @@
       left: 50%;
       transform: translate(-50%, -50%);
       background: #fff8fb;
-      padding: 16px;
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid #ffd6e3;
       width: 280px;
       max-width: 90%;
       max-height: 50vh;
-      overflow-y: auto;
       display: none;
+      flex-direction: column;
       z-index: 1002;
+    }
+
+    .modalBody {
+      overflow-y: auto;
+      flex: 1;
+      padding: 16px 16px 0;
+    }
+
+    .modalFooter {
+      padding: 10px 16px 12px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .modalFooter button {
+      margin: 0;
     }
 
     /* ローディング */
@@ -378,64 +393,69 @@
 <div id="overlay"></div>
 
 <div id="helpModal">
-  <h3>🤔このアプリはどんなもの？</h3>
-  <p>
-    指定したYouTubeチャンネルたちから、<br>
-    ランダムで1本再生してくれる、未知へのリンク∞ワクワク発見アプリです💖
-  </p>
-  <p>
-    👀 合計本数や視聴済みもひと目で分かる！<br>
-    🆕　新着動画もチェックできるよ(^^)/
-  </p>
+  <div class="modalBody">
+    <h3>🤔このアプリはどんなもの？</h3>
+    <p>
+      指定したYouTubeチャンネルたちから、<br>
+      ランダムで1本再生してくれる、未知へのリンク∞ワクワク発見アプリです💖
+    </p>
+    <p>
+      👀 合計本数や視聴済みもひと目で分かる！<br>
+      🆕　新着動画もチェックできるよ(^^)/
+    </p>
 
-  <h3>📺 チャンネルの追加方法</h3>
-  <p>① お好きなYouTubeのリンクをコピー</p>
-  <p>② 下のサイトにアクセス</p>
-  <p>
-    <a href="https://commentpicker.com/youtube-channel-id.php" target="_blank">
-      YouTube Channel ID取得サイト
-    </a>
-  </p>
-  <p>③ 「YouTube channel link, video link or username」に貼り付け</p>
-  <p>④ Solve sum を入力</p>
-  <p>⑤ 「WATCH & GET YOUTUBE CHANNEL ID」を押す</p>
-  <p>⑥ 下に出てくる Channel ID をコピー</p>
-  <p>⑦ このアプリの「チャンネルID設定」に貼り付けよう！✨</p>
-  <br>
-  <button onclick="closeHelp()">閉じる</button>
+    <h3>📺 チャンネルの追加方法</h3>
+    <p>① お好きなYouTubeのリンクをコピー</p>
+    <p>② 下のサイトにアクセス</p>
+    <p>
+      <a href="https://commentpicker.com/youtube-channel-id.php" target="_blank">
+        YouTube Channel ID取得サイト
+      </a>
+    </p>
+    <p>③ 「YouTube channel link, video link or username」に貼り付け</p>
+    <p>④ Solve sum を入力</p>
+    <p>⑤ 「WATCH & GET YOUTUBE CHANNEL ID」を押す</p>
+    <p>⑥ 下に出てくる Channel ID をコピー</p>
+    <p>⑦ このアプリの「チャンネルID設定」に貼り付けよう！✨</p>
+  </div>
+  <div class="modalFooter">
+    <button onclick="closeHelp()">閉じる</button>
+  </div>
 </div>
 
 <div id="meritModal">
-  <h3>✨ 未知リンクでできること</h3>
+  <div class="modalBody">
+    <h3>✨ 未知リンクでできること</h3>
 
-  <p>📺 <b>登録チャンネルの動画をランダムで再生</b><br>
-  好きなYouTubeチャンネルを登録しておくだけで、未視聴の動画を1本ランダムで選んでくれるよ！</p>
+    <p>📺 <b>登録チャンネルの動画をランダムで再生</b><br>
+    好きなYouTubeチャンネルを登録しておくだけで、未視聴の動画を1本ランダムで選んでくれるよ！</p>
 
-  <p>✅ <b>視聴済みを自動で記録</b><br>
-  再生した動画は自動的に「視聴済み」になるから、同じ動画が何度も出てこない！</p>
+    <p>✅ <b>視聴済みを自動で記録</b><br>
+    再生した動画は自動的に「視聴済み」になるから、同じ動画が何度も出てこない！</p>
 
-  <p>📊 <b>残り本数・進捗がひと目でわかる</b><br>
-  あと何本残ってるか、どこまで見たかバーで確認できるよ。</p>
+    <p>📊 <b>残り本数・進捗がひと目でわかる</b><br>
+    あと何本残ってるか、どこまで見たかバーで確認できるよ。</p>
 
-  <p>📝 <b>視聴履歴を時期別に確認</b><br>
-  いつ何を見たか、今日・昨日・1週間前…と時期ごとに整理されて表示されるよ。</p>
+    <p>📝 <b>視聴履歴を時期別に確認</b><br>
+    いつ何を見たか、今日・昨日・1週間前…と時期ごとに整理されて表示されるよ。</p>
 
-  <p>🆕 <b>新着動画を自動チェック</b><br>
-  起動するたびに最新動画を確認して、新しくアップされた本数を表示してくれる！</p>
+    <p>🆕 <b>新着動画を自動チェック</b><br>
+    起動するたびに最新動画を確認して、新しくアップされた本数を表示してくれる！</p>
 
-  <h3>💡 こんな時に使ってみて</h3>
+    <h3>💡 こんな時に使ってみて</h3>
 
-  <p>🤔 「何見よう…」って迷ったとき<br>
-  → ランダムボタン1回で解決！</p>
+    <p>🤔 「何見よう…」って迷ったとき<br>
+    → ランダムボタン1回で解決！</p>
 
-  <p>📦 お気に入りチャンネルの過去動画を全部見たいとき<br>
-  → 既読管理してくれるから取りこぼしなし！</p>
+    <p>📦 お気に入りチャンネルの過去動画を全部見たいとき<br>
+    → 既読管理してくれるから取りこぼしなし！</p>
 
-  <p>🕐 隙間時間にサクッと動画を見たいとき<br>
-  → 開いてボタン押すだけ、選ぶ手間ゼロ！</p>
-
-  <br>
-  <button onclick="closeMerit()">閉じる</button>
+    <p>🕐 隙間時間にサクッと動画を見たいとき<br>
+    → 開いてボタン押すだけ、選ぶ手間ゼロ！</p>
+  </div>
+  <div class="modalFooter">
+    <button onclick="closeMerit()">閉じる</button>
+  </div>
 </div>
 
 <div id="login">
@@ -497,7 +517,7 @@
 const helpBtn = document.getElementById("helpBtn");
 
 helpBtn.onclick = () => {
-  document.getElementById("helpModal").style.display = "block";
+  document.getElementById("helpModal").style.display = "flex";
   document.getElementById("overlay").style.display = "block";
 };
 
@@ -509,7 +529,7 @@ function closeHelp() {
 const meritBtn = document.getElementById("meritBtn");
 
 meritBtn.onclick = () => {
-  document.getElementById("meritModal").style.display = "block";
+  document.getElementById("meritModal").style.display = "flex";
   document.getElementById("overlay").style.display = "block";
 };
 
