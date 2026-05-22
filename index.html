@@ -188,9 +188,9 @@ async function loadVideo(){
   const ch = data.pages[getIndex()].channelId
   if(!ch){ alert("チャンネルID設定して"); return }
 
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&maxResults=50`
-  )
+const res = await fetch(
+  `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&maxResults=50`
+)
 
   const d = await res.json()
 
@@ -224,13 +224,19 @@ async function randomVideo(){
   const v = unseen[Math.floor(Math.random()*unseen.length)]
   currentVideo = v
 
-  videoArea.innerHTML =
-  `
-  <div class="thumbBox" onclick="openVideo()">
-    <img/div>
-  </div>
 
-  <a href="https://youtube.com/watch?v=${v.id}" target`
+videoArea.innerHTML =
+`
+<div class="thumbBox" onclick="openVideo()">
+  <img src="${v.thumb}">
+  <div class="playBtn">▶</div>
+</div>
+
+<a href="https://youtube.com/watch?v=${v.id}" target="_blank">
+  ${v.title}
+</a>
+`;
+
 }
 
 /* ===== 再生＆既読 ===== */
