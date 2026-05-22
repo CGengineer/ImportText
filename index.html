@@ -487,10 +487,12 @@ add.onclick=()=>{
 remove.onclick = () => {
   const ok = confirm("チャンネルを削除するよ。ほんとに大丈夫？")
 
-  if(!ok) return  // キャンセルなら中止
+  if(!ok) return
 
   data.pages.splice(getIndex(),1)
-  save().then(()=>set
+
+  save().then(()=>setIndex(0))
+}
 
 editTitle.onclick=()=>{
   const i=getIndex()
