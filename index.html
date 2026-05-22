@@ -309,9 +309,11 @@ try{
   if(!ch){ alert("チャンネルID設定して"); return }
 
   // ✅ uploads 取得（channels）
-  const chRes = await fetch(
-    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${ch}&key=${API_KEY}`
-  )
+
+const chRes = await fetch(
+  `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${ch}&key=${API_KEY}`
+)
+
   const chData = await chRes.json()
   const uploadsId =
     chData.items[0].contentDetails.relatedPlaylists.uploads
