@@ -254,13 +254,23 @@ async function init(){
       
     // ✅ ここ追加
     document.getElementById("userEmail").textContent = user.email
-const color = "#" + user.uid.slice(0, 6)
-document.getElementById("userIcon").style.background = color
-      initApp()
-    }else{
-      document.getElementById("login").style.display = "block"
-    }
-  })
+
+      
+
+if(user.photoURL){
+  // ✅ Googleの画像表示
+  icon.style.backgroundImage = `url(${user.photoURL})`
+  icon.style.backgroundSize = "cover"
+  icon.style.backgroundPosition = "center"
+  icon.style.backgroundColor = "transparent" // ← これ重要
+}else{
+  // ✅ fallback（色）
+  const color = "#" + user.uid.slice(0, 6)
+  icon.style.background = color
+  icon.style.backgroundImage = "none"
+}
+
+                                    )
 }
 
   
