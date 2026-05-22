@@ -117,20 +117,19 @@ let videos = []
 let currentVideo = null
 
 /* ===== 初期化 ===== */
-async function init() {
-
-firebase.auth().onAuthStateChanged(user => {
-  if(user){
-    currentUser = user.uid;
-    document.getElementById("login").style.display = "none";
-    initApp();
-  }else{
-    document.getElementById("login").style.display = "block";
-  }
-});
-
-  render()
+async function init(){
+  firebase.auth().onAuthStateChanged(user => {
+    if(user){
+      currentUser = user.uid
+      document.getElementById("login").style.display = "none"
+      initApp()
+    }else{
+      document.getElementById("login").style.display = "block"
+    }
+  })
 }
+
+  
 init()
 
 
@@ -147,15 +146,19 @@ function getIndex(){
 function setIndex(i){
   location.hash = i
   render()
- 
-  videos = []
-  document.getElementById("videoArea").innerHTML = ""
 
-  updateProgress()
+  const p = data.pages[i]
 
-  randomVideo() // ←追加（自動表示
-
-
+  if(p.videos && p.videos.length > 0){
+    videos = p.videos
+    updateProgress()
+    randomVideo()
+  }else{
+    videos = []
+    document.getElementById("videoArea").innerHTML = ""
+    updateProgress()
+    loadVideo()
+  }
 }
 
 function render(){
