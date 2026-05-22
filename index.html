@@ -1,27 +1,84 @@
-<!-- ↓ここをあなたのHTMLの最後（</body>前）に追加 -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>YouTubeランダム学習</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 20px;
+}
+
+#videoArea {
+  margin-top: 20px;
+}
+</style>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+</head>
+<body>
 
 <h2>📺 今日の1本</h2>
-<button onclick="getRandomVideo()">🎲 ランダム生成</button>
+
+<button id="loginBtn">ログイン（匿名）</button>
+<button id="randomBtn" disabled>🎲 ランダム生成</button>
+
 <div id="videoArea"></div>
 
 <script>
+/* ===== Firebase設定 ===== */
+firebase.initializeApp({
+  apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
+  authDomain: "importtext-b229d.firebaseapp.com",
+  projectId: "importtext-b229d"
+});
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
 /* ===== YouTube設定 ===== */
-const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4;
+const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
 const CHANNEL_ID = "UCEixleMT76xDzoiEb9ZA7XA";
 
-/* ===== データ ===== */
+/* ===== 状態 ===== */
 let videos = [];
 let currentVideo = null;
+let currentUserId = null;
+
+/* ===== ログイン（匿名） ===== */
+document.getElementById("loginBtn").onclick = async () => {
+  const user = await auth.signInAnonymously();
+  currentUserId = user.user.uid;
+
+  document.getElementById("randomBtn").disabled = false;
+
+  await loadVideos();
+};
 
 /* ===== 動画取得 ===== */
-async function loadVideos(uid) {
-  const ref = db.collection("videos").doc(uid);
+async function loadVideos() {
+  const ref = db.collection("videos").doc(currentUserId);
 
   const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=50`
+    "https://www.googleapis.com/youtube/v3/search?key=" +
+    API_KEY +
+    "&channelId=" +
+    CHANNEL_ID +
+    "&part=snippet,id&order=date&maxResults=50"
   );
 
   const data = await res.json();
+
+  if (!data.items) {
+    alert("APIエラー（キー確認）");
+    console.error(data);
+    return;
+  }
 
   let newVideos = data.items
     .filter(v => v.id.videoId)
@@ -31,7 +88,6 @@ async function loadVideos(uid) {
       seen: false
     }));
 
-  /* Firebaseから既読取得 */
   const doc = await ref.get();
   if (doc.exists) {
     const seenList = doc.data().seen || [];
@@ -43,8 +99,13 @@ async function loadVideos(uid) {
   videos = newVideos;
 }
 
-/* ===== ランダム生成 ===== */
-function getRandomVideo() {
+/* ===== ランダム ===== */
+document.getElementById("randomBtn").onclick = async () => {
+
+  if (videos.length === 0) {
+    await loadVideos();
+  }
+
   const unseen = videos.filter(v => !v.seen);
 
   if (unseen.length === 0) {
@@ -55,44 +116,37 @@ function getRandomVideo() {
   const v = unseen[Math.floor(Math.random() * unseen.length)];
   currentVideo = v;
 
-  document.getElementById("videoArea").innerHTML = `
-    <h3>${v.title}</h3>
-    <button onclick="watchVideo()">▶ 見に行く</button>
-  `;
-}
+  document.getElementById("videoArea").innerHTML =
+    "<h3>" + v.title + "</h3>" +
+    "<button id='watchBtn'>▶ 見に行く</button>";
+};
 
-/* ===== 視聴処理 ===== */
-async function watchVideo() {
-  if (!currentVideo || !currentUserId) return;
+/* ===== 視聴 ===== */
+document.addEventListener("click", async (e) => {
 
-  currentVideo.seen = true;
+  if (e.target.id === "watchBtn") {
+    if (!currentVideo) return;
 
-  /* Firebase保存 */
-  const seenIds = videos
-    .filter(v => v.seen)
-    .map(v => v.id);
+    currentVideo.seen = true;
 
-  await db.collection("videos")
-    .doc(currentUserId)
-    .set({ seen: seenIds });
+    const seenIds = videos
+      .filter(v => v.seen)
+      .map(v => v.id);
 
-  window.open(
-    `https://www.youtube.com/watch?v=${currentVideo.id}`,
-    "_blank"
-  );
+    await db.collection("videos")
+      .doc(currentUserId)
+      .set({ seen: seenIds });
 
-  document.getElementById("videoArea").innerHTML = "✅ 視聴済みに登録";
-}
+    window.open(
+      "https://www.youtube.com/watch?v=" + currentVideo.id,
+      "_blank"
+    );
 
-/* ===== ログイン時に動画読み込み ===== */
-let currentUserId = null;
+    document.getElementById("videoArea").innerHTML = "✅ 視聴済み";
+  }
 
-function initApp(uid) {
-  currentUserId = uid;
-
-  /* ← ここにこれ追加 */
-  loadVideos(uid);
-
-  /* 既存コードそのまま */
-}
+});
 </script>
+
+</body>
+</html>
