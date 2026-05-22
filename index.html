@@ -1,350 +1,340 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>🎀未知リンク</title>
+  <meta charset="UTF-8">
+  <title>🎀未知リンク</title>
 
-  
+  <style>
+    body {
+      display: flex;
+      font-family: "Hiragino Maru Gothic Pro", "Arial Rounded MT", sans-serif;
+      margin: 0;
+      background: #fff5f9;
+    }
 
-<style>
-#appTitle {
-  display: flex;
-  align-items: center;  /* ← 縦中央揃え */
-  gap: 8px;             /* ← 間隔（かわちい） */
-}
-  
-  .headerBtn {
-  background: white;
-  border: 1px solid #f3c4d2;
+    /* ヘッダー */
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      z-index: 1000;
+    }
 
-  padding: 6px 10px;   /* ← 小さめ */
-  font-size: 12px;
+    #appTitle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  border-radius: 12px; /* 軽く丸い */
-  cursor: pointer;
+    #appName {
+      font-weight: bold;
+      font-size: 18px;
+    }
 
-  box-shadow: none;    /* ← ボタンの影消す */
-    
-  transform: translateY(6px);
-}
+    #userArea {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
 
-}
+    #userIcon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #aaa;
+      cursor: pointer;
+    }
 
-/* ホバーちょいだけ反応 */
-.headerBtn:hover {
-  background: #fff5f9;
-}
-#helpModal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+    #userMenu {
+      position: absolute;
+      top: 50px;
+      right: 16px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      display: none;
+      z-index: 1001;
+    }
 
-  background: #fff8fb;
-  padding: 20px;
-  border-radius: 12px;
+    #userMenu div {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
 
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  border: 2px solid #ffd6e3;
+    #userMenu div:hover {
+      background: #f0f0f0;
+    }
 
-  width: 300px;
-  max-width: 90%;
+    /* ボタン */
+    button {
+      background: #ffd6e3;
+      border: 1px solid #f8cbd8;
+      padding: 10px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #444;
+      box-shadow: 0 4px 10px rgba(255, 182, 193, 0.4);
+      transition: all 0.2s ease;
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+    }
 
-  display: none;
-  z-index: 1000;
-}
-button {
-  margin-bottom: 10px;  /* ← 追加 */
-}
+    button::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.4) 10%, transparent 60%);
+      opacity: 0;
+      transition: 0.3s;
+    }
 
-  
-  button {
-  position: relative;
-  overflow: hidden;
-}
+    button:hover {
+      background: #ffbdd0;
+      transform: translateY(-2px);
+    }
 
-button::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.4) 10%, transparent 60%);
-  opacity: 0;
-  transition: 0.3s;
-}
+    button:hover::after {
+      opacity: 1;
+    }
 
-button:hover::after {
-  opacity: 1;
-}
-button {
-  border: 1px solid #f8cbd8;
-}
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(255, 182, 193, 0.3);
+    }
 
-  body {
-  font-family: "Hiragino Maru Gothic Pro", "Arial Rounded MT", sans-serif;
-}
-  .rowBtns {
-  display: flex;
-  gap: 8px;
-}
+    .headerBtn {
+      background: white;
+      border: 1px solid #f3c4d2;
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 12px;
+      box-shadow: none;
+      transform: translateY(6px);
+    }
 
-.rowBtns button {
-  flex: 1;
-}
-/* Google（メイン） */
-#googleLoginBtn {
-  background: #ffc2d6;
-  font-weight: bold;
-}
+    .headerBtn:hover {
+      background: #fff5f9;
+    }
 
-/* 通常ログイン */
-#loginBtn {
-  background: #ffe3ec;
-}
+    /* ログイン */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      z-index: 999;
+      backdrop-filter: blur(5px);
+    }
 
-/* 新規登録 */
-#registerBtn {
-  background: #fff0f5;
-}
+    #login {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
 
-  button {
-  background: #ffd6e3;           /* 薄ピンク */
-  border: none;
-  padding: 10px 14px;
-  border-radius: 20px;           /* ← 丸っこい */
-  cursor: pointer;
+    .fullBtn {
+      width: 100%;
+      margin-bottom: 15px;
+    }
 
-  font-size: 14px;
-  color: #444;
+    .rowBtns {
+      display: flex;
+      gap: 10px;
+    }
 
-  box-shadow: 0 4px 10px rgba(255, 182, 193, 0.4); /* ふわ影 */
-  transition: all 0.2s ease;
-}
+    .rowBtns button {
+      flex: 1;
+    }
 
-/* ホバー時（かわちい反応） */
-button:hover {
-  background: #ffbdd0;
-  transform: translateY(-2px);   /* ふわっと浮く */
-}
+    #googleLoginBtn {
+      background: #ffc2d6;
+      font-weight: bold;
+    }
 
-/* クリック時 */
-button:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 6px rgba(255, 182, 193, 0.3);
-}
-#header {
-  
-  background: #ffe4ec;
-  border-bottom: 1px solid #f8cbd8;
-}
-body {
-  display: flex;
-  font-family: sans-serif;
-  margin: 0;
-  background: #fff5f9; /* ← 超薄ピンク */
-}
+    #loginBtn {
+      background: #ffe3ec;
+    }
 
-  /* Googleボタン（上） */
-.fullBtn {
-  width: 100%;
-  margin-bottom: 15px;
-}
+    #registerBtn {
+      background: #fff0f5;
+    }
 
-/* 下2つ横並び */
-.rowBtns {
-  display: flex;
-  gap: 10px;
-}
+    /* ヘルプモーダル */
+    #helpModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff8fb;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border: 2px solid #ffd6e3;
+      width: 300px;
+      max-width: 90%;
+      display: none;
+      z-index: 1000;
+    }
 
-/* ボタン共通 */
-.rowBtns button {
-  flex: 1; /* ← 均等に広がる */
-}
-  
-  /* 背景を暗くするレイヤー */
-#overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: none;
-  z-index: 999;
-    backdrop-filter: blur(5px);
-}
+    /* ローディング */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.9);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      font-size: 16px;
+    }
 
-/* ログイン画面を中央に */
-#login {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ddd;
+      border-top: 4px solid #065fd4;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 12px;
+    }
 
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
 
-  z-index: 1000;
-}
-body { display:flex; font-family:sans-serif; margin:0 }
-  #userMenu {
-    position: absolute;
-    top: 50px;
-    right: 16px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    display: none;
-    z-index: 1001; /* ← 追加 */
-  }
-  
-  #userMenu div {
-    padding: 8px 12px;
-    cursor: pointer;
-  }
-  
-  #userMenu div:hover {
-    background: #f0f0f0;
-  }
-  #header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50px;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 16px;
-  z-index: 1000;
-}
+    /* サイドバー */
+    #sidebar {
+      width: 300px;
+      border-right: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 50px;
+    }
 
-#appName {
-  font-weight: bold;
-  font-size: 18px;
-}
+    #pageList button {
+      width: 100%;
+      margin-bottom: 4px;
+    }
 
-#userArea {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
+    /* メイン */
+    #main {
+      flex: 1;
+      padding: 10px;
+      margin-top: 50px;
+    }
 
+    #videoArea {
+      margin-top: 20px;
+    }
 
-#sidebar {
-  margin-top: 50px;
-}
+    .thumbBox {
+      position: relative;
+      width: 300px;
+    }
 
+    .thumbBox img {
+      width: 100%;
+    }
 
-#main {
-  margin-top: 50px;
-}
+    .playBtn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      color: white;
+      background: rgba(0,0,0,0.5);
+      border-radius: 50%;
+      padding: 10px 18px;
+      pointer-events: none;
+    }
 
+    /* 進捗バー */
+    #progressBar {
+      width: 300px;
+      height: 10px;
+      background: #ddd;
+      margin-top: 10px;
+    }
 
-  
-#userIcon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #aaa;
-}
-  
-  #loading {
-  position: fixed;
-  inset: 0;
-  background: rgba(255,255,255,0.9);
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  font-size: 16px;
-}
+    #progressFill {
+      height: 100%;
+      width: 0%;
+      background: #4caf50;
+    }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #ddd;
-  border-top: 4px solid #065fd4;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 12px;
-}
+    /* 視聴履歴 */
+    #historySection {
+      margin-top: 24px;
+    }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-  
-/* sidebar */
-#sidebar { width:300px; border-right:1px solid #ccc; padding:10px }
-#pageList button { width:100%; margin-bottom:4px }
+    .historyItem {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      padding: 8px;
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #ffd6e3;
+    }
 
-/* main */
-#main { flex:1; padding:10px }
+    .historyItem img {
+      width: 120px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
 
-#videoArea { margin-top:20px }
+    .historyItem a {
+      font-size: 13px;
+      color: #444;
+      text-decoration: none;
+    }
 
-/* サムネ */
-#videoArea img {
-  width:300px;
-  display:block;
-  margin-bottom:8px;
-  cursor:pointer;
-}
+    .historyItem a:hover {
+      text-decoration: underline;
+      color: #c0003d;
+    }
+  </style>
 
-/* 再生ボタン */
-.thumbBox { position:relative; width:300px }
-.thumbBox img { width:100% }
-.playBtn {
-  position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  font-size:40px;
-  color:white;
-  background:rgba(0,0,0,0.5);
-  border-radius:50%;
-  padding:10px 18px;
-  pointer-events:none;
-}
-
-/* 進捗バー */
-#progressBar {
-  width:300px;
-  height:10px;
-  background:#ddd;
-  margin-top:10px;
-}
-#progressFill {
-  height:100%;
-  width:0%;
-  background:#4caf50;
-}
-</style>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 
 <body>
 
 <div id="header">
-<div id="appTitle">
-  <div id="appName">🎀未知リンク</div>
-  <button id="helpBtn" class="headerBtn">使い方💡</button>
-</div>
-    <div id="userArea">
-
+  <div id="appTitle">
+    <div id="appName">🎀未知リンク</div>
+    <button id="helpBtn" class="headerBtn">使い方💡</button>
+  </div>
+  <div id="userArea">
     <span id="userEmail"></span>
     <div id="userIcon" onclick="toggleMenu()"></div>
   </div>
 </div>
-  
+
 <div id="userMenu">
   <div onclick="logout()">別のアカウントでログイン</div>
 </div>
@@ -353,145 +343,119 @@ body { display:flex; font-family:sans-serif; margin:0 }
   <div class="spinner"></div>
   <div>読み込み中…</div>
 </div>
+
 <div id="overlay"></div>
+
 <div id="helpModal">
   <h3>🤔このアプリはどんなもの？</h3>
   <p>
-  指定したYouTubeチャンネルたちから、<br>
-  ランダムで1本再生してくれる、未知へのリンク∞ワクワク発見アプリです💖
+    指定したYouTubeチャンネルたちから、<br>
+    ランダムで1本再生してくれる、未知へのリンク∞ワクワク発見アプリです💖
   </p>
-
-    <p>
-👀 合計本数や視聴済みもひと目で分かる！<br>
-🆕　新着動画もチェックできるよ(^^)/
+  <p>
+    👀 合計本数や視聴済みもひと目で分かる！<br>
+    🆕　新着動画もチェックできるよ(^^)/
   </p>
-
-</p>
 
   <h3>📺 チャンネルの追加方法</h3>
-
+  <p>① お好きなYouTubeのリンクをコピー</p>
+  <p>② 下のサイトにアクセス</p>
   <p>
-① お好きなYouTubeのリンクをコピー
+    <a href="https://commentpicker.com/youtube-channel-id.php" target="_blank">
+      YouTube Channel ID取得サイト
+    </a>
   </p>
-
-  <p>
-② 下のサイトにアクセス
-  </p>
-
-  <p>
-<a href="https://commentpicker.com/youtube-channel-id.php" target="_blank">
-YouTube Channel ID取得サイト
-</a>
-  </p>
-
-  <p>
-③ 「YouTube channel link, video link or username」に貼り付け
-  </p>
-
-  <p>
-④ Solve sum を入力
-  </p>
-
-  <p>
-⑤ 「WATCH & GET YOUTUBE CHANNEL ID」を押す
-  </p>
-
-  <p>
-⑥ 下に出てくる Channel ID をコピー
-  </p>
-
-  <p>
-⑦ このアプリの「チャンネルID設定」に貼り付けよう！✨
-  </p>
-
+  <p>③ 「YouTube channel link, video link or username」に貼り付け</p>
+  <p>④ Solve sum を入力</p>
+  <p>⑤ 「WATCH & GET YOUTUBE CHANNEL ID」を押す</p>
+  <p>⑥ 下に出てくる Channel ID をコピー</p>
+  <p>⑦ このアプリの「チャンネルID設定」に貼り付けよう！✨</p>
   <br>
-
   <button onclick="closeHelp()">閉じる</button>
 </div>
 
 <div id="login">
-<h3>ログイン</h3>
-<input id="email" placeholder="メール"><br><br>
-<input id="password" type="password" placeholder="パスワード"><br><br>
+  <h3>ログイン</h3>
+  <input id="email" placeholder="メール"><br><br>
+  <input id="password" type="password" placeholder="パスワード"><br><br>
 
-<button id="googleLoginBtn" class="fullBtn">
-  Googleでログイン（登録不要）
-</button>
+  <button id="googleLoginBtn" class="fullBtn">
+    Googleでログイン（登録不要）
+  </button>
 
-<div class="rowBtns">
-  <button id="loginBtn">その他メールでログイン</button>
-  <button id="registerBtn">新規登録</button>
+  <div class="rowBtns">
+    <button id="loginBtn">その他メールでログイン</button>
+    <button id="registerBtn">新規登録</button>
+  </div>
 </div>
 
-
-
-
-
-
-</div>
-
-  
-  
 <div id="sidebar">
-<button id="add">チャンネル追加</button>
-<button id="remove">チャンネル削除</button>
-<div id="pageList"></div>
+  <button id="add">チャンネル追加</button>
+  <button id="remove">チャンネル削除</button>
+  <div id="pageList"></div>
 </div>
 
 <div id="main">
-<h1 id="title"></h1>
+  <h1 id="title"></h1>
 
-<button id="editTitle">タイトル編集</button>
-<button id="editCh">チャンネルID設定</button>
+  <button id="editTitle">タイトル編集</button>
+  <button id="editCh">チャンネルID設定</button>
 
-<div>ChannelID: <span id="chid"></span></div>
+  <div>ChannelID: <span id="chid"></span></div>
 
-<hr>
+  <hr>
 
-<h3>📺 今日の1本</h3>
-<button onclick="randomVideo()">🎲 ランダム</button>
+  <h3>📺 今日の1本</h3>
+  <button onclick="randomVideo()">🎲 ランダム</button>
 
-<div id="videoArea"></div>
+  <div id="videoArea"></div>
 
-<div>残り：<span id="remain">-</span>本</div>
-<div>視聴済：<span id="done">-</span>本</div>
-<div>新着：<span id="newCount">0</span>本</div>
+  <div>残り：<span id="remain">-</span>本</div>
+  <div>視聴済：<span id="done">-</span>本</div>
+  <div>新着：<span id="newCount">0</span>本</div>
 
   <div id="progressBar">
-  <div id="progressFill"></div>
-</div>
+    <div id="progressFill"></div>
+  </div>
 
+  <div id="historySection">
+    <hr>
+    <h3>📝 視聴履歴</h3>
+    <div id="historyArea"></div>
+  </div>
 </div>
 
 <script>
 
-const helpBtn = document.getElementById("helpBtn")
+const helpBtn = document.getElementById("helpBtn");
 
 helpBtn.onclick = () => {
-  document.getElementById("helpModal").style.display = "block"
-  document.getElementById("overlay").style.display = "block"
+  document.getElementById("helpModal").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+};
+
+function closeHelp() {
+  document.getElementById("helpModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
 }
 
-function closeHelp(){
-  document.getElementById("helpModal").style.display = "none"
-  document.getElementById("overlay").style.display = "none"
+function toggleMenu() {
+  const menu = document.getElementById("userMenu");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
 }
 
-function toggleMenu(){
-  const menu = document.getElementById("userMenu")
-  menu.style.display = menu.style.display === "block" ? "none" : "block"
+function logout() {
+  firebase.auth().signOut();
 }
 
-function logout(){
-  firebase.auth().signOut()
-}
-function showLoading(){
+function showLoading() {
   document.getElementById("loading").style.display = "flex";
 }
 
-function hideLoading(){
+function hideLoading() {
   document.getElementById("loading").style.display = "none";
 }
+
 /* ===== Firebase ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
@@ -505,324 +469,304 @@ const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
 let currentUser = null;
 
 /* ===== 状態 ===== */
-let data = { pages:[] }
-let videos = []
-let currentVideo = null
-let newCount = 0
-  
+let data = { pages: [] };
+let videos = [];
+let currentVideo = null;
+let newCount = 0;
+
 /* ===== 初期化 ===== */
-async function init(){
+async function init() {
+  firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+      currentUser = user.uid;
+      document.getElementById("login").style.display = "none";
+      document.getElementById("overlay").style.display = "none";
+      document.getElementById("userEmail").textContent = user.email;
 
-firebase.auth().onAuthStateChanged(user => {
-  if(user){
-    currentUser = user.uid
-document.getElementById("login").style.display = "none"
-document.getElementById("overlay").style.display = "none"
+      const icon = document.getElementById("userIcon");
 
-    document.getElementById("userEmail").textContent = user.email
+      if (user.photoURL) {
+        icon.style.backgroundImage = `url(${user.photoURL})`;
+        icon.style.backgroundSize = "cover";
+        icon.style.backgroundPosition = "center";
+        icon.style.backgroundColor = "transparent";
+      } else {
+        const color = "#" + user.uid.slice(0, 6);
+        icon.style.background = color;
+        icon.style.backgroundImage = "none";
+      }
 
-    const icon = document.getElementById("userIcon") // ← これ追加
-
-    if(user.photoURL){
-      icon.style.backgroundImage = `url(${user.photoURL})`
-      icon.style.backgroundSize = "cover"
-      icon.style.backgroundPosition = "center"
-      icon.style.backgroundColor = "transparent"
-    }else{
-      const color = "#" + user.uid.slice(0, 6)
-      icon.style.background = color
-      icon.style.backgroundImage = "none"
+      initApp();
+    } else {
+      document.getElementById("login").style.display = "block";
+      document.getElementById("overlay").style.display = "block";
     }
-
-    initApp()
-
-  }else{
-    document.getElementById("login").style.display = "block"
-      document.getElementById("overlay").style.display = "block" // ← これ
-  }
-})
+  });
 }
 
-  
-init()
+init();
 
-
-function save(){
-  return db.collection("app").doc(currentUser).set(data)
+function save() {
+  return db.collection("app").doc(currentUser).set(data);
 }
-
 
 /* ===== UI ===== */
-function getIndex(){
-  return parseInt(location.hash.replace("#",""))||0
+function getIndex() {
+  return parseInt(location.hash.replace("#", "")) || 0;
 }
 
-function setIndex(i){
-  location.hash = i
-  render()
+function setIndex(i) {
+  location.hash = i;
+  render();
 
-  const p = data.pages[i]
+  const p = data.pages[i];
 
-  if(p.videos && p.videos.length > 0){
-    videos = p.videos
-    updateProgress()
-    randomVideo()
-  }else{
-    videos = []
-    document.getElementById("videoArea").innerHTML = ""
-    updateProgress()
-    loadVideo()
+  if (p.videos && p.videos.length > 0) {
+    videos = p.videos;
+    updateProgress();
+    updateHistory();
+    randomVideo();
+  } else {
+    videos = [];
+    document.getElementById("videoArea").innerHTML = "";
+    updateProgress();
+    updateHistory();
+    loadVideo();
   }
 }
 
-function render(){
-  const list = document.getElementById("pageList")
-  list.innerHTML=""
+function render() {
+  const list = document.getElementById("pageList");
+  list.innerHTML = "";
 
-  
+  data.pages.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.textContent = p.title;
+    b.onclick = () => setIndex(i);
+    list.appendChild(b);
+  });
 
-  data.pages.forEach((p,i)=>{
-    const b=document.createElement("button")
-    b.textContent=p.title
-    b.onclick=()=>setIndex(i)
-    list.appendChild(b)
-  })
-
-  const p = data.pages[getIndex()]
-
-  document.getElementById("title").textContent=p.title
-  document.getElementById("chid").textContent=p.channelId||"未設定"
+  const p = data.pages[getIndex()];
+  document.getElementById("title").textContent = p.title;
+  document.getElementById("chid").textContent = p.channelId || "未設定";
 }
 
 /* ===== CRUD ===== */
-add.onclick=()=>{
-  data.pages.push({title:"新規",channelId:"",seen:[]})
-  save().then(render)
-}
+add.onclick = () => {
+  data.pages.push({ title: "新規", channelId: "", seen: [] });
+  save().then(render);
+};
 
 remove.onclick = () => {
-  const ok = confirm("今開いてるチャンネルページを削除するよ。ほんとに大丈夫？")
+  const ok = confirm("今開いてるチャンネルページを削除するよ。ほんとに大丈夫？");
+  if (!ok) return;
+  data.pages.splice(getIndex(), 1);
+  save().then(() => setIndex(0));
+};
 
-  if(!ok) return
-
-  data.pages.splice(getIndex(),1)
-
-  save().then(()=>setIndex(0))
-}
-
-editTitle.onclick=()=>{
-  const i=getIndex()
-  const t=prompt("タイトル",data.pages[i].title)
-  if(!t)return
-  data.pages[i].title=t
-  save().then(render)
-}
+editTitle.onclick = () => {
+  const i = getIndex();
+  const t = prompt("タイトル", data.pages[i].title);
+  if (!t) return;
+  data.pages[i].title = t;
+  save().then(render);
+};
 
 editCh.onclick = async () => {
-  const i = getIndex()
-  const id = prompt("チャンネルID", data.pages[i].channelId)
-  if(id === null) return
+  const i = getIndex();
+  const id = prompt("チャンネルID", data.pages[i].channelId);
+  if (id === null) return;
 
-  // ✅ まず即反映（ここがポイント）
-  data.pages[i].channelId = id
-  data.pages[i].seen = []
-  data.pages[i].videos = []
-  videos = []
+  data.pages[i].channelId = id;
+  data.pages[i].seen = [];
+  data.pages[i].videos = [];
+  videos = [];
 
-  render()        // ← 先に画面へ反映
-  showLoading()   // ← その後ローディング
+  render();
+  showLoading();
 
   await db.collection("app").doc(currentUser).update({
     videos: null,
     channelId: null
-  })
+  });
 
-  await save()
-
-  // ✅ 実際の取得開始
-  await loadVideo()
-}
-
+  await save();
+  await loadVideo();
+};
 
 /* ===== 動画取得 ===== */
- /* ===== 動画取得 ===== */
-async function loadVideo(){
-try{
-  const pageIndex = getIndex()
-  const p = data.pages[pageIndex]
+async function loadVideo() {
+  try {
+    const pageIndex = getIndex();
+    const p = data.pages[pageIndex];
 
-  if(!p) return
+    if (!p) return;
 
-  // ✅ キャッシュあったら即使う
-  if(p.videos && p.videos.length > 0){
+    if (p.videos && p.videos.length > 0) {
+      videos = p.videos;
+      const ch = p.channelId;
 
-    videos = p.videos
-    const ch = p.channelId
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&order=date&maxResults=10`
+      );
+      const d = await res.json();
 
-    // ✅ 最新だけ追加（search）
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&order=date&maxResults=10`
-    )
-    const d = await res.json()
+      const latest = d.items
+        .filter(v => v.id.videoId)
+        .map(v => ({
+          id: v.id.videoId,
+          title: v.snippet.title,
+          thumb: v.snippet.thumbnails.medium.url
+        }));
 
-    const latest = d.items
-      .filter(v => v.id.videoId)
-      .map(v => ({
-        id: v.id.videoId,
+      newCount = 0;
+
+      latest.forEach(v => {
+        if (!videos.find(x => x.id === v.id)) {
+          videos.unshift(v);
+          newCount++;
+        }
+      });
+
+      p.videos = videos;
+      save();
+      updateProgress();
+      return;
+    }
+
+    const ch = p.channelId;
+
+    const chRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${ch}&key=${API_KEY}`
+    );
+    const chData = await chRes.json();
+    const uploadsId = chData.items[0].contentDetails.relatedPlaylists.uploads;
+    const channelName = chData.items[0].snippet.title;
+
+    p.title = channelName;
+    save();
+    render();
+
+    let allVideos = [];
+    let nextPageToken = "";
+
+    do {
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&pageToken=${nextPageToken}&key=${API_KEY}`
+      );
+      const d = await res.json();
+
+      const vids = d.items.map(v => ({
+        id: v.snippet.resourceId.videoId,
         title: v.snippet.title,
         thumb: v.snippet.thumbnails.medium.url
-      }))
+      }));
 
+      allVideos = allVideos.concat(vids);
+      nextPageToken = d.nextPageToken || "";
+    } while (nextPageToken);
 
-    newCount = 0   // ← 毎回リセット
-    
-    latest.forEach(v => {
-      if(!videos.find(x => x.id === v.id)){
-        videos.unshift(v)
-        newCount++          // ← 新着カウント
-      }
-    })
-
-    p.videos = videos
-    save()
-    updateProgress()
-    return
+    videos = allVideos;
+    p.videos = videos;
+    save();
+    updateProgress();
+    randomVideo();
+  } finally {
+    hideLoading();
   }
-
-  const ch = p.channelId
-  // ✅ uploads 取得（channels）
-
-const chRes = await fetch(
-  `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${ch}&key=${API_KEY}`
-)
-
-  const chData = await chRes.json()
-  const uploadsId =
-    chData.items[0].contentDetails.relatedPlaylists.uploads
-
-  const channelName =
-    chData.items[0].snippet.title
-  
-  // ✅ ページタイトルをチャンネル名にする
-  p.title = channelName
-  save()
-  render()
-
-  
-  let allVideos = []
-  let nextPageToken = ""
-
-  // ✅ 全動画取得（playlistItems）
-  do {
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&pageToken=${nextPageToken}&key=${API_KEY}`
-    )
-    const d = await res.json()
-
-    const vids = d.items.map(v => ({
-      id: v.snippet.resourceId.videoId,
-      title: v.snippet.title,
-      thumb: v.snippet.thumbnails.medium.url
-    }))
-
-    allVideos = allVideos.concat(vids)
-    nextPageToken = d.nextPageToken || ""
-
-  } while(nextPageToken)
-
-  videos = allVideos
-
-  // ✅ 保存
-  p.videos = videos
-  save()
-  updateProgress()
-    randomVideo()
-} finally{
-      hideLoading(); // ← 追加（必ず消える）
 }
-}
+
 /* ===== ランダム ===== */
-async function randomVideo(){
-
-  if(videos.length===0){
-    await loadVideo()
-    if(videos.length===0) return
+async function randomVideo() {
+  if (videos.length === 0) {
+    await loadVideo();
+    if (videos.length === 0) return;
   }
 
-  const page = data.pages[getIndex()]
-  const unseen = videos.filter(v => !page.seen.includes(v.id))
+  const page = data.pages[getIndex()];
+  const unseen = videos.filter(v => !page.seen.includes(v.id));
 
-  if(unseen.length===0){
-    videoArea.innerHTML="🎉 全部見た！"
-    return
+  if (unseen.length === 0) {
+    videoArea.innerHTML = "🎉 全部見た！";
+    return;
   }
 
-  const v = unseen[Math.floor(Math.random()*unseen.length)]
-  currentVideo = v
+  const v = unseen[Math.floor(Math.random() * unseen.length)];
+  currentVideo = v;
 
-
-videoArea.innerHTML =
-`
+  videoArea.innerHTML = `
 <div class="thumbBox" onclick="openVideo()">
   <img src="${v.thumb}">
   <div class="playBtn">▶</div>
 </div>
-
 <a href="https://youtube.com/watch?v=${v.id}" target="_blank">
   ${v.title}
-</a>
-`;
-
+</a>`;
 }
 
 /* ===== 再生＆既読 ===== */
-function openVideo(){
+function openVideo() {
+  const page = data.pages[getIndex()];
 
-  const page = data.pages[getIndex()]
-
-  if(!page.seen.includes(currentVideo.id)){
-    page.seen.push(currentVideo.id)
-    save()
+  if (!page.seen.includes(currentVideo.id)) {
+    page.seen.push(currentVideo.id);
+    save();
   }
 
-  updateProgress()
+  updateProgress();
+  updateHistory();
 
-  window.open("https://youtube.com/watch?v="+currentVideo.id)
+  window.open("https://youtube.com/watch?v=" + currentVideo.id);
 }
 
 /* ===== 進捗 ===== */
-function updateProgress(){
-  const page = data.pages[getIndex()]
-  if(!videos.length){ return }
+function updateProgress() {
+  const page = data.pages[getIndex()];
+  if (!videos.length) return;
 
-  const total = videos.length
-  const done = page.seen.length
-  const remain = total - done
-  
+  const total = videos.length;
+  const done = page.seen.length;
+  const remain = total - done;
 
-  document.getElementById("remain").textContent = remain
-  document.getElementById("done").textContent = done
-  document.getElementById("newCount").textContent = newCount
-  const percent = (done / total) * 100
-  document.getElementById("progressFill").style.width = percent + "%"
-
-  
+  document.getElementById("remain").textContent = remain;
+  document.getElementById("done").textContent = done;
+  document.getElementById("newCount").textContent = newCount;
+  document.getElementById("progressFill").style.width = (done / total) * 100 + "%";
 }
-const loginBtn = document.getElementById("loginBtn")
-  loginBtn.onclick = async () => {
-  await firebase.auth().signInWithEmailAndPassword(
-    email.value,
-    password.value
-  );
+
+/* ===== 視聴履歴 ===== */
+function updateHistory() {
+  const page = data.pages[getIndex()];
+  const historyArea = document.getElementById("historyArea");
+
+  if (!page.seen || !page.seen.length) {
+    historyArea.innerHTML = "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>";
+    return;
+  }
+
+  const seenVideos = [...page.seen].reverse()
+    .map(id => videos.find(v => v.id === id))
+    .filter(Boolean);
+
+  historyArea.innerHTML = seenVideos.map(v => `
+    <div class="historyItem">
+      <img src="${v.thumb}" alt="">
+      <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
+    </div>
+  `).join("");
+}
+
+/* ===== ログイン ===== */
+const loginBtn = document.getElementById("loginBtn");
+
+loginBtn.onclick = async () => {
+  await firebase.auth().signInWithEmailAndPassword(email.value, password.value);
 };
 
 registerBtn.onclick = async () => {
-  await firebase.auth().createUserWithEmailAndPassword(
-    email.value,
-    password.value
-  );
+  await firebase.auth().createUserWithEmailAndPassword(email.value, password.value);
 };
-  // ✅ Googleログイン（これが無かった）
+
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 googleLoginBtn.onclick = async () => {
@@ -834,26 +778,21 @@ googleLoginBtn.onclick = async () => {
   }
 };
 
-  async function initApp(){
-  const doc = await db.collection("app").doc(currentUser).get()
+async function initApp() {
+  const doc = await db.collection("app").doc(currentUser).get();
 
-  if(doc.exists){
-    data = doc.data()
-  }else{
-    data = { pages:[{title:"チャンネル１",channelId:"",seen:[]}] }
-    save()
+  if (doc.exists) {
+    data = doc.data();
+  } else {
+    data = { pages: [{ title: "チャンネル１", channelId: "", seen: [] }] };
+    save();
   }
 
-  render()
-
-    
-// ✅ これ追加（最初のページを表示）
-  setIndex(0)
-
-// ✅ 起動時に新着チェックを必ず1回
-loadVideo()
-
+  render();
+  setIndex(0);
+  loadVideo();
 }
+
 </script>
 
 </body>
