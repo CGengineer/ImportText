@@ -217,7 +217,9 @@ editCh.onclick=()=>{
   save().then(render)
 }
 
-/* ===== 動画取得 ===== */async function loadVideo(){
+/* ===== 動画取得 ===== */
+ /* ===== 動画取得 ===== */
+async function loadVideo(){
 
   const pageIndex = getIndex()
   const p = data.pages[pageIndex]
@@ -228,14 +230,12 @@ editCh.onclick=()=>{
   if(p.videos && p.videos.length > 0){
 
     videos = p.videos
-
     const ch = p.channelId
 
-    // ✅ 最新だけ追加
+    // ✅ 最新だけ追加（search）
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&order=date&maxResults=10`
     )
-
     const d = await res.json()
 
     const latest = d.items
@@ -254,7 +254,6 @@ editCh.onclick=()=>{
 
     p.videos = videos
     save()
-
     updateProgress()
     return
   }
@@ -262,22 +261,22 @@ editCh.onclick=()=>{
   const ch = p.channelId
   if(!ch){ alert("チャンネルID設定して"); return }
 
-  // ✅ uploads取得
+  // ✅ uploads 取得（channels）
   const chRes = await fetch(
     `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${ch}&key=${API_KEY}`
   )
-
   const chData = await chRes.json()
-  const uploadsId = chData.items[0].contentDetails.relatedPlaylists.uploads
+  const uploadsId =
+    chData.items[0].contentDetails.relatedPlaylists.uploads
 
   let allVideos = []
   let nextPageToken = ""
 
+  // ✅ 全動画取得（playlistItems）
   do {
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&pageToken=${nextPageToken}&key=${API_KEY}`
     )
-
     const d = await res.json()
 
     const vids = d.items.map(v => ({
@@ -296,7 +295,6 @@ editCh.onclick=()=>{
   // ✅ 保存
   p.videos = videos
   save()
-
   updateProgress()
 }
 /* ===== ランダム ===== */
