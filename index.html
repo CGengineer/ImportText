@@ -14,6 +14,7 @@ body { display:flex; font-family:sans-serif; margin:0 }
     border: 1px solid #ddd;
     border-radius: 6px;
     display: none;
+    z-index: 1001; /* ← 追加 */
   }
   
   #userMenu div {
@@ -153,9 +154,9 @@ body { display:flex; font-family:sans-serif; margin:0 }
 <div id="header">
   <div id="appName">未知リンク</div>
 
-  <div id="userArea">
+    <div id="userArea">
     <span id="userEmail"></span>
-    <div id="userIcon"></div>
+    <div id="userIcon" onclick="toggleMenu()"></div>
   </div>
 </div>
   
