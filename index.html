@@ -188,33 +188,33 @@ async function loadVideo(){
   const ch = data.pages[getIndex()].channelId
   if(!ch){ alert("チャンネルID設定して"); return }
 
+  // ✅ STEP1: uploads playlist取得
+  const chRes = await fetch(
+    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${ch}&key=${API_KEY}`
+  )
+
+  const chData = await chRes.json()
+
+  const uploadsId = chData.items[0].contentDetails.relatedPlaylists.uploads
+
   let allVideos = []
   let nextPageToken = ""
 
+  // ✅ STEP2: 全動画ループ取得
   do {
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&maxResults=50&pageToken=${nextPageToken}`
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&pageToken=${nextPageToken}&key=${API_KEY}`
     )
-
 
     const d = await res.json()
 
-    if(!d.items){
-      alert("APIエラー")
-      console.log(d)
-      return
-    }
-
-    const vids = d.items
-      .filter(v => v.id.videoId)
-      .map(v => ({
-        id: v.id.videoId,
-        title: v.snippet.title,
-        thumb: v.snippet.thumbnails.medium.url
-      }))
+    const vids = d.items.map(v => ({
+      id: v.snippet.resourceId.videoId,
+      title: v.snippet.title,
+      thumb: v.snippet.thumbnails.medium.url
+    }))
 
     allVideos = allVideos.concat(vids)
-
     nextPageToken = d.nextPageToken || ""
 
   } while(nextPageToken)
