@@ -318,6 +318,15 @@ const chRes = await fetch(
   const uploadsId =
     chData.items[0].contentDetails.relatedPlaylists.uploads
 
+  const channelName =
+    chData.items[0].snippet.title
+  
+  // ✅ ページタイトルをチャンネル名にする
+  p.title = channelName
+  save()
+  render()
+
+  
   let allVideos = []
   let nextPageToken = ""
 
