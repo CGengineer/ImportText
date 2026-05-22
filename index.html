@@ -149,6 +149,12 @@ function render(){
 
   const p = data.pages[getIndex()]
 
+  // seen 初期化ガード（重要）
+  if(!p.seen){
+    p.seen = []
+    save()
+  }
+
   document.getElementById("title").textContent=p.title
   document.getElementById("chid").textContent=p.channelId||"未設定"
 }
@@ -182,7 +188,7 @@ editCh.onclick=()=>{
   save().then(render)
 }
 
-/* ===== 動画取得 ===== */
+/* ===== 動画取得（全動画） ===== */
 async function loadVideo(){
 
   const ch = data.pages[getIndex()].channelId
@@ -195,7 +201,6 @@ async function loadVideo(){
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&maxResults=50&pageToken=${nextPageToken}`
     )
-
 
     const d = await res.json()
 
@@ -214,13 +219,11 @@ async function loadVideo(){
       }))
 
     allVideos = allVideos.concat(vids)
-
     nextPageToken = d.nextPageToken || ""
 
   } while(nextPageToken)
 
   videos = allVideos
-
   updateProgress()
 }
 
@@ -243,24 +246,18 @@ async function randomVideo(){
   const v = unseen[Math.floor(Math.random()*unseen.length)]
   currentVideo = v
 
-
-videoArea.innerHTML =
-`
-<div class="thumbBox" onclick="openVideo()">
-  <img src="${v.thumb}">
-  <div class="playBtn">▶</div>
+  videoArea.innerHTML =
+  `
+  <div class="thumbBox" onclick="openVideo()">
 </div>
+  </div>
 
-<a href="https://youtube.com/watch?v=${v.id}" target="_blank">
-  ${v.title}
-</a>
-`;
-
+  <a href="https://youtube.com${v.id}
+  `;
 }
 
 /* ===== 再生＆既読 ===== */
 function openVideo(){
-
   const page = data.pages[getIndex()]
 
   if(!page.seen.includes(currentVideo.id)){
@@ -269,14 +266,13 @@ function openVideo(){
   }
 
   updateProgress()
-
   window.open("https://youtube.com/watch?v="+currentVideo.id)
 }
 
 /* ===== 進捗 ===== */
 function updateProgress(){
   const page = data.pages[getIndex()]
-  if(!videos.length){ return }
+  if(!videos.length) return
 
   const total = videos.length
   const done = page.seen.length
@@ -284,7 +280,7 @@ function updateProgress(){
 
   document.getElementById("remain").textContent = remain
 
-  const percent = (done / total) * 100
+  const percent = (done/total)*100
   document.getElementById("progressFill").style.width = percent + "%"
 }
 
