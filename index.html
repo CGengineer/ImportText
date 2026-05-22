@@ -13,7 +13,6 @@ body { display:flex; font-family:sans-serif; margin:0 }
 
 /* main */
 #main { flex:1; padding:10px }
-textarea { width:100%; height:200px }
 
 #videoArea { margin-top:20px }
 
@@ -24,31 +23,36 @@ textarea { width:100%; height:200px }
   margin-bottom:8px;
   cursor:pointer;
 }
-  .thumbBox {
-  position: relative;
-  width: 300px;
-}
 
-.thumbBox img {
-  width: 100%;
-  display: block;
-}
-
+/* 再生ボタン */
+.thumbBox { position:relative; width:300px }
+.thumbBox img { width:100% }
 .playBtn {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 40px;
-  color: white;
-  background: rgba(0,0,0,0.5);
-  border-radius: 50%;
-  padding: 10px 18px;
-  pointer-events: none;
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  font-size:40px;
+  color:white;
+  background:rgba(0,0,0,0.5);
+  border-radius:50%;
+  padding:10px 18px;
+  pointer-events:none;
+}
+
+/* 進捗バー */
+#progressBar {
+  width:300px;
+  height:10px;
+  background:#ddd;
+  margin-top:10px;
+}
+#progressFill {
+  height:100%;
+  width:0%;
+  background:#4caf50;
 }
 </style>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
@@ -77,6 +81,12 @@ textarea { width:100%; height:200px }
 
 <div id="videoArea"></div>
 
+<div>残り：<span id="remain">-</span>本</div>
+
+<div id="progressBar">
+  <div id="progressFill"></div>
+</div>
+
 </div>
 
 <script>
@@ -104,7 +114,7 @@ async function init() {
   if(doc.exists){
     data = doc.data()
   }else{
-    data = { pages:[{title:"ページ1",text:"",channelId:""}] }
+    data = { pages:[{title:"ページ1",channelId:"",seen:[]}] }
     save()
   }
 
@@ -112,7 +122,6 @@ async function init() {
 }
 init()
 
-/* ===== 保存 ===== */
 function save(){
   return db.collection("app").doc(USER).set(data)
 }
@@ -141,27 +150,21 @@ function render(){
   const p = data.pages[getIndex()]
 
   document.getElementById("title").textContent=p.title
-  document.getElementById("editor").value=p.text
   document.getElementById("chid").textContent=p.channelId||"未設定"
 }
 
 /* ===== CRUD ===== */
-document.getElementById("add").onclick=()=>{
-  data.pages.push({title:"新規",text:"",channelId:""})
+add.onclick=()=>{
+  data.pages.push({title:"新規",channelId:"",seen:[]})
   save().then(render)
 }
 
-document.getElementById("remove").onclick=()=>{
+remove.onclick=()=>{
   data.pages.splice(getIndex(),1)
   save().then(()=>setIndex(0))
 }
 
-document.getElementById("save").onclick=()=>{
-  data.pages[getIndex()].text=document.getElementById("editor").value
-  save()
-}
-
-document.getElementById("editTitle").onclick=()=>{
+editTitle.onclick=()=>{
   const i=getIndex()
   const t=prompt("タイトル",data.pages[i].title)
   if(!t)return
@@ -169,37 +172,27 @@ document.getElementById("editTitle").onclick=()=>{
   save().then(render)
 }
 
-/* ===== チャンネル編集 ===== */
-document.getElementById("editCh").onclick=()=>{
+editCh.onclick=()=>{
   const i=getIndex()
   const id=prompt("チャンネルID",data.pages[i].channelId)
   if(id===null)return
   data.pages[i].channelId=id
-  videos = [] // ←動画キャッシュリセット（超重要）
+  data.pages[i].seen=[]
+  videos=[]
   save().then(render)
 }
 
-/* ===== YouTube取得 ===== */
+/* ===== 動画取得 ===== */
 async function loadVideo(){
 
   const ch = data.pages[getIndex()].channelId
-
-  if(!ch){
-    alert("チャンネルID設定して")
-    return
-  }
+  if(!ch){ alert("チャンネルID設定して"); return }
 
   const res = await fetch(
     `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&maxResults=50`
   )
 
   const d = await res.json()
-
-  if(!d.items){
-    alert("APIエラー or キー確認")
-    console.log(d)
-    return
-  }
 
   videos = d.items
     .filter(v=>v.id.videoId)
@@ -208,6 +201,8 @@ async function loadVideo(){
       title:v.snippet.title,
       thumb:v.snippet.thumbnails.medium.url
     }))
+
+  updateProgress()
 }
 
 /* ===== ランダム ===== */
@@ -218,26 +213,54 @@ async function randomVideo(){
     if(videos.length===0) return
   }
 
-  const v = videos[Math.floor(Math.random()*videos.length)]
+  const page = data.pages[getIndex()]
+  const unseen = videos.filter(v => !page.seen.includes(v.id))
+
+  if(unseen.length===0){
+    videoArea.innerHTML="🎉 全部見た！"
+    return
+  }
+
+  const v = unseen[Math.floor(Math.random()*unseen.length)]
   currentVideo = v
-  
-  document.getElementById("videoArea").innerHTML =
+
+  videoArea.innerHTML =
   `
   <div class="thumbBox" onclick="openVideo()">
-    <img src="${v.thumb}">
-    <div class="playBtn">▶</div>
+    <img/div>
   </div>
 
-  <a href="https://youtube.com/watch?v=${v.id}" target="_blank">
-    ${v.title}
-  </a>
-
+  <a href="https://youtube.com/watch?v=${v.id}" target`
 }
 
-/* ===== 再生 ===== */
+/* ===== 再生＆既読 ===== */
 function openVideo(){
-  if(!currentVideo) return
+
+  const page = data.pages[getIndex()]
+
+  if(!page.seen.includes(currentVideo.id)){
+    page.seen.push(currentVideo.id)
+    save()
+  }
+
+  updateProgress()
+
   window.open("https://youtube.com/watch?v="+currentVideo.id)
+}
+
+/* ===== 進捗 ===== */
+function updateProgress(){
+  const page = data.pages[getIndex()]
+  if(!videos.length){ return }
+
+  const total = videos.length
+  const done = page.seen.length
+  const remain = total - done
+
+  document.getElementById("remain").textContent = remain
+
+  const percent = (done / total) * 100
+  document.getElementById("progressFill").style.width = percent + "%"
 }
 
 </script>
