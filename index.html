@@ -5,6 +5,31 @@
 <title>未知リンク</title>
 
 <style>
+
+  /* 背景を暗くするレイヤー */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 999;
+    backdrop-filter: blur(5px);
+}
+
+/* ログイン画面を中央に */
+#login {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+
+  z-index: 1000;
+}
 body { display:flex; font-family:sans-serif; margin:0 }
   #userMenu {
     position: absolute;
@@ -168,7 +193,7 @@ body { display:flex; font-family:sans-serif; margin:0 }
   <div class="spinner"></div>
   <div>読み込み中…</div>
 </div>
-
+<div id="overlay"></div>
 
 <div id="login">
 <h3>ログイン</h3>
@@ -178,6 +203,8 @@ body { display:flex; font-family:sans-serif; margin:0 }
 <button id="registerBtn">新規登録</button>
 
 </div>
+
+  
   
 <div id="sidebar">
 <button id="add">ページ追加</button>
@@ -251,7 +278,8 @@ async function init(){
 firebase.auth().onAuthStateChanged(user => {
   if(user){
     currentUser = user.uid
-    document.getElementById("login").style.display = "none"
+document.getElementById("login").style.display = "none"
+document.getElementById("overlay").style.display = "none"
 
     document.getElementById("userEmail").textContent = user.email
 
