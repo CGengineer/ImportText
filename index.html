@@ -188,19 +188,37 @@ async function loadVideo(){
   const ch = data.pages[getIndex()].channelId
   if(!ch){ alert("チャンネルID設定して"); return }
 
-const res = await fetch(
-  `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&maxResults=50`
-)
+  let allVideos = []
+  let nextPageToken = ""
 
-  const d = await res.json()
+  do {
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&maxResults=50&pageToken=${nextPageToken}`
+    )
 
-  videos = d.items
-    .filter(v=>v.id.videoId)
-    .map(v=>({
-      id:v.id.videoId,
-      title:v.snippet.title,
-      thumb:v.snippet.thumbnails.medium.url
-    }))
+    const d = await res.json()
+
+    if(!d.items){
+      alert("APIエラー")
+      console.log(d)
+      return
+    }
+
+    const vids = d.items
+      .filter(v => v.id.videoId)
+      .map(v => ({
+        id: v.id.videoId,
+        title: v.snippet.title,
+        thumb: v.snippet.thumbnails.medium.url
+      }))
+
+    allVideos = allVideos.concat(vids)
+
+    nextPageToken = d.nextPageToken || ""
+
+  } while(nextPageToken)
+
+  videos = allVideos
 
   updateProgress()
 }
