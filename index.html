@@ -529,6 +529,18 @@
     .historyItem a:hover {
       text-decoration: underline;
     }
+
+    /* 動画アクションボタン */
+    .videoActions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .videoActions button {
+      font-size: 12px;
+      padding: 6px 12px;
+    }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -657,12 +669,15 @@
 
   <h3>📺 今日の1本</h3>
   <button onclick="randomVideo()">🎲 ランダム</button>
+  <button onclick="allChannelRandom()">🌐 全チャンネル</button>
 
   <div id="videoArea"></div>
 
   <div>残り：<span id="remain">-</span>本</div>
   <div>視聴済：<span id="done">-</span>本</div>
   <div>新着：<span id="newCount">0</span>本</div>
+  <div>❤️ お気に入り：<span id="favCount">0</span>本</div>
+  <div>🔥 連続視聴：<span id="streakCount">0</span>日</div>
 
   <div id="progressBar">
     <div id="progressFill"></div>
@@ -831,7 +846,7 @@ function render() {
 
 /* ===== CRUD ===== */
 add.onclick = () => {
-  data.pages.push({ title: "新規", channelId: "", seen: [] });
+  data.pages.push({ title: "新規", channelId: "", seen: [], skipped: [], favorites: [] });
   save().then(render);
 };
 
@@ -954,6 +969,26 @@ async function loadVideo() {
   }
 }
 
+/* ===== 動画カード表示 ===== */
+function showVideoCard(v, pageIndexOverride) {
+  const pi = pageIndexOverride !== undefined ? pageIndexOverride : getIndex();
+  const page = data.pages[pi];
+  const isFav = (page.favorites || []).includes(v.id);
+
+  document.getElementById("videoArea").innerHTML = `
+<div class="thumbBox" onclick="openVideo()">
+  <img src="${v.thumb}">
+  <div class="playBtn">▶</div>
+</div>
+<a href="https://youtube.com/watch?v=${v.id}" target="_blank" style="display:block;margin-top:6px;">
+  ${v.title}
+</a>
+<div class="videoActions">
+  <button id="favBtn" onclick="toggleFavorite()">${isFav ? "❤️ お気に入り済" : "🤍 お気に入り"}</button>
+  <button onclick="skipVideo()">🚫 スキップ</button>
+</div>`;
+}
+
 /* ===== ランダム ===== */
 async function randomVideo() {
   if (videos.length === 0) {
@@ -962,7 +997,8 @@ async function randomVideo() {
   }
 
   const page = data.pages[getIndex()];
-  const unseen = videos.filter(v => !page.seen.includes(v.id));
+  const skipped = page.skipped || [];
+  const unseen = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id));
 
   if (unseen.length === 0) {
     videoArea.innerHTML = "🎉 全部見た！";
@@ -971,15 +1007,96 @@ async function randomVideo() {
 
   const v = unseen[Math.floor(Math.random() * unseen.length)];
   currentVideo = v;
+  showVideoCard(v);
+}
 
-  videoArea.innerHTML = `
-<div class="thumbBox" onclick="openVideo()">
-  <img src="${v.thumb}">
-  <div class="playBtn">▶</div>
-</div>
-<a href="https://youtube.com/watch?v=${v.id}" target="_blank">
-  ${v.title}
-</a>`;
+/* ===== 全チャンネルランダム ===== */
+function allChannelRandom() {
+  const allUnseen = [];
+
+  data.pages.forEach((page, i) => {
+    const vids = page.videos || [];
+    const seen = page.seen || [];
+    const skipped = page.skipped || [];
+    vids.forEach(v => {
+      if (!seen.includes(v.id) && !skipped.includes(v.id)) {
+        allUnseen.push({ v, pageIndex: i });
+      }
+    });
+  });
+
+  if (!allUnseen.length) {
+    document.getElementById("videoArea").innerHTML = "🎉 全チャンネル制覇！すごい！";
+    return;
+  }
+
+  const { v, pageIndex } = allUnseen[Math.floor(Math.random() * allUnseen.length)];
+
+  location.hash = pageIndex;
+  videos = data.pages[pageIndex].videos;
+  render();
+  currentVideo = v;
+  showVideoCard(v, pageIndex);
+  updateProgress();
+  updateHistory();
+}
+
+/* ===== お気に入り ===== */
+function toggleFavorite() {
+  const page = data.pages[getIndex()];
+  if (!page.favorites) page.favorites = [];
+
+  const idx = page.favorites.indexOf(currentVideo.id);
+  if (idx === -1) {
+    page.favorites.push(currentVideo.id);
+  } else {
+    page.favorites.splice(idx, 1);
+  }
+
+  save();
+  updateProgress();
+
+  const isFav = page.favorites.includes(currentVideo.id);
+  const btn = document.getElementById("favBtn");
+  if (btn) btn.textContent = isFav ? "❤️ お気に入り済" : "🤍 お気に入り";
+}
+
+/* ===== スキップ ===== */
+function skipVideo() {
+  const page = data.pages[getIndex()];
+  if (!page.skipped) page.skipped = [];
+
+  if (!page.skipped.includes(currentVideo.id)) {
+    page.skipped.push(currentVideo.id);
+    save();
+  }
+
+  randomVideo();
+}
+
+/* ===== 連続視聴日数 ===== */
+function getStreak() {
+  const allDays = new Set();
+  data.pages.forEach(page => {
+    (page.history || []).forEach(entry => {
+      const d = new Date(entry.at);
+      d.setHours(0, 0, 0, 0);
+      allDays.add(d.getTime());
+    });
+  });
+
+  if (!allDays.size) return 0;
+
+  let streak = 0;
+  const check = new Date();
+  check.setHours(0, 0, 0, 0);
+
+  while (allDays.has(check.getTime())) {
+    streak++;
+    check.setDate(check.getDate() - 1);
+  }
+
+  return streak;
 }
 
 /* ===== 再生＆既読 ===== */
@@ -1012,6 +1129,8 @@ function updateProgress() {
   document.getElementById("remain").textContent = remain;
   document.getElementById("done").textContent = done;
   document.getElementById("newCount").textContent = newCount;
+  document.getElementById("favCount").textContent = (page.favorites || []).length;
+  document.getElementById("streakCount").textContent = getStreak();
   document.getElementById("progressFill").style.width = (done / total) * 100 + "%";
 }
 
