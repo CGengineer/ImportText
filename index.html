@@ -55,11 +55,20 @@ body { display:flex; font-family:sans-serif; margin:0 }
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  
 </head>
 
 <body>
 
+<div id="login">
+<h3>ログイン</h3>
+<input id="email" placeholder="メール"><br><br>
+<input id="password" type="password" placeholder="パスワード"><br><br>
+<button id="loginBtn">ログイン</button>
+<button id="registerBtn">新規登録</button>
+</div>
+  
 <div id="sidebar">
 <button id="add">＋</button>
 <button id="remove">削除</button>
@@ -100,7 +109,7 @@ const db = firebase.firestore();
 
 /* ===== 設定 ===== */
 const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
-const USER = "user1";
+let currentUser = null;
 
 /* ===== 状態 ===== */
 let data = { pages:[] }
@@ -109,22 +118,26 @@ let currentVideo = null
 
 /* ===== 初期化 ===== */
 async function init() {
-  const doc = await db.collection("app").doc(USER).get()
 
-  if(doc.exists){
-    data = doc.data()
+firebase.auth().onAuthStateChanged(user => {
+  if(user){
+    currentUser = user.uid;
+    document.getElementById("login").style.display = "none";
+    initApp();
   }else{
-    data = { pages:[{title:"ページ1",channelId:"",seen:[]}] }
-    save()
+    document.getElementById("login").style.display = "block";
   }
+});
 
   render()
 }
 init()
 
+
 function save(){
-  return db.collection("app").doc(USER).set(data)
+  return db.collection("app").doc(currentUser).set(data)
 }
+
 
 /* ===== UI ===== */
 function getIndex(){
@@ -193,7 +206,7 @@ editCh.onclick=()=>{
   videos=[]
 
   // ✅ キャッシュ削除（ここが追加ポイント）
-  db.collection("app").doc(USER).update({
+  db.collection("app").doc(currentUser).update({
     videos: null,
     channelId: null
   })
@@ -347,6 +360,32 @@ function updateProgress(){
   document.getElementById("progressFill").style.width = percent + "%"
 }
 
+  loginBtn.onclick = async () => {
+  await firebase.auth().signInWithEmailAndPassword(
+    email.value,
+    password.value
+  );
+};
+
+registerBtn.onclick = async () => {
+  await firebase.auth().createUserWithEmailAndPassword(
+    email.value,
+    password.value
+  );
+};
+
+  async function initApp(){
+  const doc = await db.collection("app").doc(currentUser).get()
+
+  if(doc.exists){
+    data = doc.data()
+  }else{
+    data = { pages:[{title:"ページ1",channelId:"",seen:[]}] }
+    save()
+  }
+
+  render()
+}
 </script>
 
 </body>
