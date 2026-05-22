@@ -2,44 +2,54 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>YouTube × メモアプリ</title>
+<title>YouTube学習アプリ 完成版</title>
 
 <style>
-body { display:flex; font-family:sans-serif; margin:0 }
+body { display:flex; margin:0; font-family:sans-serif }
 
 /* sidebar */
 #sidebar { width:250px; border-right:1px solid #ccc; padding:10px }
-#pageList button { width:100%; margin-bottom:4px }
+#pageList button { width:100%; margin-bottom:5px }
 
 /* main */
-#main { flex:1; padding:10px }
-textarea { width:100%; height:200px }
+#main { flex:1; padding:15px }
 
-#videoArea { margin-top:20px }
+#videoArea img {
+  width:300px;
+  cursor:pointer;
+  border-radius:6px;
+}
+
+#videoArea h3 {
+  margin-bottom:5px;
+}
 </style>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js>
+https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.jsscript>
 
 </head>
+
 <body>
 
+<!-- ===== sidebar ===== -->
 <div id="sidebar">
-<button id="add">＋</button>
-<button id="remove">削除</button>
+<button onclick="addPage()">＋追加</button>
+<button onclick="removePage()">削除</button>
 <div id="pageList"></div>
 </div>
 
+<!-- ===== main ===== -->
 <div id="main">
-<h1 id="title"></h1>
 
-<button id="editTitle">タイトル編集</button>
-<button id="editCh">チャンネルID編集</button>
+<h2 id="title"></h2>
+<button onclick="editTitle()">タイトル編集</button>
+<button onclick="editChannel()">チャンネルID編集</button>
 
-<div>ChannelID: <span id="chid"></span></div>
+<div>Channel: <span id="chid"></span></div>
 
 <textarea id="editor"></textarea>
-<button id="save">保存</button>
+<button onclick="saveText()">保存</button>
 
 <hr>
 
@@ -65,17 +75,16 @@ const USER = "user1";
 
 /* ===== 状態 ===== */
 let data = { pages:[] }
-let videos = []
 let currentVideo = null
 
 /* ===== 初期化 ===== */
-async function init() {
+async function init(){
   const doc = await db.collection("app").doc(USER).get()
 
   if(doc.exists){
     data = doc.data()
   }else{
-    data = { pages:[{title:"ページ1",text:"",channelId:""}] }
+    data = { pages:[{title:"ページ1",text:"",channelId:"",seen:[]}] }
     save()
   }
 
@@ -117,73 +126,109 @@ function render(){
 }
 
 /* ===== CRUD ===== */
-document.getElementById("add").onclick=()=>{
-  data.pages.push({title:"新規",text:"",channelId:""})
-  save().then(()=>render())
+function addPage(){
+  data.pages.push({title:"新規",text:"",channelId:"",seen:[]})
+  save().then(render)
 }
 
-document.getElementById("remove").onclick=()=>{
+function removePage(){
   data.pages.splice(getIndex(),1)
   save().then(()=>setIndex(0))
 }
 
-document.getElementById("save").onclick=()=>{
-  data.pages[getIndex()].text = document.getElementById("editor").value
+function saveText(){
+  data.pages[getIndex()].text=document.getElementById("editor").value
   save()
 }
 
-document.getElementById("editTitle").onclick=()=>{
+function editTitle(){
   const i=getIndex()
   const t=prompt("タイトル",data.pages[i].title)
   if(!t)return
   data.pages[i].title=t
-  save().then(()=>render())
+  save().then(render)
 }
 
-/* ===== チャンネルID編集 ===== */
-document.getElementById("editCh").onclick=()=>{
+function editChannel(){
   const i=getIndex()
   const id=prompt("チャンネルID",data.pages[i].channelId)
   if(id===null)return
+
   data.pages[i].channelId=id
-  save().then(()=>render())
+  data.pages[i].seen=[] // リセット
+
+  save().then(render)
 }
 
-/* ===== YouTube ===== */
-async function loadVideo(){
-  const ch = data.pages[getIndex()].channelId
+/* ===== YouTube 全動画取得 ===== */
+async function loadAllVideos(channelId){
 
-  if(!ch){
+  let all = []
+  let nextPage = ""
+
+  do{
+    const res = await fetch(
+      "https://www.googleapis.com/youtube/v3/search?key=" +
+      API_KEY +
+      "&channelId=" +
+      channelId +
+      "&part=snippet,id&maxResults=50&pageToken=" + nextPage
+    )
+
+    const d = await res.json()
+
+    const vids = d.items
+      .filter(v=>v.id.videoId)
+      .map(v=>({
+        id:v.id.videoId,
+        title:v.snippet.title,
+        thumb:v.snippet.thumbnails.medium.url
+      }))
+
+    all = all.concat(vids)
+    nextPage = d.nextPageToken || ""
+
+  }while(nextPage)
+
+  return all
+}
+
+/* ===== ランダム ===== */
+async function randomVideo(){
+
+  const page = data.pages[getIndex()]
+
+  if(!page.channelId){
     alert("チャンネルID設定して")
     return
   }
 
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&maxResults=50`
-  )
+  const allVideos = await loadAllVideos(page.channelId)
 
-  const d = await res.json()
+  const unseen = allVideos.filter(v=>!page.seen.includes(v.id))
 
-  videos = d.items
-    .filter(v=>v.id.videoId)
-    .map(v=>({
-      id:v.id.videoId,
-      title:v.snippet.title
-    }))
+  if(unseen.length===0){
+    document.getElementById("videoArea").innerHTML="🎉 全部見た！"
+    return
+  }
+
+  const v = unseen[Math.floor(Math.random()*unseen.length)]
+  currentVideo = v
+
+  document.getElementById("videoArea").innerHTML=`
+    <h3>${v.title}</h3>
+    ${v.thumb}
+  `
 }
 
-async function randomVideo(){
-  if(videos.length===0) await loadVideo()
-
-  const v = videos[Math.floor(Math.random()*videos.length)]
-  currentVideo=v
-
-  document.getElementById("videoArea").innerHTML=
-  `<h4>${v.title}</h4>
-   <button onclick="openVideo()">開く</button>`
-}
-
+/* ===== 開く＝既読 ===== */
 function openVideo(){
+
+  const page = data.pages[getIndex()]
+
+  page.seen.push(currentVideo.id)
+  save()
+
   window.open("https://youtube.com/watch?v="+currentVideo.id)
 }
 
