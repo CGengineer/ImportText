@@ -134,11 +134,22 @@ function getIndex(){
 function setIndex(i){
   location.hash = i
   render()
+ 
+  videos = []
+  document.getElementById("videoArea").innerHTML = ""
+
+  updateProgress()
+
+  randomVideo() // ←追加（自動表示
+
+
 }
 
 function render(){
   const list = document.getElementById("pageList")
   list.innerHTML=""
+
+  
 
   data.pages.forEach((p,i)=>{
     const b=document.createElement("button")
