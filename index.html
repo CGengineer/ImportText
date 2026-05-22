@@ -199,8 +199,11 @@ body { display:flex; font-family:sans-serif; margin:0 }
 <h3>ログイン</h3>
 <input id="email" placeholder="メール"><br><br>
 <input id="password" type="password" placeholder="パスワード"><br><br>
-<button id="googleLoginBtn">ログイン</button>
+
+<button id="loginBtn">メールでログイン</button><br><br>
+<button id="googleLoginBtn">Googleでログイン</button><br><br>
 <button id="registerBtn">新規登録</button>
+
 
 </div>
 
@@ -300,6 +303,7 @@ document.getElementById("overlay").style.display = "none"
 
   }else{
     document.getElementById("login").style.display = "block"
+      document.getElementById("overlay").style.display = "block" // ← これ
   }
 })
 }
