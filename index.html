@@ -201,17 +201,44 @@ editCh.onclick=()=>{
   save().then(render)
 }
 
-/* ===== 動画取得 ===== */
-async function loadVideo(){
+/* ===== 動画取得 ===== */async function loadVideo(){
 
   const pageIndex = getIndex()
   const p = data.pages[pageIndex]
 
-  if(!p){ return }
+  if(!p) return
 
-  // ✅ ページに既にあれば即使う
+  // ✅ キャッシュあったら即使う
   if(p.videos && p.videos.length > 0){
+
     videos = p.videos
+
+    const ch = p.channelId
+
+    // ✅ 最新だけ追加
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&order=date&maxResults=10`
+    )
+
+    const d = await res.json()
+
+    const latest = d.items
+      .filter(v => v.id.videoId)
+      .map(v => ({
+        id: v.id.videoId,
+        title: v.snippet.title,
+        thumb: v.snippet.thumbnails.medium.url
+      }))
+
+    latest.forEach(v => {
+      if(!videos.find(x => x.id === v.id)){
+        videos.unshift(v)
+      }
+    })
+
+    p.videos = videos
+    save()
+
     updateProgress()
     return
   }
@@ -219,6 +246,7 @@ async function loadVideo(){
   const ch = p.channelId
   if(!ch){ alert("チャンネルID設定して"); return }
 
+  // ✅ uploads取得
   const chRes = await fetch(
     `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${ch}&key=${API_KEY}`
   )
@@ -249,13 +277,12 @@ async function loadVideo(){
 
   videos = allVideos
 
-  // ✅ ページごとに保存（これが核心）
+  // ✅ 保存
   p.videos = videos
   save()
 
   updateProgress()
 }
-
 /* ===== ランダム ===== */
 async function randomVideo(){
 
