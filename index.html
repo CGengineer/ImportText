@@ -70,7 +70,7 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 /* ===== 設定 ===== */
-const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
+const API_KEY = "ここにAPIキー";
 const USER = "user1";
 
 /* ===== 状態 ===== */
@@ -156,7 +156,7 @@ document.getElementById("editCh").onclick=()=>{
   const id=prompt("チャンネルID",data.pages[i].channelId)
   if(id===null)return
   data.pages[i].channelId=id
-  videos = [] // キャッシュリセット
+  videos = [] // ←動画キャッシュリセット（超重要）
   save().then(render)
 }
 
@@ -195,13 +195,18 @@ async function loadVideo(){
 async function randomVideo(){
 
   if(videos.length===0){
-    awaitos.length)]
-  currentVideo = v
+    await loadVideo()
+    if(videos.length===0) return
+  }
 
+  const v = videos[Math.floor(Math.random()*videos.length)]
+  currentVideo = v
+  
   document.getElementById("videoArea").innerHTML =
-  `${v.thumb}
-   <h4>${v.title}</h4>
-   <button onclick="openVideo()">開く</button>`
+  `<img src="${v.thumb}" onclick="openVideo()">
+  <h4>${v.title}</h4>
+  <button onclick="openVideo()">開く</button>`
+
 }
 
 /* ===== 再生 ===== */
