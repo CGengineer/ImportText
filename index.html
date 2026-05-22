@@ -18,6 +18,10 @@
   cursor: pointer;
 
   box-shadow: none;    /* ← ボタンの影消す */
+    
+  transform: translateY(2px);
+}
+
 }
 
 /* ホバーちょいだけ反応 */
@@ -325,9 +329,9 @@ body { display:flex; font-family:sans-serif; margin:0 }
 
 <div id="header">
   <div id="appName">🎀未知リンク</div>
-    
+  <button id="helpBtn" class="headerBtn">使い方💡</button>
+ 
     <div id="userArea">
-    <button id="helpBtn" class="headerBtn">使い方💡</button>
 
     <span id="userEmail"></span>
     <div id="userIcon" onclick="toggleMenu()"></div>
