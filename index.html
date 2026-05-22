@@ -538,6 +538,17 @@ registerBtn.onclick = async () => {
     password.value
   );
 };
+  // ✅ Googleログイン（これが無かった）
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+googleLoginBtn.onclick = async () => {
+  try {
+    await firebase.auth().signInWithPopup(googleProvider);
+  } catch (e) {
+    console.error(e);
+    alert(e.message);
+  }
+};
 
   async function initApp(){
   const doc = await db.collection("app").doc(currentUser).get()
