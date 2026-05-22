@@ -188,7 +188,16 @@ function setIndex(i){
   location.hash = i
   render()
  
-  videos = []
+  const p = data.pages[i]
+
+  // ✅ ページに動画キャッシュがあれば使う
+  if(p.videos && p.videos.length > 0){
+    videos = p.videos
+    updateProgress()
+    randomVideo()
+    return
+  }
+
   document.getElementById("videoArea").innerHTML = ""
 
   updateProgress()
