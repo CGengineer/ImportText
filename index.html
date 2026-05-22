@@ -178,6 +178,7 @@ editCh.onclick=()=>{
   if(id===null)return
   data.pages[i].channelId=id
   data.pages[i].seen=[]
+  data.pages[i].videos=[] // ←追加
   videos=[]
 
   // ✅ キャッシュ削除（ここが追加ポイント）
@@ -192,17 +193,14 @@ editCh.onclick=()=>{
 /* ===== 動画取得 ===== */
 async function loadVideo(){
 
-  const ref = db.collection("app").doc(USER)
-  const doc = await ref.get()
-
   const pageIndex = getIndex()
   const p = data.pages[pageIndex]
 
   if(!p){ return }
 
-  // ✅ 既に保存されてるならそれ使う
-  if(doc.exists && doc.data().videos && doc.data().channelId === p.channelId){
-    videos = doc.data().videos
+  // ✅ ページに既にあれば即使う
+  if(p.videos && p.videos.length > 0){
+    videos = p.videos
     updateProgress()
     return
   }
@@ -210,7 +208,6 @@ async function loadVideo(){
   const ch = p.channelId
   if(!ch){ alert("チャンネルID設定して"); return }
 
-  // ✅ STEP1: uploads playlist取得
   const chRes = await fetch(
     `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${ch}&key=${API_KEY}`
   )
@@ -221,7 +218,6 @@ async function loadVideo(){
   let allVideos = []
   let nextPageToken = ""
 
-  // ✅ STEP2: 全動画取得
   do {
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&pageToken=${nextPageToken}&key=${API_KEY}`
@@ -242,11 +238,9 @@ async function loadVideo(){
 
   videos = allVideos
 
-  // ✅ Firebase保存（キャッシュ）
-  await ref.set({
-    videos: videos,
-    channelId: ch
-  }, { merge:true })
+  // ✅ ページごとに保存（これが核心）
+  p.videos = videos
+  save()
 
   updateProgress()
 }
