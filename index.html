@@ -156,10 +156,11 @@ document.getElementById("editCh").onclick=()=>{
   const id=prompt("チャンネルID",data.pages[i].channelId)
   if(id===null)return
   data.pages[i].channelId=id
+  videos = [] // ←動画キャッシュリセット（超重要）
   save().then(render)
 }
 
-/* ===== YouTube ===== */
+/* ===== YouTube取得 ===== */
 async function loadVideo(){
 
   const ch = data.pages[getIndex()].channelId
@@ -175,6 +176,12 @@ async function loadVideo(){
 
   const d = await res.json()
 
+  if(!d.items){
+    alert("APIエラー or キー確認")
+    console.log(d)
+    return
+  }
+
   videos = d.items
     .filter(v=>v.id.videoId)
     .map(v=>({
@@ -186,17 +193,22 @@ async function loadVideo(){
 
 /* ===== ランダム ===== */
 async function randomVideo(){
-  if(videos.length===0) await loadVideo()
+
+  if(videos.length===0){
+    await loadVideo()
+    if(videos.length===0) return
+  }
 
   const v = videos[Math.floor(Math.random()*videos.length)]
-  currentVideo=v
+  currentVideo = v
 
-  document.getElementById("videoArea").innerHTML=
-  `<img onclick="openVideo()">開く</button>`
+  document.getElementById("videoArea").innerHTML =
+  `<img src="${v.thumb}" onclick</button>`
 }
 
 /* ===== 再生 ===== */
 function openVideo(){
+  if(!currentVideo) return
   window.open("https://youtube.com/watch?v="+currentVideo.id)
 }
 
