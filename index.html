@@ -448,7 +448,10 @@
 
   <div id="historySection">
     <hr>
-    <h3>📝 視聴履歴</h3>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <h3 style="margin:0;">📝 視聴履歴</h3>
+      <button onclick="resetHistory()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; background:#fff0f5; box-shadow:none;">🗑 視聴済みリセット</button>
+    </div>
     <div id="historyArea"></div>
   </div>
 </div>
@@ -822,6 +825,20 @@ function updateHistory() {
     `).join("");
 
   historyArea.innerHTML = html || "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>";
+}
+
+/* ===== 視聴済みリセット ===== */
+function resetHistory() {
+  const ok = confirm("視聴済みを削除するよ。視聴履歴も消えちゃうけどほんとに大丈夫？");
+  if (!ok) return;
+
+  const page = data.pages[getIndex()];
+  page.seen = [];
+  page.history = [];
+
+  save();
+  updateProgress();
+  updateHistory();
 }
 
 /* ===== ログイン ===== */
