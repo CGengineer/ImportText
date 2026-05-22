@@ -4,7 +4,86 @@
 <meta charset="UTF-8">
 <title>未知リンク</title>
 
+  
+
 <style>
+
+  button {
+  position: relative;
+  overflow: hidden;
+}
+
+button::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.4) 10%, transparent 60%);
+  opacity: 0;
+  transition: 0.3s;
+}
+
+button:hover::after {
+  opacity: 1;
+}
+button {
+  border: 1px solid #f8cbd8;
+}
+
+  body {
+  font-family: "Hiragino Maru Gothic Pro", "Arial Rounded MT", sans-serif;
+}
+  .rowBtns {
+  display: flex;
+  gap: 8px;
+}
+
+.rowBtns button {
+  flex: 1;
+}
+/* Google（メイン） */
+#googleLoginBtn {
+  background: #ffc2d6;
+  font-weight: bold;
+}
+
+/* 通常ログイン */
+#loginBtn {
+  background: #ffe3ec;
+}
+
+/* 新規登録 */
+#registerBtn {
+  background: #fff0f5;
+}
+
+  button {
+  background: #ffd6e3;           /* 薄ピンク */
+  border: none;
+  padding: 10px 14px;
+  border-radius: 20px;           /* ← 丸っこい */
+  cursor: pointer;
+
+  font-size: 14px;
+  color: #444;
+
+  box-shadow: 0 4px 10px rgba(255, 182, 193, 0.4); /* ふわ影 */
+  transition: all 0.2s ease;
+}
+
+/* ホバー時（かわちい反応） */
+button:hover {
+  background: #ffbdd0;
+  transform: translateY(-2px);   /* ふわっと浮く */
+}
+
+/* クリック時 */
+button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(255, 182, 193, 0.3);
+}
 #header {
   background: #ffe4ec;
   border-bottom: 1px solid #f8cbd8;
