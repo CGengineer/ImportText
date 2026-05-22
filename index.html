@@ -329,8 +329,8 @@ body { display:flex; font-family:sans-serif; margin:0 }
   
   
 <div id="sidebar">
-<button id="add">ページ追加</button>
-<button id="remove">ページ削除</button>
+<button id="add">チャンネル追加</button>
+<button id="remove">チャンネル削除</button>
 <div id="pageList"></div>
 </div>
 
@@ -338,7 +338,7 @@ body { display:flex; font-family:sans-serif; margin:0 }
 <h1 id="title"></h1>
 
 <button id="editTitle">タイトル編集</button>
-<button id="editCh">チャンネルID編集</button>
+<button id="editCh">チャンネルID設定</button>
 
 <div>ChannelID: <span id="chid"></span></div>
 
@@ -719,7 +719,7 @@ googleLoginBtn.onclick = async () => {
   if(doc.exists){
     data = doc.data()
   }else{
-    data = { pages:[{title:"ページ1",channelId:"",seen:[]}] }
+    data = { pages:[{title:"チャンネル１",channelId:"",seen:[]}] }
     save()
   }
 
