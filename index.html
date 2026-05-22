@@ -2,301 +2,191 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>インポートテキスト管理</title>
+<title>YouTube × メモアプリ</title>
 
 <style>
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: system-ui, sans-serif;
-}
-body { display: flex; }
+body { display:flex; font-family:sans-serif; margin:0 }
 
-/* ===== サイドバー ===== */
-#sidebar {
-  width: 260px;
-  border-right: 1px solid #ccc;
-  padding: 10px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-#sidebar.hidden { display: none; }
-#search { padding: 6px; margin-bottom: 6px; }
-.sidebar-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-#pageList {
-  flex: 1;
-  overflow-y: auto;
-}
-#pageList button {
-  width: 100%;
-  text-align: left;
-  margin-bottom: 4px;
-}
+/* sidebar */
+#sidebar { width:250px; border-right:1px solid #ccc; padding:10px }
+#pageList button { width:100%; margin-bottom:4px }
 
-/* ===== メイン ===== */
-#main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-  box-sizing: border-box;
-}
-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-h1 {
-  margin: 0;
-  font-size: 20px;
-}
-.header-actions {
-  display: flex;
-  gap: 8px;
-  margin: 10px 0;
-}
-#content, textarea {
-  flex: 1;
-  width: 100%;
-  border: 1px solid #ccc;
-  padding: 10px;
-  white-space: pre-wrap;
-  box-sizing: border-box;
-}
-textarea { display: none; }
+/* main */
+#main { flex:1; padding:10px }
+textarea { width:100%; height:200px }
 
-/* ===== ログイン ===== */
-#login {
-  position: fixed;
-  inset: 0;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
+#videoArea { margin-top:20px }
 </style>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-</head>
 
+</head>
 <body>
 
-<!-- ===== ログイン画面 ===== -->
-<div id="login">
-  <div>
-    <h2>ログイン</h2>
-    <input id="email" placeholder="メール"><br><br>
-    <input id="password" type="password" placeholder="パスワード"><br><br>
-    <button id="loginBtn">ログイン</button>
-    <button id="registerBtn">新規登録</button>
-    <p id="loginMsg" style="color:red"></p>
-  </div>
-</div>
-
-<!-- ===== サイドバー ===== -->
 <div id="sidebar">
-  <input id="search" placeholder="🔍 ページ検索">
-  <div class="sidebar-actions">
-    <button id="add">＋ ページ追加</button>
-    <button id="remove">🗑 ページ削除</button>
-  </div>
-  <div id="pageList"></div>
+<button id="add">＋</button>
+<button id="remove">削除</button>
+<div id="pageList"></div>
 </div>
 
-<!-- ===== メイン ===== -->
 <div id="main">
-  <header>
-    <button id="toggle">≡</button>
-    <h1 id="pageTitle"></h1>
-  </header>
+<h1 id="title"></h1>
 
-  <div class="header-actions">
-    <button id="editTitle">✏️ タイトル編集</button>
-    <button id="edit">📝 本文編集</button>
-    <button id="save" style="display:none">💾 保存</button>
-    <button id="copyText">📋 本文コピー</button>
-  </div>
+<button id="editTitle">タイトル編集</button>
+<button id="editCh">チャンネルID編集</button>
 
-  <div id="content"></div>
-  <textarea id="editor"></textarea>
+<div>ChannelID: <span id="chid"></span></div>
+
+<textarea id="editor"></textarea>
+<button id="save">保存</button>
+
+<hr>
+
+<h3>📺 今日の1本</h3>
+<button onclick="randomVideo()">🎲 ランダム</button>
+
+<div id="videoArea"></div>
+
 </div>
 
 <script>
+
 /* ===== Firebase ===== */
 firebase.initializeApp({
-  apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
-  authDomain: "importtext-b229d.firebaseapp.com",
-  projectId: "importtext-b229d"
+  apiKey:"AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
+  projectId:"importtext-b229d"
 });
-const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* ===== ログイン制御 ===== */
-auth.onAuthStateChanged(user => {
-  if (user) {
-    document.getElementById("login").style.display = "none";
-    initApp(user.uid);
-  } else {
-    document.getElementById("login").style.display = "flex";
-  }
-});
+/* ===== 設定 ===== */
+const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
+const USER = "user1";
 
-loginBtn.onclick = async () => {
-  try {
-    await auth.signInWithEmailAndPassword(email.value, password.value);
-  } catch (e) {
-    loginMsg.textContent = e.message;
-  }
-};
+/* ===== 状態 ===== */
+let data = { pages:[] }
+let videos = []
+let currentVideo = null
 
-registerBtn.onclick = async () => {
-  try {
-    await auth.createUserWithEmailAndPassword(email.value, password.value);
-  } catch (e) {
-    loginMsg.textContent = e.message;
-  }
-};
+/* ===== 初期化 ===== */
+async function init() {
+  const doc = await db.collection("app").doc(USER).get()
 
-/* ===== アプリ本体 ===== */
-function initApp(uid) {
-  const ref = db.collection("app").doc(uid);
-
-  let data = { pages: [] };
-  let isEditing = false;
-
-  const sidebar = document.getElementById("sidebar");
-  const pageList = document.getElementById("pageList");
-  const search = document.getElementById("search");
-  const pageTitle = document.getElementById("pageTitle");
-  const content = document.getElementById("content");
-  const editor = document.getElementById("editor");
-  const editBtn = document.getElementById("edit");
-  const saveBtn = document.getElementById("save");
-  const copyTextBtn = document.getElementById("copyText");
-
-  function getIndex() {
-    const i = parseInt(location.hash.replace("#page-", ""), 10);
-    return isNaN(i) ? 0 : i;
+  if(doc.exists){
+    data = doc.data()
+  }else{
+    data = { pages:[{title:"ページ1",text:"",channelId:""}] }
+    save()
   }
 
-  function setIndex(i) {
-    location.hash = `page-${i}`;
-    renderPage();
-  }
-
-  function renderList() {
-    pageList.innerHTML = "";
-    const kw = search.value.toLowerCase();
-    data.pages.forEach((p, i) => {
-      if (!p.title.toLowerCase().includes(kw)) return;
-      const b = document.createElement("button");
-      b.textContent = p.title;
-      if (i === getIndex()) b.style.fontWeight = "bold";
-      b.onclick = () => setIndex(i);
-      pageList.appendChild(b);
-    });
-  }
-
-  function renderPage() {
-    const p = data.pages[getIndex()];
-    if (!p) return;
-    pageTitle.textContent = p.title;
-    content.textContent = p.text;
-  }
-
-  ref.onSnapshot(doc => {
-    if (isEditing) return;
-    if (doc.exists) {
-      data = doc.data();
-    } else {
-      data = { pages: [{ title: "ページ1", text: "" }] };
-      ref.set(data);
-    }
-    renderList();
-    renderPage();
-  });
-
-  function saveAll() {
-    return ref.set({ pages: data.pages }, { merge: true });
-  }
-
-  editBtn.onclick = () => {
-    isEditing = true;
-    editor.value = content.textContent;
-    content.style.display = "none";
-    editor.style.display = "block";
-    editBtn.style.display = "none";
-    saveBtn.style.display = "inline";
-  };
-
-  saveBtn.onclick = async () => {
-    data.pages[getIndex()].text = editor.value;
-    await saveAll();
-    isEditing = false;
-    editor.style.display = "none";
-    content.style.display = "block";
-    editBtn.style.display = "inline";
-    saveBtn.style.display = "none";
-    renderPage();
-  };
-
-  document.getElementById("editTitle").onclick = async () => {
-    const i = getIndex();
-    const t = prompt("ページタイトル", data.pages[i].title);
-    if (!t) return;
-    data.pages[i].title = t;
-    await saveAll();
-    renderList();
-    renderPage();
-  };
-
-  document.getElementById("add").onclick = async () => {
-    data.pages.push({ title: "新しいページ", text: "" });
-    await saveAll();
-    setIndex(data.pages.length - 1);
-  };
-
-  document.getElementById("remove").onclick = async () => {
-    if (data.pages.length <= 1) return alert("最後のページは削除できません");
-    data.pages.splice(getIndex(), 1);
-    await saveAll();
-    setIndex(0);
-  };
-
-  /* ===== 本文コピー ===== */
-  copyTextBtn.onclick = async () => {
-    const text =
-      editor.style.display === "block"
-        ? editor.value
-        : content.textContent;
-
-    if (!text.trim()) {
-      alert("コピーする本文がありません");
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("本文をコピーしました");
-    } catch {
-      prompt("コピーできない場合はこちら", text);
-    }
-  };
-
-  search.oninput = renderList;
-  document.getElementById("toggle").onclick =
-    () => sidebar.classList.toggle("hidden");
+  render()
 }
+init()
+
+/* ===== 保存 ===== */
+function save(){
+  return db.collection("app").doc(USER).set(data)
+}
+
+/* ===== UI ===== */
+function getIndex(){
+  return parseInt(location.hash.replace("#",""))||0
+}
+
+function setIndex(i){
+  location.hash = i
+  render()
+}
+
+function render(){
+  const list = document.getElementById("pageList")
+  list.innerHTML=""
+
+  data.pages.forEach((p,i)=>{
+    const b=document.createElement("button")
+    b.textContent=p.title
+    b.onclick=()=>setIndex(i)
+    list.appendChild(b)
+  })
+
+  const p = data.pages[getIndex()]
+
+  document.getElementById("title").textContent=p.title
+  document.getElementById("editor").value=p.text
+  document.getElementById("chid").textContent=p.channelId||"未設定"
+}
+
+/* ===== CRUD ===== */
+document.getElementById("add").onclick=()=>{
+  data.pages.push({title:"新規",text:"",channelId:""})
+  save().then(()=>render())
+}
+
+document.getElementById("remove").onclick=()=>{
+  data.pages.splice(getIndex(),1)
+  save().then(()=>setIndex(0))
+}
+
+document.getElementById("save").onclick=()=>{
+  data.pages[getIndex()].text = document.getElementById("editor").value
+  save()
+}
+
+document.getElementById("editTitle").onclick=()=>{
+  const i=getIndex()
+  const t=prompt("タイトル",data.pages[i].title)
+  if(!t)return
+  data.pages[i].title=t
+  save().then(()=>render())
+}
+
+/* ===== チャンネルID編集 ===== */
+document.getElementById("editCh").onclick=()=>{
+  const i=getIndex()
+  const id=prompt("チャンネルID",data.pages[i].channelId)
+  if(id===null)return
+  data.pages[i].channelId=id
+  save().then(()=>render())
+}
+
+/* ===== YouTube ===== */
+async function loadVideo(){
+  const ch = data.pages[getIndex()].channelId
+
+  if(!ch){
+    alert("チャンネルID設定して")
+    return
+  }
+
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&maxResults=50`
+  )
+
+  const d = await res.json()
+
+  videos = d.items
+    .filter(v=>v.id.videoId)
+    .map(v=>({
+      id:v.id.videoId,
+      title:v.snippet.title
+    }))
+}
+
+async function randomVideo(){
+  if(videos.length===0) await loadVideo()
+
+  const v = videos[Math.floor(Math.random()*videos.length)]
+  currentVideo=v
+
+  document.getElementById("videoArea").innerHTML=
+  `<h4>${v.title}</h4>
+   <button onclick="openVideo()">開く</button>`
+}
+
+function openVideo(){
+  window.open("https://youtube.com/watch?v="+currentVideo.id)
+}
+
 </script>
 
 </body>
