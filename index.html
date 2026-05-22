@@ -199,23 +199,32 @@ editTitle.onclick=()=>{
   save().then(render)
 }
 
-editCh.onclick=()=>{
-  const i=getIndex()
-  const id=prompt("チャンネルID",data.pages[i].channelId)
-  if(id===null)return
-  data.pages[i].channelId=id
-  data.pages[i].seen=[]
-  data.pages[i].videos=[] // ←追加
-  videos=[]
+editCh.onclick = async () => {
+  const i = getIndex()
+  const id = prompt("チャンネルID", data.pages[i].channelId)
+  if(id === null) return
 
-  // ✅ キャッシュ削除（ここが追加ポイント）
-  db.collection("app").doc(currentUser).update({
+  // ✅ OK押下“直後”にローディング表示
+  showLoading()
+
+  data.pages[i].channelId = id
+  data.pages[i].seen = []
+  data.pages[i].videos = []
+  videos = []
+
+  await db.collection("app").doc(currentUser).update({
     videos: null,
     channelId: null
   })
 
-  save().then(render)
+  await save()
+  render()
+
+  // ✅ ここから実際の取得開始
+  // loadVideo() の finally で hideLoading() される
+  await loadVideo()
 }
+
 
 /* ===== 動画取得 ===== */
  /* ===== 動画取得 ===== */
