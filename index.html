@@ -156,7 +156,7 @@ document.getElementById("editCh").onclick=()=>{
   const id=prompt("チャンネルID",data.pages[i].channelId)
   if(id===null)return
   data.pages[i].channelId=id
-  videos = [] // ←動画キャッシュリセット（超重要）
+  videos = [] // キャッシュリセット
   save().then(render)
 }
 
@@ -195,15 +195,13 @@ async function loadVideo(){
 async function randomVideo(){
 
   if(videos.length===0){
-    await loadVideo()
-    if(videos.length===0) return
-  }
-
-  const v = videos[Math.floor(Math.random()*videos.length)]
+    awaitos.length)]
   currentVideo = v
 
   document.getElementById("videoArea").innerHTML =
-  `<img src="${v.thumb}" onclick</button>`
+  `${v.thumb}
+   <h4>${v.title}</h4>
+   <button onclick="openVideo()">開く</button>`
 }
 
 /* ===== 再生 ===== */
