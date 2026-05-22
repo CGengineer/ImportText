@@ -125,7 +125,9 @@ body { display:flex; font-family:sans-serif; margin:0 }
 
 <div>残り：<span id="remain">-</span>本</div>
 <div>視聴済：<span id="done">-</span>本</div>
-<div id="progressBar">
+<div>新着：<span id="newCount">0</span>本</div>
+
+  <div id="progressBar">
   <div id="progressFill"></div>
 </div>
 
@@ -416,11 +418,15 @@ function updateProgress(){
   const total = videos.length
   const done = page.seen.length
   const remain = total - done
+  
 
   document.getElementById("remain").textContent = remain
   document.getElementById("done").textContent = done
+  ocument.getElementById("newCount").textContent = newCount
   const percent = (done / total) * 100
   document.getElementById("progressFill").style.width = percent + "%"
+
+  
 }
 
   loginBtn.onclick = async () => {
