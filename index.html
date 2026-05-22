@@ -186,7 +186,7 @@ body { display:flex; font-family:sans-serif; margin:0 }
 </div>
   
 <div id="userMenu">
-  <div onclick="logout()">ログアウト</div>
+  <div onclick="logout()">別のアカウントでログイン</div>
 </div>
 
 <div id="loading">
@@ -570,7 +570,7 @@ function updateProgress(){
 
   
 }
-
+const loginBtn = document.getElementById("loginBtn")
   loginBtn.onclick = async () => {
   await firebase.auth().signInWithEmailAndPassword(
     email.value,
