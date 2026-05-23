@@ -587,7 +587,7 @@
 
 <div id="header">
   <div id="appTitle">
-    <div id="appName">♾️未知リンク</div>
+    <div id="appName">🎀未知リンク</div>
     <button id="meritBtn" class="headerBtn">使うメリット✨</button>
     <button id="helpBtn" class="headerBtn">使い方💡</button>
   </div>
@@ -901,6 +901,7 @@ function setIndex(i) {
     updateProgress();
     updateHistory();
     randomVideo();
+    loadVideo(); // 新着チェック（1時間スロットル済み）
   } else {
     videos = [];
     document.getElementById("videoArea").innerHTML = "";
@@ -970,35 +971,54 @@ editCh.onclick = async () => {
 };
 
 /* ===== 動画取得 ===== */
-async function loadVideo() {
-  try {
-    const pageIndex = getIndex();
-    const p = data.pages[pageIndex];
+function showApiError(reason) {
+  const msg = reason === "quotaExceeded"
+    ? "⚠️ YouTube APIの1日の上限に達しました。<br>明日の午後4〜5時頃（日本時間）にリセットされます。"
+    : `⚠️ YouTube APIエラー: ${reason}<br>チャンネルIDが正しいか確認してください。`;
+  document.getElementById("videoArea").innerHTML = `<p style="color:red;line-height:1.8;">${msg}</p>`;
+}
 
-    if (!p) return;
+async function loadVideo() {
+  const pageIndex = getIndex();
+  const p = data.pages[pageIndex];
+
+  if (!p || !p.channelId) { hideLoading(); return; }
+
+  try {
+    showLoading();
 
     if (p.videos && p.videos.length > 0) {
       videos = p.videos;
-      const ch = p.channelId;
+
+      // 新着チェックは1時間に1回だけ（search APIは100ユニット消費するため）
+      const checkKey = "lastCheck_" + p.channelId;
+      const lastCheck = parseInt(localStorage.getItem(checkKey) || "0");
+      const now = Date.now();
+
+      if (now - lastCheck < 3600000) {
+        updateProgress();
+        hideLoading();
+        return;
+      }
+
+      localStorage.setItem(checkKey, String(now));
 
       const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${ch}&part=snippet,id&order=date&maxResults=10`
+        `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${p.channelId}&part=snippet,id&order=date&maxResults=10`
       );
       const d = await res.json();
 
-      const latest = d.items
-        .filter(v => v.id.videoId)
-        .map(v => ({
-          id: v.id.videoId,
-          title: v.snippet.title,
-          thumb: v.snippet.thumbnails.medium.url
-        }));
+      if (d.error) {
+        console.error("YouTube API error:", d.error);
+        hideLoading();
+        return;
+      }
 
       newCount = 0;
-
-      latest.forEach(v => {
-        if (!videos.find(x => x.id === v.id)) {
-          videos.unshift(v);
+      (d.items || []).filter(v => v.id.videoId).forEach(v => {
+        const video = { id: v.id.videoId, title: v.snippet.title, thumb: v.snippet.thumbnails.medium.url };
+        if (!videos.find(x => x.id === video.id)) {
+          videos.unshift(video);
           newCount++;
         }
       });
@@ -1006,19 +1026,30 @@ async function loadVideo() {
       p.videos = videos;
       save();
       updateProgress();
+      hideLoading();
       return;
     }
 
-    const ch = p.channelId;
-
+    // 初回: チャンネル全動画を取得
     const chRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${ch}&key=${API_KEY}`
+      `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${p.channelId}&key=${API_KEY}`
     );
     const chData = await chRes.json();
-    const uploadsId = chData.items[0].contentDetails.relatedPlaylists.uploads;
-    const channelName = chData.items[0].snippet.title;
 
-    p.title = channelName;
+    if (chData.error) {
+      showApiError(chData.error.errors?.[0]?.reason || chData.error.message);
+      hideLoading();
+      return;
+    }
+
+    if (!chData.items || !chData.items[0]) {
+      document.getElementById("videoArea").innerHTML = `<p style="color:red;">⚠️ チャンネルが見つかりません。チャンネルIDを確認してください。</p>`;
+      hideLoading();
+      return;
+    }
+
+    const uploadsId = chData.items[0].contentDetails.relatedPlaylists.uploads;
+    p.title = chData.items[0].snippet.title;
     save();
     render();
 
@@ -1031,13 +1062,17 @@ async function loadVideo() {
       );
       const d = await res.json();
 
-      const vids = d.items.map(v => ({
+      if (d.error) {
+        showApiError(d.error.errors?.[0]?.reason || d.error.message);
+        hideLoading();
+        return;
+      }
+
+      allVideos = allVideos.concat(d.items.map(v => ({
         id: v.snippet.resourceId.videoId,
         title: v.snippet.title,
-        thumb: v.snippet.thumbnails.medium.url
-      }));
-
-      allVideos = allVideos.concat(vids);
+        thumb: (v.snippet.thumbnails.medium || v.snippet.thumbnails.default || {}).url || ""
+      })));
       nextPageToken = d.nextPageToken || "";
     } while (nextPageToken);
 
@@ -1046,6 +1081,9 @@ async function loadVideo() {
     save();
     updateProgress();
     randomVideo();
+  } catch (e) {
+    console.error("loadVideo error:", e);
+    document.getElementById("videoArea").innerHTML = `<p style="color:red;">⚠️ 読み込みエラー: ${e.message}</p>`;
   } finally {
     hideLoading();
   }
@@ -1423,8 +1461,7 @@ async function initApp() {
   }
 
   render();
-  setIndex(0);
-  loadVideo();
+  setIndex(0); // loadVideo() は setIndex() 内で呼ばれるので二重呼び出し不要
 }
 
 </script>
