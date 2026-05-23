@@ -1005,6 +1005,18 @@ function closeMerit() {
   document.getElementById("overlay").style.display = "none";
 }
 
+const statusBtn = document.getElementById("statusBtn");
+
+statusBtn.onclick = () => {
+  document.getElementById("statusModal").style.display = "flex";
+  document.getElementById("overlay").style.display = "block";
+};
+
+function closeStatus() {
+  document.getElementById("statusModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+}
+
 function toggleMenu() {
   const menu = document.getElementById("userMenu");
   menu.style.display = menu.style.display === "block" ? "none" : "block";
@@ -1089,18 +1101,32 @@ async function init() {
 
 init();
 
+// 1チャンネル1ドキュメント（ドキュメント名 = チャンネル名）
+// oldTitle を渡すとタイトル変更時に旧ドキュメントを削除する
+function savePage(page, oldTitle) {
+  const { videos: _v, ...slim } = page;
+  const newRef = db.collection(currentUser).doc(page.title);
+  const pr = newRef.set(slim);
+  if (oldTitle && oldTitle !== page.title) {
+    chRef(oldTitle).delete().catch(() => {});
+    db.collection(currentUser).doc(oldTitle).delete().catch(() => {});
+  }
+  return pr;
+}
+
 function save() {
-  // videosはサブコレクションに保存するのでメインdocには含めない
-  const slim = { ...data, pages: data.pages.map(({ videos: _v, ...rest }) => rest) };
-  return db.collection("app").doc(currentUser).set(slim);
+  return Promise.all(data.pages.map((page, i) => {
+    page.order = i;
+    return savePage(page);
+  }));
 }
 
-function chRef(channelId) {
-  return db.collection("app").doc(currentUser).collection("ch").doc(channelId);
+function chRef(pageTitle) {
+  return db.collection(currentUser).doc(pageTitle).collection("v").doc("items");
 }
 
-async function saveChannelVideos(channelId, vids) {
-  await chRef(channelId).set({ items: vids });
+async function saveChannelVideos(pageTitle, vids) {
+  await chRef(pageTitle).set({ items: vids });
 }
 
 /* ===== UI ===== */
@@ -1147,40 +1173,44 @@ function render() {
 /* ===== CRUD ===== */
 add.onclick = () => {
   showLoading("追加中…");
-  data.pages.push({ title: "新規", channelId: "", seen: [], skipped: [], favorites: [] });
-  save().then(() => { render(); hideLoading(); });
+  const newPage = { title: "新規", channelId: "", seen: [], skipped: [], favorites: [], order: data.pages.length };
+  data.pages.push(newPage);
+  savePage(newPage).then(() => { render(); hideLoading(); });
 };
 
 remove.onclick = () => {
   const ok = confirm("今開いてるチャンネルページを削除するよ。ほんとに大丈夫？");
   if (!ok) return;
   const idx = getIndex();
-  const oldChId = data.pages[idx].channelId;
+  const page = data.pages[idx];
+  // チャンネルドキュメントと動画サブコレクションを削除
+  chRef(page.title).delete().catch(() => {});
+  db.collection(currentUser).doc(page.title).delete().catch(() => {});
   data.pages.splice(idx, 1);
-  save();
-  if (oldChId) chRef(oldChId).delete().catch(() => {});
+  save(); // 残りページのorderを更新
   setIndex(0);
 };
 
 editCh.onclick = async () => {
   const i = getIndex();
-  const oldChId = data.pages[i].channelId;
+  const p = data.pages[i];
+  const oldChId = p.channelId;
   const id = prompt("チャンネルID", oldChId);
   if (id === null) return;
 
-  // 旧チャンネルのvideoドキュメントを削除
-  if (oldChId && oldChId !== id) {
-    chRef(oldChId).delete().catch(() => {});
+  // チャンネルIDが変わったら動画キャッシュをクリア
+  if (oldChId !== id) {
+    chRef(p.title).delete().catch(() => {});
   }
 
-  data.pages[i].channelId = id;
-  data.pages[i].seen = [];
-  data.pages[i].videos = [];
+  p.channelId = id;
+  p.seen = [];
+  p.videos = [];
   videos = [];
 
   render();
   showLoading("Firebase に保存中…");
-  await save();
+  await savePage(p);
   await loadVideo();
 };
 
@@ -1202,7 +1232,7 @@ async function loadVideo() {
     // Step1: セッション内メモリキャッシュがなければFirestoreサブコレクションを確認
     if (!p.videos || !p.videos.length) {
       showLoading("Firestore から動画リストを確認中…");
-      const chDoc = await chRef(p.channelId).get();
+      const chDoc = await chRef(p.title).get();
       if (chDoc.exists && chDoc.data().items?.length > 0) {
         p.videos = chDoc.data().items;
       }
@@ -1253,8 +1283,8 @@ async function loadVideo() {
       });
 
       p.videos = videos;
-      saveChannelVideos(p.channelId, videos); // サブコレクション更新
-      save();
+      saveChannelVideos(p.title, videos);
+      savePage(p);
       updateProgress();
       hideLoading();
       return;
@@ -1280,8 +1310,9 @@ async function loadVideo() {
     }
 
     const uploadsId = chData.items[0].contentDetails.relatedPlaylists.uploads;
+    const oldTitle = p.title;
     p.title = chData.items[0].snippet.title;
-    save();
+    savePage(p, oldTitle); // タイトルが変わった場合は旧ドキュメントを削除
     render();
 
     let allVideos = [];
@@ -1321,8 +1352,8 @@ async function loadVideo() {
 
     videos = allVideos;
     p.videos = videos;
-    await saveChannelVideos(p.channelId, allVideos); // サブコレクション /ch/{channelId} に保存
-    save(); // メタデータのみメインdocに保存
+    await saveChannelVideos(p.title, allVideos);
+    savePage(p);
     updateProgress();
     randomVideo();
   } catch (e) {
@@ -1560,11 +1591,10 @@ function switchTab(tab) {
   const isHistory = tab === "history";
   document.getElementById("historyArea").style.display = isHistory ? "block" : "none";
   document.getElementById("favoritesArea").style.display = isHistory ? "none" : "block";
-  document.getElementById("historyActions").style.display = isHistory ? "block" : "none";
   document.getElementById("favActions").style.display = isHistory ? "none" : "block";
   document.getElementById("historyTab").classList.toggle("active", isHistory);
   document.getElementById("favTab").classList.toggle("active", !isHistory);
-  if (!isHistory) updateFavorites();
+  if (isHistory) updateHistory(); else updateFavorites();
 }
 
 /* ===== お気に入り一覧 ===== */
@@ -1808,18 +1838,23 @@ googleLoginBtn.onclick = async () => {
 
 async function initApp() {
   showLoading("Firebase からデータを読み込み中…");
-  const doc = await db.collection("app").doc(currentUser).get();
+  const snapshot = await db.collection(currentUser).get();
   hideLoading();
 
-  if (doc.exists) {
-    data = doc.data();
+  if (!snapshot.empty) {
+    const pages = [];
+    snapshot.forEach(doc => {
+      pages.push({ videos: [], ...doc.data() });
+    });
+    pages.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+    data = { pages };
   } else {
-    data = { pages: [{ title: "チャンネル１", channelId: "", seen: [] }] };
+    data = { pages: [{ title: "チャンネル１", channelId: "", seen: [], skipped: [], favorites: [], order: 0 }] };
     save();
   }
 
   render();
-  setIndex(0); // loadVideo() は setIndex() 内で呼ばれるので二重呼び出し不要
+  setIndex(0);
 }
 
 </script>
