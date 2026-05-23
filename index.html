@@ -9,8 +9,8 @@
     /* ===== テーマ変数 ===== */
     :root {
       --bg: #fff5f8;
-      --header-bg: #ffb8d0;
-      --header-border: #f4a0bc;
+      --header-bg: #ffd0e6;
+      --header-border: #f8bcd6;
       --sidebar-border: #ccc;
       --btn-bg: #ffd6e3;
       --btn-border: #f8cbd8;
@@ -1268,6 +1268,19 @@ function render() {
   const list = document.getElementById("pageList");
   list.innerHTML = "";
   let dragSrcIndex = null;
+  let touchSrcIndex = null;
+  let touchSrcBtn = null;
+  let touchClone = null;
+
+  function doReorder(fromIndex, toIndex) {
+    if (fromIndex === toIndex) return;
+    const currentTitle = data.pages[getIndex()]?.title;
+    const [moved] = data.pages.splice(fromIndex, 1);
+    data.pages.splice(toIndex, 0, moved);
+    save();
+    const newIdx = data.pages.findIndex(p => p.title === currentTitle);
+    setIndex(newIdx >= 0 ? newIdx : 0);
+  }
 
   data.pages.forEach((p, i) => {
     const b = document.createElement("button");
@@ -1276,6 +1289,7 @@ function render() {
     b.dataset.index = i;
     b.onclick = () => setIndex(i);
 
+    // --- PC: HTML5 drag & drop ---
     b.addEventListener("dragstart", e => {
       dragSrcIndex = i;
       e.dataTransfer.effectAllowed = "move";
@@ -1295,13 +1309,48 @@ function render() {
     b.addEventListener("drop", e => {
       e.preventDefault();
       b.classList.remove("dragOver");
-      if (dragSrcIndex === null || dragSrcIndex === i) return;
-      const currentTitle = data.pages[getIndex()]?.title;
-      const [moved] = data.pages.splice(dragSrcIndex, 1);
-      data.pages.splice(i, 0, moved);
-      save();
-      const newIdx = data.pages.findIndex(p => p.title === currentTitle);
-      setIndex(newIdx >= 0 ? newIdx : 0);
+      if (dragSrcIndex === null) return;
+      doReorder(dragSrcIndex, i);
+    });
+
+    // --- スマホ: タッチ drag & drop ---
+    b.addEventListener("touchstart", e => {
+      touchSrcIndex = i;
+      touchSrcBtn = b;
+    }, { passive: true });
+
+    b.addEventListener("touchmove", e => {
+      if (touchSrcBtn !== b) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      if (!touchClone) {
+        touchClone = b.cloneNode(true);
+        touchClone.style.cssText = `position:fixed;opacity:0.75;pointer-events:none;z-index:9999;width:${b.offsetWidth}px;margin:0;`;
+        document.body.appendChild(touchClone);
+        b.style.opacity = "0.4";
+      }
+      touchClone.style.left = (touch.clientX - b.offsetWidth / 2) + "px";
+      touchClone.style.top  = (touch.clientY - b.offsetHeight / 2) + "px";
+      // ドロップ先ハイライト
+      touchClone.style.visibility = "hidden";
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      touchClone.style.visibility = "";
+      const target = el?.closest?.("#pageList button");
+      list.querySelectorAll("button").forEach(el => el.classList.remove("dragOver"));
+      if (target && target !== b) target.classList.add("dragOver");
+    }, { passive: false });
+
+    b.addEventListener("touchend", e => {
+      if (touchSrcBtn !== b) return;
+      const touch = e.changedTouches[0];
+      if (touchClone) { touchClone.remove(); touchClone = null; }
+      b.style.opacity = "";
+      list.querySelectorAll("button").forEach(el => el.classList.remove("dragOver"));
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const target = el?.closest?.("#pageList button");
+      if (target && target !== b) doReorder(touchSrcIndex, parseInt(target.dataset.index));
+      touchSrcBtn = null;
+      touchSrcIndex = null;
     });
 
     list.appendChild(b);
@@ -1731,7 +1780,9 @@ function switchTab(tab) {
   const isHistory = tab === "history";
   document.getElementById("historyArea").style.display = isHistory ? "block" : "none";
   document.getElementById("favoritesArea").style.display = isHistory ? "none" : "block";
-  document.getElementById("favActions").style.display = isHistory ? "none" : "block";
+  // タブ切替時に両方のリセットボタンをいったん非表示にして、update関数に委ねる
+  document.getElementById("historyActions").style.display = "none";
+  document.getElementById("favActions").style.display = "none";
   document.getElementById("historyTab").classList.toggle("active", isHistory);
   document.getElementById("favTab").classList.toggle("active", !isHistory);
   if (isHistory) updateHistory(); else updateFavorites();
