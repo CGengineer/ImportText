@@ -39,6 +39,9 @@
       --select-bg: white;
       --select-border: #f3c4d2;
       --select-color: #444;
+      --login-google-bg: #ffc2d6;
+      --login-email-bg: #ffe3ec;
+      --login-register-bg: #fff0f5;
     }
 
     [data-theme="white"] {
@@ -73,6 +76,9 @@
       --select-bg: white;
       --select-border: #ddd;
       --select-color: #333;
+      --login-google-bg: #e0e0e0;
+      --login-email-bg: #ebebeb;
+      --login-register-bg: #f2f2f2;
     }
 
     [data-theme="gray"] {
@@ -107,6 +113,9 @@
       --select-bg: #d8d8d8;
       --select-border: #aaa;
       --select-color: #333;
+      --login-google-bg: #b4b4b4;
+      --login-email-bg: #c4c4c4;
+      --login-register-bg: #d0d0d0;
     }
 
     [data-theme="dark"] {
@@ -141,6 +150,9 @@
       --select-bg: #1a2a4a;
       --select-border: #0f3460;
       --select-color: #e0e0e0;
+      --login-google-bg: #0f3460;
+      --login-email-bg: #1a2a4a;
+      --login-register-bg: #1e3254;
     }
 
     body {
@@ -335,16 +347,16 @@
     }
 
     #googleLoginBtn {
-      background: #ffc2d6;
+      background: var(--login-google-bg);
       font-weight: bold;
     }
 
     #loginBtn {
-      background: #ffe3ec;
+      background: var(--login-email-bg);
     }
 
     #registerBtn {
-      background: #fff0f5;
+      background: var(--login-register-bg);
     }
 
     /* モーダル共通 */
@@ -654,6 +666,7 @@
 <div id="sidebar">
   <button id="add">チャンネル追加</button>
   <button id="remove">チャンネル削除</button>
+  <button onclick="randomPage()">🎲 ランダム選択</button>
   <div id="pageList"></div>
 </div>
 
@@ -669,13 +682,12 @@
 
   <h3>📺 今日の1本</h3>
   <button onclick="randomVideo()">🎲 ランダム</button>
-  <button onclick="allChannelRandom()">🌐 全チャンネル</button>
 
   <div id="videoArea"></div>
 
-  <div>残り：<span id="remain">-</span>本</div>
-  <div>視聴済：<span id="done">-</span>本</div>
-  <div>新着：<span id="newCount">0</span>本</div>
+  <div>📋 残り：<span id="remain">-</span>本</div>
+  <div>✅ 視聴済：<span id="done">-</span>本</div>
+  <div>🆕 新着：<span id="newCount">0</span>本</div>
   <div>❤️ お気に入り：<span id="favCount">0</span>本</div>
   <div>🔥 連続視聴：<span id="streakCount">0</span>日</div>
 
@@ -985,7 +997,6 @@ function showVideoCard(v, pageIndexOverride) {
 </a>
 <div class="videoActions">
   <button id="favBtn" onclick="toggleFavorite()">${isFav ? "❤️ お気に入り済" : "🤍 お気に入り"}</button>
-  <button onclick="skipVideo()">🚫 スキップ</button>
 </div>`;
 }
 
@@ -1010,35 +1021,12 @@ async function randomVideo() {
   showVideoCard(v);
 }
 
-/* ===== 全チャンネルランダム ===== */
-function allChannelRandom() {
-  const allUnseen = [];
-
-  data.pages.forEach((page, i) => {
-    const vids = page.videos || [];
-    const seen = page.seen || [];
-    const skipped = page.skipped || [];
-    vids.forEach(v => {
-      if (!seen.includes(v.id) && !skipped.includes(v.id)) {
-        allUnseen.push({ v, pageIndex: i });
-      }
-    });
-  });
-
-  if (!allUnseen.length) {
-    document.getElementById("videoArea").innerHTML = "🎉 全チャンネル制覇！すごい！";
-    return;
-  }
-
-  const { v, pageIndex } = allUnseen[Math.floor(Math.random() * allUnseen.length)];
-
-  location.hash = pageIndex;
-  videos = data.pages[pageIndex].videos;
+/* ===== チャンネルランダム選択 ===== */
+function randomPage() {
+  if (!data.pages.length) return;
+  const i = Math.floor(Math.random() * data.pages.length);
+  location.hash = i;
   render();
-  currentVideo = v;
-  showVideoCard(v, pageIndex);
-  updateProgress();
-  updateHistory();
 }
 
 /* ===== お気に入り ===== */
