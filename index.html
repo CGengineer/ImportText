@@ -1061,7 +1061,7 @@ let videoFilter = "unseen";
 async function init() {
   firebase.auth().onAuthStateChanged(user => {
     if (user) {
-      currentUser = user.uid;
+      currentUser = user.email;
       document.getElementById("login").style.display = "none";
       document.getElementById("overlay").style.display = "none";
       document.getElementById("userEmail").textContent = user.email;
@@ -1090,7 +1090,17 @@ async function init() {
 init();
 
 function save() {
-  return db.collection("app").doc(currentUser).set(data);
+  // videosはサブコレクションに保存するのでメインdocには含めない
+  const slim = { ...data, pages: data.pages.map(({ videos: _v, ...rest }) => rest) };
+  return db.collection("app").doc(currentUser).set(slim);
+}
+
+function chRef(channelId) {
+  return db.collection("app").doc(currentUser).collection("ch").doc(channelId);
+}
+
+async function saveChannelVideos(channelId, vids) {
+  await chRef(channelId).set({ items: vids });
 }
 
 /* ===== UI ===== */
@@ -1144,15 +1154,24 @@ add.onclick = () => {
 remove.onclick = () => {
   const ok = confirm("今開いてるチャンネルページを削除するよ。ほんとに大丈夫？");
   if (!ok) return;
-  data.pages.splice(getIndex(), 1);
-  save(); // バックグラウンドで保存（待たない）
-  setIndex(0); // 即座に画面を切り替え
+  const idx = getIndex();
+  const oldChId = data.pages[idx].channelId;
+  data.pages.splice(idx, 1);
+  save();
+  if (oldChId) chRef(oldChId).delete().catch(() => {});
+  setIndex(0);
 };
 
 editCh.onclick = async () => {
   const i = getIndex();
-  const id = prompt("チャンネルID", data.pages[i].channelId);
+  const oldChId = data.pages[i].channelId;
+  const id = prompt("チャンネルID", oldChId);
   if (id === null) return;
+
+  // 旧チャンネルのvideoドキュメントを削除
+  if (oldChId && oldChId !== id) {
+    chRef(oldChId).delete().catch(() => {});
+  }
 
   data.pages[i].channelId = id;
   data.pages[i].seen = [];
@@ -1161,12 +1180,6 @@ editCh.onclick = async () => {
 
   render();
   showLoading("Firebase に保存中…");
-
-  await db.collection("app").doc(currentUser).update({
-    videos: null,
-    channelId: null
-  });
-
   await save();
   await loadVideo();
 };
@@ -1186,8 +1199,25 @@ async function loadVideo() {
   if (!p || !p.channelId) return;
 
   try {
+    // Step1: セッション内メモリキャッシュがなければFirestoreサブコレクションを確認
+    if (!p.videos || !p.videos.length) {
+      showLoading("Firestore から動画リストを確認中…");
+      const chDoc = await chRef(p.channelId).get();
+      if (chDoc.exists && chDoc.data().items?.length > 0) {
+        p.videos = chDoc.data().items;
+      }
+      hideLoading();
+    }
+
     if (p.videos && p.videos.length > 0) {
       videos = p.videos;
+
+      // カードが表示されていなければ表示する（Firestoreから復元したとき）
+      if (currentVideos.length === 0) {
+        updateProgress();
+        updateHistory();
+        randomVideo();
+      }
 
       // 新着チェックは1時間に1回だけ（search APIは100ユニット消費するため）
       const checkKey = "lastCheck_" + p.channelId;
@@ -1223,13 +1253,14 @@ async function loadVideo() {
       });
 
       p.videos = videos;
+      saveChannelVideos(p.channelId, videos); // サブコレクション更新
       save();
       updateProgress();
       hideLoading();
       return;
     }
 
-    // 初回: チャンネル全動画を取得
+    // Step2: どこにもない → YouTube APIで全件取得
     showLoading("チャンネル情報を取得中… (YouTube API)");
     const chRes = await fetch(
       `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${p.channelId}&key=${API_KEY}`
@@ -1286,11 +1317,12 @@ async function loadVideo() {
       })));
       nextPageToken = d.nextPageToken || "";
     } while (nextPageToken);
-    showLoading(`Firebase に保存中… (${allVideos.length}件)`, 1);
+    showLoading(`Firestore に保存中… (${allVideos.length}件)`, 1);
 
     videos = allVideos;
     p.videos = videos;
-    save();
+    await saveChannelVideos(p.channelId, allVideos); // サブコレクション /ch/{channelId} に保存
+    save(); // メタデータのみメインdocに保存
     updateProgress();
     randomVideo();
   } catch (e) {
