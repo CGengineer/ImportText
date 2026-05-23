@@ -517,7 +517,6 @@
       width: 300px;
       height: 10px;
       background: var(--progress-bg);
-      margin-top: 10px;
     }
 
     #progressFill {
@@ -798,8 +797,11 @@
   <div>❤️ お気に入り：<span id="favCount">0</span>本</div>
   <div>🔥 連続視聴：<span id="streakCount">0</span>日</div>
 
-  <div id="progressBar">
-    <div id="progressFill"></div>
+  <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+    <div id="progressBar" style="margin-top:0; flex-shrink:0;">
+      <div id="progressFill"></div>
+    </div>
+    <span id="progressLabel" style="font-size:12px; color:var(--text-light); white-space:nowrap;">-/-本</span>
   </div>
 
   <div id="historySection">
@@ -1214,7 +1216,7 @@ function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
   const btn = document.getElementById("sidebarToggle");
   sidebar.classList.toggle("hidden");
-  btn.textContent = sidebar.classList.contains("hidden") ? "〉" : "〈";
+  btn.textContent = sidebar.classList.contains("hidden") ? ">" : "<";
 }
 
 /* ===== お気に入り ===== */
@@ -1394,6 +1396,7 @@ function updateProgress() {
   document.getElementById("favCount").textContent = (page.favorites || []).length;
   document.getElementById("streakCount").textContent = getStreak();
   document.getElementById("progressFill").style.width = (done / total) * 100 + "%";
+  document.getElementById("progressLabel").textContent = `${done}/${total}本`;
 }
 
 /* ===== 視聴履歴 ===== */
