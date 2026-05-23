@@ -482,14 +482,25 @@
     }
 
     /* サイドバートグルボタン */
+    #topControls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 20px 0 10px;
+    }
+
     #sidebarToggle {
       font-size: 20px;
       font-weight: bold;
       padding: 6px 18px;
-      margin: 0 0 10px 0;
+      margin: 0;
       border-radius: 14px;
       box-shadow: none;
       line-height: 1;
+    }
+
+    #editCh {
+      margin: 0;
     }
 
     #pageList button {
@@ -505,7 +516,10 @@
     }
 
     #videoArea {
+      display: flex;
+      gap: 10px;
       margin-top: 20px;
+      overflow-x: auto;
     }
 
     .thumbBox {
@@ -632,13 +646,17 @@
     }
 
     /* 動画カード */
-    #videoCard {
+    .videoCard {
       background: var(--history-item-bg);
       border: 1px solid var(--history-item-border);
       border-radius: 12px;
       padding: 12px;
-      display: inline-block;
-      max-width: 300px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .videoCard .thumbBox {
+      width: 100%;
     }
 
     /* 動画アクションボタン */
@@ -806,13 +824,11 @@
 </div>
 
 <div id="main">
-  <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
+  <div id="topControls">
+    <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
+    <button id="editCh">チャンネルID設定</button>
+  </div>
   <h1 id="title"></h1>
-
-  <button id="editTitle">タイトル編集</button>
-  <button id="editCh">チャンネルID設定</button>
-
-  <div>チャンネルID: <span id="chid"></span></div>
 
   <hr>
 
@@ -824,7 +840,7 @@
 
   <hr>
 
-  <h3>📺 今日の1本</h3>
+  <h3>📺 今日のオススメ 3本</h3>
 
   <div id="videoArea"></div>
 
@@ -926,7 +942,7 @@ let currentUser = null;
 /* ===== 状態 ===== */
 let data = { pages: [] };
 let videos = [];
-let currentVideo = null;
+let currentVideos = [];
 let newCount = 0;
 let currentTab = "history";
 let videoFilter = "unseen";
@@ -1006,7 +1022,6 @@ function render() {
 
   const p = data.pages[getIndex()];
   document.getElementById("title").textContent = p.title;
-  document.getElementById("chid").textContent = p.channelId || "未設定";
 }
 
 /* ===== CRUD ===== */
@@ -1022,14 +1037,6 @@ remove.onclick = () => {
   showLoading("削除中…");
   data.pages.splice(getIndex(), 1);
   save().then(() => { hideLoading(); setIndex(0); });
-};
-
-editTitle.onclick = () => {
-  const i = getIndex();
-  const t = prompt("タイトル", data.pages[i].title);
-  if (!t) return;
-  data.pages[i].title = t;
-  save().then(render);
 };
 
 editCh.onclick = async () => {
@@ -1173,17 +1180,14 @@ async function loadVideo() {
 }
 
 /* ===== 動画カード表示 ===== */
-function showVideoCard(v, pageIndexOverride) {
-  const pi = pageIndexOverride !== undefined ? pageIndexOverride : getIndex();
-  const page = data.pages[pi];
+function buildVideoCard(v, page) {
   const isFav = (page.favorites || []).includes(v.id);
-
-  document.getElementById("videoArea").innerHTML = `
-<div id="videoCard">
-  <div class="thumbBox" data-thumb="${v.thumb}"
-    onmouseenter="startThumbPreview(this,'${v.id}','openVideo()')"
+  return `
+<div class="videoCard" data-card-id="${v.id}">
+  <div class="thumbBox" data-thumb="${v.thumb}" data-vid="${v.id}"
+    onmouseenter="startThumbPreview(this,'${v.id}')"
     onmouseleave="stopThumbPreview(this)"
-    onclick="openVideo()">
+    onclick="openVideoById('${v.id}')">
     <img src="${v.thumb}">
     <div class="playBtn">▶</div>
   </div>
@@ -1195,11 +1199,89 @@ function showVideoCard(v, pageIndexOverride) {
     🔗 タイトルのリンクから直接開いた場合は記録されません
   </div>
   <div class="videoActions">
-    <button onclick="skipVideo()">⏭ スキップ</button>
-    <button onclick="markAsSeen()">✅ 視聴済みにする</button>
-    <button id="favBtn" onclick="toggleFavorite()">${isFav ? "❤️ お気に入り済" : "🤍 お気に入り追加"}</button>
+    <button onclick="skipCard('${v.id}')">⏭ スキップ</button>
+    <button onclick="markAsSeenCard('${v.id}')">✅ 視聴済みにする</button>
+    <button class="favCardBtn" onclick="toggleFavCard('${v.id}')">${isFav ? "❤️ お気に入り済" : "🤍 お気に入り追加"}</button>
   </div>
 </div>`;
+}
+
+function showVideoCards(vids) {
+  const page = data.pages[getIndex()];
+  currentVideos = vids.map(v => v.id);
+  document.getElementById("videoArea").innerHTML = vids.map(v => buildVideoCard(v, page)).join("");
+}
+
+function openVideoById(id) {
+  const page = data.pages[getIndex()];
+  if (!page.seen.includes(id)) page.seen.push(id);
+  if (!page.history) page.history = [];
+  page.history.push({ id, at: Date.now() });
+  save();
+  updateProgress();
+  updateHistory();
+  window.open("https://youtube.com/watch?v=" + id);
+}
+
+function replaceCard(oldId) {
+  const page = data.pages[getIndex()];
+  const skipped = page.skipped || [];
+  let pool;
+  if (videoFilter === "unseen") {
+    pool = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id) && !currentVideos.includes(v.id));
+  } else if (videoFilter === "seen") {
+    pool = videos.filter(v => page.seen.includes(v.id) && !currentVideos.includes(v.id));
+  } else {
+    pool = videos.filter(v => (page.favorites || []).includes(v.id) && !currentVideos.includes(v.id));
+  }
+  const idx = currentVideos.indexOf(oldId);
+  const cardEl = document.querySelector(`.videoCard[data-card-id="${oldId}"]`);
+  if (pool.length > 0) {
+    const newV = pool[Math.floor(Math.random() * pool.length)];
+    currentVideos[idx] = newV.id;
+    if (cardEl) cardEl.outerHTML = buildVideoCard(newV, page);
+  } else {
+    currentVideos.splice(idx, 1);
+    if (cardEl) cardEl.remove();
+    if (!currentVideos.length) {
+      const msg = videoFilter === "unseen" ? "🎉 全部見た！" : videoFilter === "seen" ? "まだ視聴済みの動画はありません" : "お気に入りがまだありません";
+      document.getElementById("videoArea").innerHTML = msg;
+    }
+  }
+}
+
+function skipCard(id) {
+  const page = data.pages[getIndex()];
+  if (!page.skipped) page.skipped = [];
+  if (!page.skipped.includes(id)) { page.skipped.push(id); save(); }
+  replaceCard(id);
+}
+
+function markAsSeenCard(id) {
+  const page = data.pages[getIndex()];
+  if (!page.seen.includes(id)) {
+    page.seen.push(id);
+    if (!page.history) page.history = [];
+    page.history.push({ id, at: Date.now() });
+    save();
+    updateProgress();
+    updateHistory();
+  }
+  replaceCard(id);
+}
+
+function toggleFavCard(id) {
+  const page = data.pages[getIndex()];
+  if (!page.favorites) page.favorites = [];
+  const idx = page.favorites.indexOf(id);
+  if (idx === -1) { page.favorites.push(id); } else { page.favorites.splice(idx, 1); }
+  save();
+  updateProgress();
+  if (currentTab === "favorites") updateFavorites();
+  const isFav = page.favorites.includes(id);
+  document.querySelectorAll(`.videoCard[data-card-id="${id}"] .favCardBtn`).forEach(btn => {
+    btn.textContent = isFav ? "❤️ お気に入り済" : "🤍 お気に入り追加";
+  });
 }
 
 /* ===== フィルター切り替え ===== */
@@ -1237,9 +1319,9 @@ async function randomVideo() {
     return;
   }
 
-  const v = pool[Math.floor(Math.random() * pool.length)];
-  currentVideo = v;
-  showVideoCard(v);
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 3);
+  showVideoCards(picked);
 }
 
 /* ===== チャンネルランダム選択 ===== */
@@ -1297,61 +1379,15 @@ function toggleSidebar() {
 
 /* ===== サムネイルホバープレビュー ===== */
 function startThumbPreview(container, videoId, clickFn) {
-  const handler = clickFn || `window.open('https://youtube.com/watch?v=${videoId}')`;
+  const vid = container.dataset.vid || videoId;
+  const handler = clickFn !== undefined ? clickFn
+    : (container.dataset.vid ? `openVideoById('${vid}')` : `window.open('https://youtube.com/watch?v=${vid}')`);
   container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0" style="width:100%;aspect-ratio:16/9;border:none;border-radius:6px;display:block;pointer-events:none;" allow="autoplay; encrypted-media"></iframe><div style="position:absolute;inset:0;cursor:pointer;" onclick="${handler}"></div>`;
 }
 
 function stopThumbPreview(container) {
   const thumb = container.dataset.thumb;
   container.innerHTML = `<img src="${thumb}" alt="" style="width:100%;border-radius:6px;display:block;"><div class="playBtn">▶</div>`;
-}
-
-/* ===== お気に入り ===== */
-function toggleFavorite() {
-  const page = data.pages[getIndex()];
-  if (!page.favorites) page.favorites = [];
-
-  const idx = page.favorites.indexOf(currentVideo.id);
-  if (idx === -1) {
-    page.favorites.push(currentVideo.id);
-  } else {
-    page.favorites.splice(idx, 1);
-  }
-
-  save();
-  updateProgress();
-  if (currentTab === "favorites") updateFavorites();
-
-  const isFav = page.favorites.includes(currentVideo.id);
-  const btn = document.getElementById("favBtn");
-  if (btn) btn.textContent = isFav ? "❤️ お気に入り済" : "🤍 お気に入り";
-}
-
-/* ===== 視聴済みにする（動画を開かずに記録） ===== */
-function markAsSeen() {
-  const page = data.pages[getIndex()];
-  if (!page.seen.includes(currentVideo.id)) {
-    page.seen.push(currentVideo.id);
-    if (!page.history) page.history = [];
-    page.history.push({ id: currentVideo.id, at: Date.now() });
-    save();
-    updateProgress();
-    updateHistory();
-  }
-  randomVideo();
-}
-
-/* ===== スキップ ===== */
-function skipVideo() {
-  const page = data.pages[getIndex()];
-  if (!page.skipped) page.skipped = [];
-
-  if (!page.skipped.includes(currentVideo.id)) {
-    page.skipped.push(currentVideo.id);
-    save();
-  }
-
-  randomVideo();
 }
 
 /* ===== タブ切り替え ===== */
@@ -1406,10 +1442,9 @@ function removeFavorite(id) {
   save();
   updateProgress();
   updateFavorites();
-  if (currentVideo && currentVideo.id === id) {
-    const btn = document.getElementById("favBtn");
-    if (btn) btn.textContent = "🤍 お気に入り";
-  }
+  document.querySelectorAll(`.videoCard[data-card-id="${id}"] .favCardBtn`).forEach(btn => {
+    btn.textContent = "🤍 お気に入り追加";
+  });
 }
 
 function toggleFavoriteById(id) {
@@ -1425,11 +1460,10 @@ function toggleFavoriteById(id) {
   updateProgress();
   updateHistory();
   if (currentTab === "favorites") updateFavorites();
-  if (currentVideo && currentVideo.id === id) {
-    const isFav = page.favorites.includes(id);
-    const btn = document.getElementById("favBtn");
-    if (btn) btn.textContent = isFav ? "❤️ お気に入り済" : "🤍 お気に入り";
-  }
+  const isFav = page.favorites.includes(id);
+  document.querySelectorAll(`.videoCard[data-card-id="${id}"] .favCardBtn`).forEach(btn => {
+    btn.textContent = isFav ? "❤️ お気に入り済" : "🤍 お気に入り追加";
+  });
 }
 
 function resetFavorites() {
@@ -1465,24 +1499,6 @@ function getStreak() {
   }
 
   return streak;
-}
-
-/* ===== 再生＆既読 ===== */
-function openVideo() {
-  const page = data.pages[getIndex()];
-
-  if (!page.seen.includes(currentVideo.id)) {
-    page.seen.push(currentVideo.id);
-  }
-
-  if (!page.history) page.history = [];
-  page.history.push({ id: currentVideo.id, at: Date.now() });
-
-  save();
-  updateProgress();
-  updateHistory();
-
-  window.open("https://youtube.com/watch?v=" + currentVideo.id);
 }
 
 /* ===== 進捗 ===== */
