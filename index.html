@@ -725,12 +725,9 @@
 
   <div id="historySection">
     <hr>
-    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-      <div class="tabBar">
-        <button class="tabBtn active" id="historyTab" onclick="switchTab('history')">📝 視聴履歴</button>
-        <button class="tabBtn" id="favTab" onclick="switchTab('favorites')">❤️ お気に入り</button>
-      </div>
-      <button id="resetBtn" onclick="resetHistory()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; box-shadow:none;">🗑 視聴済みリセット</button>
+    <div class="tabBar">
+      <button class="tabBtn active" id="historyTab" onclick="switchTab('history')">📝 視聴履歴</button>
+      <button class="tabBtn" id="favTab" onclick="switchTab('favorites')">❤️ お気に入り</button>
     </div>
     <div id="historyArea"></div>
     <div id="favoritesArea" style="display:none;"></div>
@@ -1102,7 +1099,6 @@ function switchTab(tab) {
   const isHistory = tab === "history";
   document.getElementById("historyArea").style.display = isHistory ? "block" : "none";
   document.getElementById("favoritesArea").style.display = isHistory ? "none" : "block";
-  document.getElementById("resetBtn").style.display = isHistory ? "" : "none";
   document.getElementById("historyTab").classList.toggle("active", isHistory);
   document.getElementById("favTab").classList.toggle("active", !isHistory);
   if (!isHistory) updateFavorites();
@@ -1302,7 +1298,11 @@ function updateHistory() {
       `).join("")}
     `).join("");
 
-  historyArea.innerHTML = html || "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>";
+  historyArea.innerHTML = (html || "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>") + `
+    <div style="text-align:center; margin-top:14px;">
+      <button onclick="resetHistory()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; box-shadow:none;">🗑 視聴済み全リセット</button>
+    </div>
+  `;
 }
 
 /* ===== 履歴から個別削除 ===== */
