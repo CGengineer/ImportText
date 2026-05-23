@@ -463,6 +463,27 @@
       border-right: none;
     }
 
+    /* 長押しツールチップ */
+    #sidebarTooltip {
+      position: fixed;
+      background: rgba(0,0,0,0.72);
+      color: white;
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 10px;
+      white-space: nowrap;
+      pointer-events: none;
+      display: none;
+      z-index: 9999;
+      transform: translateX(-50%);
+      animation: tooltipFade 0.15s ease;
+    }
+
+    @keyframes tooltipFade {
+      from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
     /* サイドバートグルボタン */
     #sidebarToggle {
       font-size: 20px;
@@ -628,7 +649,7 @@
 
 <div id="header">
   <div id="appTitle">
-    <div id="appName">🎀未知リンク</div>
+    <div id="appName">♾️未知リンク</div>
     <button id="meritBtn" class="headerBtn">使うメリット✨</button>
     <button id="helpBtn" class="headerBtn">使い方💡</button>
   </div>
@@ -755,6 +776,8 @@
     <button id="registerBtn">新規登録</button>
   </div>
 </div>
+
+<div id="sidebarTooltip"></div>
 
 <div id="sidebar">
   <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
@@ -1218,6 +1241,44 @@ function toggleSidebar() {
   sidebar.classList.toggle("hidden");
   btn.textContent = sidebar.classList.contains("hidden") ? ">" : "<";
 }
+
+/* ===== サイドバートグル長押しツールチップ ===== */
+(function() {
+  const btn = document.getElementById("sidebarToggle");
+  const tooltip = document.getElementById("sidebarTooltip");
+  let timer = null;
+
+  function showTooltip(x, y) {
+    const sidebar = document.getElementById("sidebar");
+    tooltip.textContent = sidebar.classList.contains("hidden") ? "サイドバーを開く" : "サイドバーを閉じる";
+    tooltip.style.left = x + "px";
+    tooltip.style.top = (y - 44) + "px";
+    tooltip.style.display = "block";
+  }
+
+  function hideTooltip() {
+    clearTimeout(timer);
+    timer = null;
+    tooltip.style.display = "none";
+  }
+
+  btn.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    timer = setTimeout(() => showTooltip(t.clientX, t.clientY), 500);
+  }, { passive: true });
+
+  btn.addEventListener("touchend", () => {
+    clearTimeout(timer);
+    timer = null;
+    setTimeout(hideTooltip, 900);
+  });
+
+  btn.addEventListener("touchcancel", hideTooltip);
+
+  btn.addEventListener("mouseenter", e => showTooltip(e.clientX, e.clientY));
+  btn.addEventListener("mousemove", e => { tooltip.style.left = e.clientX + "px"; tooltip.style.top = (e.clientY - 44) + "px"; });
+  btn.addEventListener("mouseleave", hideTooltip);
+})();
 
 /* ===== お気に入り ===== */
 function toggleFavorite() {
