@@ -535,6 +535,13 @@
     #pageList button {
       width: 100%;
       margin-bottom: 10px;
+      cursor: grab;
+    }
+
+    #pageList button.dragOver {
+      background: var(--btn-hover);
+      border-style: dashed;
+      transform: translateY(-2px);
     }
 
     /* メイン */
@@ -575,22 +582,94 @@
 
     /* 進捗バー */
     #progressBar {
-      width: 120px;
+      width: 100%;
       height: 8px;
       background: var(--progress-bg);
       border-radius: 4px;
       overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    #progressFill {
-      border-radius: 4px;
     }
 
     #progressFill {
       height: 100%;
       width: 0%;
-      background: #4caf50;
+      background: linear-gradient(90deg, #e06090, #ff90b8);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    /* ヒントテキスト */
+    .videoHint {
+      font-size: 11px;
+      color: var(--text-light);
+      margin: -6px 0 10px;
+      line-height: 1.7;
+    }
+
+    /* ステータスカード */
+    .statsCard {
+      background: var(--history-item-bg);
+      border: 1px solid var(--history-item-border);
+      border-radius: 16px;
+      padding: 14px;
+      margin: 14px 0;
+    }
+
+    .statsGrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .statItem {
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      border-radius: 12px;
+      padding: 10px 6px 8px;
+      text-align: center;
+    }
+
+    .statEmoji {
+      font-size: 16px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .statValue {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--text-color);
+      line-height: 1.1;
+      margin-bottom: 3px;
+    }
+
+    .statUnit {
+      font-size: 11px;
+      font-weight: normal;
+      color: var(--text-light);
+      margin-left: 1px;
+    }
+
+    .statLabel {
+      font-size: 10px;
+      color: var(--text-light);
+      letter-spacing: 0.02em;
+    }
+
+    .statsProgress {
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .statsProgressHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 6px;
     }
 
     /* 視聴履歴 */
@@ -937,16 +1016,46 @@
   <hr>
 
   <h3>📺 今日のオススメ 3本</h3>
+  <p class="videoHint">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます&nbsp;&nbsp;🔗 タイトルのリンクから直接開いた場合は記録されません</p>
 
   <div id="videoArea"></div>
 
-  <div>📋 残り：<span id="remain">-</span>本</div>
-  <div>✅ 視聴済：<span id="done">-</span>本</div>
-  <div>🆕 新着：<span id="newCount">0</span>本</div>
-  <div>❤️ お気に入り：<span id="favCount">0</span>本</div>
-  <div>🔥 連続視聴：<span id="streakCount">0</span>日</div>
-
-  <div style="display:flex; align-items:center; gap:6px;">📊 視聴進捗：<div id="progressBar"><div id="progressFill"></div></div><span id="progressLabel">-/-本</span></div>
+  <div class="statsCard">
+    <div class="statsGrid">
+      <div class="statItem">
+        <div class="statEmoji">📋</div>
+        <div class="statValue"><span id="remain">-</span><span class="statUnit">本</span></div>
+        <div class="statLabel">残り</div>
+      </div>
+      <div class="statItem">
+        <div class="statEmoji">✅</div>
+        <div class="statValue"><span id="done">-</span><span class="statUnit">本</span></div>
+        <div class="statLabel">視聴済み</div>
+      </div>
+      <div class="statItem">
+        <div class="statEmoji">🆕</div>
+        <div class="statValue"><span id="newCount">0</span><span class="statUnit">本</span></div>
+        <div class="statLabel">新着</div>
+      </div>
+      <div class="statItem">
+        <div class="statEmoji">❤️</div>
+        <div class="statValue"><span id="favCount">0</span><span class="statUnit">本</span></div>
+        <div class="statLabel">お気に入り</div>
+      </div>
+      <div class="statItem">
+        <div class="statEmoji">🔥</div>
+        <div class="statValue"><span id="streakCount">0</span><span class="statUnit">日</span></div>
+        <div class="statLabel">連続視聴</div>
+      </div>
+    </div>
+    <div class="statsProgress">
+      <div class="statsProgressHeader">
+        <span>📊 視聴進捗</span>
+        <span id="progressLabel">-/-本</span>
+      </div>
+      <div id="progressBar"><div id="progressFill"></div></div>
+    </div>
+  </div>
 
   <div id="historySection">
     <hr>
@@ -1158,11 +1267,43 @@ function setIndex(i) {
 function render() {
   const list = document.getElementById("pageList");
   list.innerHTML = "";
+  let dragSrcIndex = null;
 
   data.pages.forEach((p, i) => {
     const b = document.createElement("button");
     b.textContent = p.title;
+    b.draggable = true;
+    b.dataset.index = i;
     b.onclick = () => setIndex(i);
+
+    b.addEventListener("dragstart", e => {
+      dragSrcIndex = i;
+      e.dataTransfer.effectAllowed = "move";
+      setTimeout(() => { b.style.opacity = "0.4"; }, 0);
+    });
+    b.addEventListener("dragend", () => {
+      b.style.opacity = "";
+      list.querySelectorAll("button").forEach(el => el.classList.remove("dragOver"));
+    });
+    b.addEventListener("dragover", e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      list.querySelectorAll("button").forEach(el => el.classList.remove("dragOver"));
+      b.classList.add("dragOver");
+    });
+    b.addEventListener("dragleave", () => b.classList.remove("dragOver"));
+    b.addEventListener("drop", e => {
+      e.preventDefault();
+      b.classList.remove("dragOver");
+      if (dragSrcIndex === null || dragSrcIndex === i) return;
+      const currentTitle = data.pages[getIndex()]?.title;
+      const [moved] = data.pages.splice(dragSrcIndex, 1);
+      data.pages.splice(i, 0, moved);
+      save();
+      const newIdx = data.pages.findIndex(p => p.title === currentTitle);
+      setIndex(newIdx >= 0 ? newIdx : 0);
+    });
+
     list.appendChild(b);
   });
 
@@ -1175,7 +1316,10 @@ add.onclick = () => {
   showLoading("追加中…");
   const newPage = { title: "新規", channelId: "", seen: [], skipped: [], favorites: [], order: data.pages.length };
   data.pages.push(newPage);
-  savePage(newPage).then(() => { render(); hideLoading(); });
+  savePage(newPage).then(() => {
+    hideLoading();
+    setIndex(data.pages.length - 1); // 新規ページへ移動（動画エリアもリセットされる）
+  });
 };
 
 remove.onclick = () => {
@@ -1381,10 +1525,6 @@ function buildVideoCard(v, page) {
   <a href="https://youtube.com/watch?v=${v.id}" target="_blank" style="display:block;margin-top:8px;font-size:14px;">
     ${v.title}
   </a>
-  <div style="font-size:11px; color:var(--text-light); margin:6px 0 4px; line-height:1.8;">
-    👆 サムネイルをタップすると動画が開いて、視聴済みに記録されます<br>
-    🔗 タイトルのリンクから直接開いた場合は記録されません
-  </div>
   <div class="videoActions">
     <button onclick="skipCard('${v.id}')">⏭ スキップ</button>
     <button onclick="markAsSeenCard('${v.id}')">✅ 視聴済み</button>
