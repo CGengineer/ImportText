@@ -690,7 +690,7 @@
   <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
     <button id="add" class="headerBtn">チャンネル追加</button>
     <button id="remove" class="headerBtn">チャンネル削除</button>
-    <button onclick="randomPage()" class="headerBtn">🎲 ランダム選択</button>
+    <button onclick="randomPage()" class="headerBtn">🎲 チャンネルランダム</button>
   </div>
   <div id="pageList"></div>
 </div>
@@ -701,15 +701,22 @@
   <button id="editTitle">タイトル編集</button>
   <button id="editCh">チャンネルID設定</button>
 
-  <div>ChannelID: <span id="chid"></span></div>
+  <div>チャンネルID: <span id="chid"></span></div>
 
   <hr>
 
   <h3>📺 今日の1本</h3>
-  <button onclick="randomVideo()">🎲 ランダム</button>
+  <div class="tabBar" style="margin-bottom:8px;">
+    <button class="tabBtn active" id="filterUnseen" onclick="setVideoFilter('unseen')">🎬 未視聴</button>
+    <button class="tabBtn" id="filterSeen" onclick="setVideoFilter('seen')">✅ 視聴済み</button>
+    <button class="tabBtn" id="filterFav" onclick="setVideoFilter('favorites')">❤️ お気に入り</button>
+  </div>
+  <button onclick="randomVideo()">🎲 動画ランダム</button>
   <div style="font-size:11px; color:var(--text-light); margin-bottom:8px; line-height:1.6;">
     サムネイルをタップ → 視聴済みに追加<br>リンクから飛ぶだけでは記録されません
   </div>
+
+  <hr>
 
   <div id="videoArea"></div>
 
@@ -808,6 +815,7 @@ let videos = [];
 let currentVideo = null;
 let newCount = 0;
 let currentTab = "history";
+let videoFilter = "unseen";
 
 /* ===== 初期化 ===== */
 async function init() {
@@ -1030,6 +1038,15 @@ function showVideoCard(v, pageIndexOverride) {
 </div>`;
 }
 
+/* ===== フィルター切り替え ===== */
+function setVideoFilter(filter) {
+  videoFilter = filter;
+  document.getElementById("filterUnseen").classList.toggle("active", filter === "unseen");
+  document.getElementById("filterSeen").classList.toggle("active", filter === "seen");
+  document.getElementById("filterFav").classList.toggle("active", filter === "favorites");
+  document.getElementById("videoArea").innerHTML = "";
+}
+
 /* ===== ランダム ===== */
 async function randomVideo() {
   if (videos.length === 0) {
@@ -1039,14 +1056,24 @@ async function randomVideo() {
 
   const page = data.pages[getIndex()];
   const skipped = page.skipped || [];
-  const unseen = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id));
+  let pool;
 
-  if (unseen.length === 0) {
-    videoArea.innerHTML = "🎉 全部見た！";
+  if (videoFilter === "unseen") {
+    pool = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id));
+  } else if (videoFilter === "seen") {
+    pool = videos.filter(v => page.seen.includes(v.id));
+  } else {
+    const favIds = page.favorites || [];
+    pool = videos.filter(v => favIds.includes(v.id));
+  }
+
+  if (!pool.length) {
+    const msg = videoFilter === "unseen" ? "🎉 全部見た！" : videoFilter === "seen" ? "まだ視聴済みの動画はありません" : "お気に入りがまだありません";
+    document.getElementById("videoArea").innerHTML = msg;
     return;
   }
 
-  const v = unseen[Math.floor(Math.random() * unseen.length)];
+  const v = pool[Math.floor(Math.random() * pool.length)];
   currentVideo = v;
   showVideoCard(v);
 }
