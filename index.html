@@ -731,7 +731,6 @@
         <button class="tabBtn" id="favTab" onclick="switchTab('favorites')">❤️ お気に入り</button>
       </div>
       <button id="resetBtn" onclick="resetHistory()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; box-shadow:none;">🗑 視聴済みリセット</button>
-      <button id="resetFavBtn" onclick="resetFavorites()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; box-shadow:none; display:none;">🗑 お気に入りリセット</button>
     </div>
     <div id="historyArea"></div>
     <div id="favoritesArea" style="display:none;"></div>
@@ -1104,7 +1103,6 @@ function switchTab(tab) {
   document.getElementById("historyArea").style.display = isHistory ? "block" : "none";
   document.getElementById("favoritesArea").style.display = isHistory ? "none" : "block";
   document.getElementById("resetBtn").style.display = isHistory ? "" : "none";
-  document.getElementById("resetFavBtn").style.display = isHistory ? "none" : "";
   document.getElementById("historyTab").classList.toggle("active", isHistory);
   document.getElementById("favTab").classList.toggle("active", !isHistory);
   if (!isHistory) updateFavorites();
@@ -1134,7 +1132,11 @@ function updateFavorites() {
         <button onclick="removeFavorite('${v.id}')" style="font-size:11px; padding:4px 10px; margin-top:6px; border-radius:10px; box-shadow:none;">❤️ お気に入り解除</button>
       </div>
     </div>
-  `).join("");
+  `).join("") + `
+    <div style="text-align:center; margin-top:14px;">
+      <button onclick="resetFavorites()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; box-shadow:none;">🗑 お気に入り全リセット</button>
+    </div>
+  `;
 }
 
 function removeFavorite(id) {
@@ -1150,8 +1152,28 @@ function removeFavorite(id) {
   }
 }
 
+function toggleFavoriteById(id) {
+  const page = data.pages[getIndex()];
+  if (!page.favorites) page.favorites = [];
+  const idx = page.favorites.indexOf(id);
+  if (idx === -1) {
+    page.favorites.push(id);
+  } else {
+    page.favorites.splice(idx, 1);
+  }
+  save();
+  updateProgress();
+  updateHistory();
+  if (currentTab === "favorites") updateFavorites();
+  if (currentVideo && currentVideo.id === id) {
+    const isFav = page.favorites.includes(id);
+    const btn = document.getElementById("favBtn");
+    if (btn) btn.textContent = isFav ? "❤️ お気に入り済" : "🤍 お気に入り";
+  }
+}
+
 function resetFavorites() {
-  const ok = confirm("お気に入りをすべて削除するよ。ほんとに大丈夫？");
+  const ok = confirm("お気に入り全部リセットしちゃうよ、ほんとうに大丈夫？");
   if (!ok) return;
   const page = data.pages[getIndex()];
   page.favorites = [];
@@ -1271,12 +1293,28 @@ function updateHistory() {
             <img src="${v.thumb}" alt="">
             <div class="playBtn">▶</div>
           </div>
-          <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
+          <div style="flex:1; min-width:0;">
+            <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
+            <br>
+            <button onclick="removeFromHistory('${v.id}')" style="font-size:11px; padding:4px 10px; margin-top:6px; border-radius:10px; box-shadow:none;">🗑 履歴から削除</button>
+          </div>
         </div>
       `).join("")}
     `).join("");
 
   historyArea.innerHTML = html || "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>";
+}
+
+/* ===== 履歴から個別削除 ===== */
+function removeFromHistory(id) {
+  const ok = confirm("この動画を履歴から消すよ。視聴済みからも消えちゃうけど大丈夫？");
+  if (!ok) return;
+  const page = data.pages[getIndex()];
+  page.history = (page.history || []).filter(e => e.id !== id);
+  page.seen = (page.seen || []).filter(sid => sid !== id);
+  save();
+  updateProgress();
+  updateHistory();
 }
 
 /* ===== 視聴済みリセット ===== */
