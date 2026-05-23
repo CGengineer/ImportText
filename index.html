@@ -6,7 +6,6 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♾️</text></svg>">
 
   <style>
-    
     /* ===== テーマ変数 ===== */
     :root {
       --bg: #ffb8d0;
@@ -645,15 +644,16 @@
     /* 動画アクションボタン */
     .videoActions {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       margin-top: 10px;
-      flex-wrap: wrap;
     }
 
     .videoActions button {
-      font-size: 12px;
-      padding: 6px 12px;
+      flex: 1;
+      font-size: 11px;
+      padding: 6px 4px;
       margin-bottom: 0;
+      white-space: nowrap;
     }
   </style>
 
@@ -806,7 +806,7 @@
 </div>
 
 <div id="main">
-  <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">〈</button>
+  <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
   <h1 id="title"></h1>
 
   <button id="editTitle">タイトル編集</button>
@@ -825,9 +825,6 @@
   <hr>
 
   <h3>📺 今日の1本</h3>
-  <button onclick="randomVideo()">🎲 動画ランダム</button>
-
-  <hr>
 
   <div id="videoArea"></div>
 
@@ -1198,9 +1195,9 @@ function showVideoCard(v, pageIndexOverride) {
     🔗 タイトルのリンクから直接開いた場合は記録されません
   </div>
   <div class="videoActions">
-    <button id="favBtn" onclick="toggleFavorite()">${isFav ? "❤️ お気に入り済" : "🤍 お気に入り"}</button>
-    <button onclick="markAsSeen()">✅ 視聴済みにする</button>
     <button onclick="skipVideo()">⏭ スキップ</button>
+    <button onclick="markAsSeen()">✅ 視聴済みにする</button>
+    <button id="favBtn" onclick="toggleFavorite()">${isFav ? "❤️ お気に入り済" : "🤍 お気に入り追加"}</button>
   </div>
 </div>`;
 }
@@ -1258,7 +1255,6 @@ function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
   const btn = document.getElementById("sidebarToggle");
   sidebar.classList.toggle("hidden");
-  btn.textContent = sidebar.classList.contains("hidden") ? ">" : "<";
 }
 
 /* ===== サイドバートグル長押しツールチップ ===== */
