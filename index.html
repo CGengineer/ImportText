@@ -8,7 +8,7 @@
   <style>
     /* ===== テーマ変数 ===== */
     :root {
-      --bg: #ffb8d0;
+      --bg: #fff5f9;
       --header-bg: #fff;
       --header-border: #ddd;
       --sidebar-border: #ccc;
@@ -161,14 +161,6 @@
       margin: 0;
       background: var(--bg);
       color: var(--text-color);
-    }
-
-    [data-theme="pink"] body {
-      background-image:
-        radial-gradient(circle, rgba(255,255,255,0.6) 6px, transparent 6px),
-        radial-gradient(circle, rgba(255,255,255,0.6) 6px, transparent 6px);
-      background-size: 32px 32px;
-      background-position: 0 0, 16px 16px;
     }
 
 
@@ -787,10 +779,29 @@
 /* ===== テーマ ===== */
 const themeSelect = document.getElementById("themeSelect");
 
+function generateDotsBg() {
+  const w = 900, h = 700, r = 12, count = 55;
+  let circles = "";
+  for (let i = 0; i < count; i++) {
+    const x = (Math.random() * w).toFixed(1);
+    const y = (Math.random() * h).toFixed(1);
+    circles += `<circle cx="${x}" cy="${y}" r="${r}" fill="#ffc2d6"/>`;
+  }
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>${circles}</svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
   themeSelect.value = theme;
+  if (theme === "pink") {
+    document.body.style.backgroundImage = generateDotsBg();
+    document.body.style.backgroundSize = "900px 700px";
+  } else {
+    document.body.style.backgroundImage = "";
+    document.body.style.backgroundSize = "";
+  }
 }
 
 applyTheme(localStorage.getItem("theme") || "pink");
