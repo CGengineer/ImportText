@@ -465,33 +465,12 @@
 
     /* サイドバートグルボタン */
     #sidebarToggle {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      z-index: 1000;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      border: none;
-      background: var(--btn-bg);
-      color: var(--btn-color);
-      font-size: 26px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px var(--btn-shadow);
-      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #sidebarToggle:hover {
-      background: var(--btn-hover);
-      box-shadow: 0 6px 18px var(--btn-shadow);
-      transform: scale(1.08);
-    }
-
-    #sidebarToggle:active {
-      transform: scale(0.95);
+      font-size: 13px;
+      padding: 5px 12px;
+      margin: 0 0 8px 0;
+      border-radius: 12px;
+      box-shadow: none;
+      display: inline-block;
     }
 
     #pageList button {
@@ -786,9 +765,8 @@
   <div id="pageList"></div>
 </div>
 
-<button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
-
 <div id="main">
+  <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰ メニュー</button>
   <h1 id="title"></h1>
 
   <button id="editTitle">タイトル編集</button>
@@ -808,10 +786,6 @@
 
   <h3>📺 今日の1本</h3>
   <button onclick="randomVideo()">🎲 動画ランダム</button>
-  <div style="font-size:11px; color:var(--text-light); margin-bottom:8px; line-height:1.8;">
-    👆 サムネイルをタップすると動画が開いて、視聴済みに記録されます<br>
-    🔗 タイトルのリンクから直接開いた場合は記録されません
-  </div>
 
   <hr>
 
@@ -1177,6 +1151,10 @@ function showVideoCard(v, pageIndexOverride) {
 <a href="https://youtube.com/watch?v=${v.id}" target="_blank" style="display:block;margin-top:6px;">
   ${v.title}
 </a>
+<div style="font-size:11px; color:var(--text-light); margin:6px 0 4px; line-height:1.8;">
+  👆 サムネイルをタップすると動画が開いて、視聴済みに記録されます<br>
+  🔗 タイトルのリンクから直接開いた場合は記録されません
+</div>
 <div class="videoActions">
   <button id="favBtn" onclick="toggleFavorite()">${isFav ? "❤️ お気に入り済" : "🤍 お気に入り"}</button>
 </div>`;
@@ -1291,6 +1269,8 @@ function updateFavorites() {
   const favArea = document.getElementById("favoritesArea");
   const favIds = page.favorites || [];
   const favVideos = favIds.map(id => videos.find(v => v.id === id)).filter(Boolean);
+
+  document.getElementById("favActions").style.display = favVideos.length ? "block" : "none";
 
   if (!favVideos.length) {
     favArea.innerHTML = "<p style='color:#aaa;font-size:13px;'>まだお気に入りはありません</p>";
@@ -1428,6 +1408,8 @@ function updateHistory() {
   const page = data.pages[getIndex()];
   const historyArea = document.getElementById("historyArea");
   const history = page.history || [];
+
+  document.getElementById("historyActions").style.display = history.length ? "block" : "none";
 
   if (!history.length) {
     historyArea.innerHTML = "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>";
