@@ -442,6 +442,37 @@
       to { transform: rotate(360deg); }
     }
 
+    #loadingProgressWrap {
+      width: 200px;
+      height: 5px;
+      background: var(--progress-bg);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    #loadingProgressBar {
+      height: 100%;
+      background: linear-gradient(90deg, #e06090, #ff90b8);
+      border-radius: 3px;
+      width: 30%;
+      transition: width 0.4s ease;
+    }
+
+    #loadingProgressBar.indeterminate {
+      animation: barSlide 1.4s ease-in-out infinite;
+    }
+
+    @keyframes barSlide {
+      0%   { transform: translateX(-200%); }
+      100% { transform: translateX(450%); }
+    }
+
+    #loadingPercent {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: -6px;
+    }
+
     /* サイドバー */
     #sidebar {
       width: 300px;
@@ -713,6 +744,10 @@
   <div id="loadingCard">
     <div class="spinner"></div>
     <div id="loadingMsg">読み込み中…</div>
+    <div id="loadingProgressWrap">
+      <div id="loadingProgressBar" class="indeterminate"></div>
+    </div>
+    <div id="loadingPercent"></div>
   </div>
 </div>
 
@@ -970,18 +1005,6 @@ function closeMerit() {
   document.getElementById("overlay").style.display = "none";
 }
 
-const statusBtn = document.getElementById("statusBtn");
-
-statusBtn.onclick = () => {
-  document.getElementById("statusModal").style.display = "flex";
-  document.getElementById("overlay").style.display = "block";
-};
-
-function closeStatus() {
-  document.getElementById("statusModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-}
-
 function toggleMenu() {
   const menu = document.getElementById("userMenu");
   menu.style.display = menu.style.display === "block" ? "none" : "block";
@@ -991,13 +1014,27 @@ function logout() {
   firebase.auth().signOut();
 }
 
-function showLoading(msg) {
+function showLoading(msg, progress) {
   document.getElementById("loadingMsg").textContent = msg || "読み込み中…";
   document.getElementById("loading").style.display = "flex";
+  const bar = document.getElementById("loadingProgressBar");
+  const pct = document.getElementById("loadingPercent");
+  if (typeof progress === "number") {
+    const p = Math.min(100, Math.round(progress * 100));
+    bar.classList.remove("indeterminate");
+    bar.style.width = p + "%";
+    pct.textContent = p + "%";
+  } else {
+    bar.classList.add("indeterminate");
+    bar.style.width = "30%";
+    pct.textContent = "";
+  }
 }
 
 function hideLoading() {
   document.getElementById("loading").style.display = "none";
+  document.getElementById("loadingPercent").textContent = "";
+  document.getElementById("loadingProgressBar").classList.add("indeterminate");
 }
 
 /* ===== Firebase ===== */
@@ -1107,9 +1144,9 @@ add.onclick = () => {
 remove.onclick = () => {
   const ok = confirm("今開いてるチャンネルページを削除するよ。ほんとに大丈夫？");
   if (!ok) return;
-  showLoading("削除中…");
   data.pages.splice(getIndex(), 1);
-  save().then(() => { hideLoading(); setIndex(0); });
+  save(); // バックグラウンドで保存（待たない）
+  setIndex(0); // 即座に画面を切り替え
 };
 
 editCh.onclick = async () => {
@@ -1218,9 +1255,15 @@ async function loadVideo() {
 
     let allVideos = [];
     let nextPageToken = "";
+    let totalExpected = 0;
 
     do {
-      showLoading(allVideos.length === 0 ? "動画リストを取得中… (YouTube API)" : `動画を取得中… ${allVideos.length}件`);
+      const progress = totalExpected > 0 ? allVideos.length / totalExpected : null;
+      const label = allVideos.length === 0
+        ? "動画リストを取得中… (YouTube API)"
+        : `動画を取得中… ${allVideos.length}${totalExpected ? `/${totalExpected}` : ""}件`;
+      showLoading(label, progress);
+
       const res = await fetch(
         `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&pageToken=${nextPageToken}&key=${API_KEY}`
       );
@@ -1232,6 +1275,10 @@ async function loadVideo() {
         return;
       }
 
+      if (!totalExpected && d.pageInfo?.totalResults) {
+        totalExpected = d.pageInfo.totalResults;
+      }
+
       allVideos = allVideos.concat(d.items.map(v => ({
         id: v.snippet.resourceId.videoId,
         title: v.snippet.title,
@@ -1239,7 +1286,7 @@ async function loadVideo() {
       })));
       nextPageToken = d.nextPageToken || "";
     } while (nextPageToken);
-    showLoading(`Firebase に保存中… (${allVideos.length}件)`);
+    showLoading(`Firebase に保存中… (${allVideos.length}件)`, 1);
 
     videos = allVideos;
     p.videos = videos;
