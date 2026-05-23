@@ -1190,6 +1190,9 @@ function buildVideoCard(v, page) {
   <div class="thumbBox" data-thumb="${v.thumb}" data-vid="${v.id}"
     onmouseenter="startThumbPreview(this,'${v.id}')"
     onmouseleave="stopThumbPreview(this)"
+    ontouchstart="startThumbPreview(this,'${v.id}')"
+    ontouchend="stopThumbPreview(this)"
+    ontouchcancel="stopThumbPreview(this)"
     onclick="openVideoById('${v.id}')">
     <img src="${v.thumb}">
     <div class="playBtn">▶</div>
@@ -1425,6 +1428,9 @@ function updateFavorites() {
       <div class="historyThumb" data-thumb="${v.thumb}"
         onmouseenter="startThumbPreview(this,'${v.id}')"
         onmouseleave="stopThumbPreview(this)"
+        ontouchstart="startThumbPreview(this,'${v.id}')"
+        ontouchend="stopThumbPreview(this)"
+        ontouchcancel="stopThumbPreview(this)"
         onclick="window.open('https://youtube.com/watch?v=${v.id}')">
         <img src="${v.thumb}" alt="">
         <div class="playBtn">▶</div>
@@ -1576,6 +1582,9 @@ function updateHistory() {
           <div class="historyThumb" data-thumb="${v.thumb}"
             onmouseenter="startThumbPreview(this,'${v.id}')"
             onmouseleave="stopThumbPreview(this)"
+            ontouchstart="startThumbPreview(this,'${v.id}')"
+            ontouchend="stopThumbPreview(this)"
+            ontouchcancel="stopThumbPreview(this)"
             onclick="window.open('https://youtube.com/watch?v=${v.id}')">
             <img src="${v.thumb}" alt="">
             <div class="playBtn">▶</div>
