@@ -8,7 +8,7 @@
   <style>
     /* ===== テーマ変数 ===== */
     :root {
-      --bg: #fff5f9;
+      --bg: #ffb8d0;
       --header-bg: #fff;
       --header-border: #ddd;
       --sidebar-border: #ccc;
@@ -164,9 +164,13 @@
     }
 
     [data-theme="pink"] body {
-      background-image: radial-gradient(circle, #ffc2d6 2px, transparent 2px);
-      background-size: 22px 22px;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.6) 6px, transparent 6px),
+        radial-gradient(circle, rgba(255,255,255,0.6) 6px, transparent 6px);
+      background-size: 32px 32px;
+      background-position: 0 0, 16px 16px;
     }
+
 
     h1, h2, h3 { color: var(--text-color); }
 
@@ -987,11 +991,9 @@ async function loadVideo() {
   const pageIndex = getIndex();
   const p = data.pages[pageIndex];
 
-  if (!p || !p.channelId) { hideLoading(); return; }
+  if (!p || !p.channelId) return;
 
   try {
-    showLoading();
-
     if (p.videos && p.videos.length > 0) {
       videos = p.videos;
 
@@ -1002,10 +1004,10 @@ async function loadVideo() {
 
       if (now - lastCheck < 3600000) {
         updateProgress();
-        hideLoading();
         return;
       }
 
+      showLoading();
       localStorage.setItem(checkKey, String(now));
 
       const res = await fetch(
@@ -1036,6 +1038,7 @@ async function loadVideo() {
     }
 
     // 初回: チャンネル全動画を取得
+    showLoading();
     const chRes = await fetch(
       `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${p.channelId}&key=${API_KEY}`
     );
