@@ -465,12 +465,13 @@
 
     /* サイドバートグルボタン */
     #sidebarToggle {
-      font-size: 13px;
-      padding: 5px 12px;
-      margin: 0 0 8px 0;
-      border-radius: 12px;
+      font-size: 20px;
+      font-weight: bold;
+      padding: 6px 18px;
+      margin: 0 0 10px 0;
+      border-radius: 14px;
       box-shadow: none;
-      display: inline-block;
+      line-height: 1;
     }
 
     #pageList button {
@@ -766,7 +767,7 @@
 </div>
 
 <div id="main">
-  <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰ メニュー</button>
+  <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">〈</button>
   <h1 id="title"></h1>
 
   <button id="editTitle">タイトル編集</button>
@@ -1213,7 +1214,7 @@ function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
   const btn = document.getElementById("sidebarToggle");
   sidebar.classList.toggle("hidden");
-  btn.textContent = sidebar.classList.contains("hidden") ? "▶" : "☰";
+  btn.textContent = sidebar.classList.contains("hidden") ? "〉" : "〈";
 }
 
 /* ===== お気に入り ===== */
