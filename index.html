@@ -836,6 +836,12 @@
     <hr>
     <div id="historyArea"></div>
     <div id="favoritesArea" style="display:none;"></div>
+    <div id="historyActions" style="border-top:1px solid var(--sidebar-border); padding-top:10px; margin-top:10px; text-align:center;">
+      <button onclick="resetHistory()" style="font-size:12px; padding:6px 16px; margin:0; border-radius:12px; box-shadow:none;">🗑 視聴済み全リセット</button>
+    </div>
+    <div id="favActions" style="display:none; border-top:1px solid var(--sidebar-border); padding-top:10px; margin-top:10px; text-align:center;">
+      <button onclick="resetFavorites()" style="font-size:12px; padding:6px 16px; margin:0; border-radius:12px; box-shadow:none;">🗑 お気に入り全リセット</button>
+    </div>
   </div>
 </div>
 
@@ -1272,6 +1278,8 @@ function switchTab(tab) {
   const isHistory = tab === "history";
   document.getElementById("historyArea").style.display = isHistory ? "block" : "none";
   document.getElementById("favoritesArea").style.display = isHistory ? "none" : "block";
+  document.getElementById("historyActions").style.display = isHistory ? "block" : "none";
+  document.getElementById("favActions").style.display = isHistory ? "none" : "block";
   document.getElementById("historyTab").classList.toggle("active", isHistory);
   document.getElementById("favTab").classList.toggle("active", !isHistory);
   if (!isHistory) updateFavorites();
@@ -1301,11 +1309,7 @@ function updateFavorites() {
         <button onclick="removeFavorite('${v.id}')" style="font-size:11px; padding:4px 10px; margin-top:6px; border-radius:10px; box-shadow:none;">❤️ お気に入り解除</button>
       </div>
     </div>
-  `).join("") + `
-    <div style="text-align:center; margin-top:14px;">
-      <button onclick="resetFavorites()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; box-shadow:none;">🗑 お気に入り全リセット</button>
-    </div>
-  `;
+  `).join("");
 }
 
 function removeFavorite(id) {
@@ -1471,11 +1475,7 @@ function updateHistory() {
       `).join("")}
     `).join("");
 
-  historyArea.innerHTML = (html || "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>") + `
-    <div style="text-align:center; margin-top:14px;">
-      <button onclick="resetHistory()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; box-shadow:none;">🗑 視聴済み全リセット</button>
-    </div>
-  `;
+  historyArea.innerHTML = html || "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>";
 }
 
 /* ===== 履歴から個別削除 ===== */
