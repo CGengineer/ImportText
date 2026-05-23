@@ -288,6 +288,9 @@
       font-size: 12px;
       border-radius: 12px;
       box-shadow: none;
+    }
+
+    #appTitle .headerBtn {
       transform: translateY(6px);
     }
 
@@ -431,7 +434,7 @@
 
     #pageList button {
       width: 100%;
-      margin-bottom: 4px;
+      margin-bottom: 10px;
     }
 
     /* メイン */
@@ -684,9 +687,11 @@
 </div>
 
 <div id="sidebar">
-  <button id="add">チャンネル追加</button>
-  <button id="remove">チャンネル削除</button>
-  <button onclick="randomPage()">🎲 ランダム選択</button>
+  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+    <button id="add" class="headerBtn">チャンネル追加</button>
+    <button id="remove" class="headerBtn">チャンネル削除</button>
+    <button onclick="randomPage()" class="headerBtn">🎲 ランダム選択</button>
+  </div>
   <div id="pageList"></div>
 </div>
 
@@ -702,6 +707,9 @@
 
   <h3>📺 今日の1本</h3>
   <button onclick="randomVideo()">🎲 ランダム</button>
+  <div style="font-size:11px; color:var(--text-light); margin-bottom:8px; line-height:1.6;">
+    サムネイルをタップ → 視聴済みに追加<br>リンクから飛ぶだけでは記録されません
+  </div>
 
   <div id="videoArea"></div>
 
@@ -723,6 +731,7 @@
         <button class="tabBtn" id="favTab" onclick="switchTab('favorites')">❤️ お気に入り</button>
       </div>
       <button id="resetBtn" onclick="resetHistory()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; box-shadow:none;">🗑 視聴済みリセット</button>
+      <button id="resetFavBtn" onclick="resetFavorites()" style="font-size:11px; padding:4px 10px; margin:0; border-radius:10px; box-shadow:none; display:none;">🗑 お気に入りリセット</button>
     </div>
     <div id="historyArea"></div>
     <div id="favoritesArea" style="display:none;"></div>
@@ -1095,6 +1104,7 @@ function switchTab(tab) {
   document.getElementById("historyArea").style.display = isHistory ? "block" : "none";
   document.getElementById("favoritesArea").style.display = isHistory ? "none" : "block";
   document.getElementById("resetBtn").style.display = isHistory ? "" : "none";
+  document.getElementById("resetFavBtn").style.display = isHistory ? "none" : "";
   document.getElementById("historyTab").classList.toggle("active", isHistory);
   document.getElementById("favTab").classList.toggle("active", !isHistory);
   if (!isHistory) updateFavorites();
@@ -1118,9 +1128,36 @@ function updateFavorites() {
         <img src="${v.thumb}" alt="">
         <div class="playBtn">▶</div>
       </div>
-      <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
+      <div style="flex:1; min-width:0;">
+        <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
+        <br>
+        <button onclick="removeFavorite('${v.id}')" style="font-size:11px; padding:4px 10px; margin-top:6px; border-radius:10px; box-shadow:none;">❤️ お気に入り解除</button>
+      </div>
     </div>
   `).join("");
+}
+
+function removeFavorite(id) {
+  const page = data.pages[getIndex()];
+  if (!page.favorites) return;
+  page.favorites = page.favorites.filter(fid => fid !== id);
+  save();
+  updateProgress();
+  updateFavorites();
+  if (currentVideo && currentVideo.id === id) {
+    const btn = document.getElementById("favBtn");
+    if (btn) btn.textContent = "🤍 お気に入り";
+  }
+}
+
+function resetFavorites() {
+  const ok = confirm("お気に入りをすべて削除するよ。ほんとに大丈夫？");
+  if (!ok) return;
+  const page = data.pages[getIndex()];
+  page.favorites = [];
+  save();
+  updateProgress();
+  updateFavorites();
 }
 
 /* ===== 連続視聴日数 ===== */
