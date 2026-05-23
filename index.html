@@ -631,16 +631,28 @@
       text-decoration: underline;
     }
 
+    /* 動画カード */
+    #videoCard {
+      background: var(--history-item-bg);
+      border: 1px solid var(--history-item-border);
+      border-radius: 12px;
+      padding: 12px;
+      display: inline-block;
+      max-width: 300px;
+    }
+
     /* 動画アクションボタン */
     .videoActions {
       display: flex;
       gap: 8px;
       margin-top: 10px;
+      flex-wrap: wrap;
     }
 
     .videoActions button {
       font-size: 12px;
       padding: 6px 12px;
+      margin-bottom: 0;
     }
   </style>
 
@@ -1169,19 +1181,26 @@ function showVideoCard(v, pageIndexOverride) {
   const isFav = (page.favorites || []).includes(v.id);
 
   document.getElementById("videoArea").innerHTML = `
-<div class="thumbBox" onclick="openVideo()">
-  <img src="${v.thumb}">
-  <div class="playBtn">▶</div>
-</div>
-<a href="https://youtube.com/watch?v=${v.id}" target="_blank" style="display:block;margin-top:6px;">
-  ${v.title}
-</a>
-<div style="font-size:11px; color:var(--text-light); margin:6px 0 4px; line-height:1.8;">
-  👆 サムネイルをタップすると動画が開いて、視聴済みに記録されます<br>
-  🔗 タイトルのリンクから直接開いた場合は記録されません
-</div>
-<div class="videoActions">
-  <button id="favBtn" onclick="toggleFavorite()">${isFav ? "❤️ お気に入り済" : "🤍 お気に入り"}</button>
+<div id="videoCard">
+  <div class="thumbBox" data-thumb="${v.thumb}"
+    onmouseenter="startThumbPreview(this,'${v.id}','openVideo()')"
+    onmouseleave="stopThumbPreview(this)"
+    onclick="openVideo()">
+    <img src="${v.thumb}">
+    <div class="playBtn">▶</div>
+  </div>
+  <a href="https://youtube.com/watch?v=${v.id}" target="_blank" style="display:block;margin-top:8px;font-size:14px;">
+    ${v.title}
+  </a>
+  <div style="font-size:11px; color:var(--text-light); margin:6px 0 4px; line-height:1.8;">
+    👆 サムネイルをタップすると動画が開いて、視聴済みに記録されます<br>
+    🔗 タイトルのリンクから直接開いた場合は記録されません
+  </div>
+  <div class="videoActions">
+    <button id="favBtn" onclick="toggleFavorite()">${isFav ? "❤️ お気に入り済" : "🤍 お気に入り"}</button>
+    <button onclick="markAsSeen()">✅ 視聴済みにする</button>
+    <button onclick="skipVideo()">⏭ スキップ</button>
+  </div>
 </div>`;
 }
 
@@ -1280,8 +1299,9 @@ function toggleSidebar() {
 })();
 
 /* ===== サムネイルホバープレビュー ===== */
-function startThumbPreview(container, videoId) {
-  container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0" style="width:100%;aspect-ratio:16/9;border:none;border-radius:6px;display:block;pointer-events:none;" allow="autoplay; encrypted-media"></iframe><div style="position:absolute;inset:0;cursor:pointer;" onclick="window.open('https://youtube.com/watch?v=${videoId}')"></div>`;
+function startThumbPreview(container, videoId, clickFn) {
+  const handler = clickFn || `window.open('https://youtube.com/watch?v=${videoId}')`;
+  container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0" style="width:100%;aspect-ratio:16/9;border:none;border-radius:6px;display:block;pointer-events:none;" allow="autoplay; encrypted-media"></iframe><div style="position:absolute;inset:0;cursor:pointer;" onclick="${handler}"></div>`;
 }
 
 function stopThumbPreview(container) {
@@ -1308,6 +1328,20 @@ function toggleFavorite() {
   const isFav = page.favorites.includes(currentVideo.id);
   const btn = document.getElementById("favBtn");
   if (btn) btn.textContent = isFav ? "❤️ お気に入り済" : "🤍 お気に入り";
+}
+
+/* ===== 視聴済みにする（動画を開かずに記録） ===== */
+function markAsSeen() {
+  const page = data.pages[getIndex()];
+  if (!page.seen.includes(currentVideo.id)) {
+    page.seen.push(currentVideo.id);
+    if (!page.history) page.history = [];
+    page.history.push({ id: currentVideo.id, at: Date.now() });
+    save();
+    updateProgress();
+    updateHistory();
+  }
+  randomVideo();
 }
 
 /* ===== スキップ ===== */
@@ -1486,7 +1520,7 @@ function updateHistory() {
   const historyArea = document.getElementById("historyArea");
   const history = page.history || [];
 
-  document.getElementById("historyActions").style.display = history.length ? "block" : "none";
+  document.getElementById("historyActions").style.display = (history.length && currentTab === "history") ? "block" : "none";
 
   if (!history.length) {
     historyArea.innerHTML = "<p style='color:#aaa;font-size:13px;'>まだ視聴履歴はありません</p>";
