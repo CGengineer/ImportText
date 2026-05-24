@@ -380,8 +380,8 @@
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid var(--modal-border);
-      width: 280px;
-      max-width: 90%;
+      width: 560px;
+      max-width: 94%;
       max-height: 50vh;
       display: none;
       flex-direction: column;
@@ -2590,6 +2590,7 @@ function appendAiMessage(role, text) {
 
 async function sendAiMessage() {
   const input = document.getElementById("aiInput");
+  const sendBtn = document.getElementById("aiSendBtn");
   const text = input.value.trim();
   if (!text) return;
   input.value = "";
@@ -2597,6 +2598,8 @@ async function sendAiMessage() {
   appendAiMessage("user", text);
   aiHistory.push({ role: "user", parts: [{ text }] });
 
+  sendBtn.disabled = true;
+  sendBtn.textContent = "…";
   const loadingDiv = appendAiMessage("bot", "…");
 
   try {
@@ -2605,7 +2608,7 @@ async function sendAiMessage() {
       contents: aiHistory,
       generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
     };
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reqBody)
@@ -2627,8 +2630,11 @@ async function sendAiMessage() {
     } else {
       loadingDiv.textContent = "エラー: " + e.message;
     }
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.textContent = "➤";
+    document.getElementById("aiMessages").scrollTop = document.getElementById("aiMessages").scrollHeight;
   }
-  document.getElementById("aiMessages").scrollTop = document.getElementById("aiMessages").scrollHeight;
 }
 
 document.getElementById("aiBtn").onclick = openAiModal;
