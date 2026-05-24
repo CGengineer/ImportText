@@ -1074,7 +1074,6 @@
     <button id="meritBtn" class="headerBtn">使うメリット✨</button>
     <button id="helpBtn" class="headerBtn">使い方💡</button>
     <button id="statusBtn" class="headerBtn">📡 通信状態</button>
-    <button id="aiBtn" class="headerBtn" style="margin:0;" title="AIアシスタント">🤖 AI</button>
   </div>
   <div id="userArea">
     <select id="themeSelect">
@@ -1084,6 +1083,7 @@
       <option value="dark">🌙 ダーク</option>
     </select>
     <span id="userEmail"></span>
+    <button id="aiBtn" class="headerBtn" style="margin:0;" title="AIアシスタント">🤖 AI</button>
     <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
     <div id="userIcon" onclick="toggleMenu()"></div>
   </div>
@@ -1300,9 +1300,9 @@
 
 <div id="main">
   <div id="topControls">
-    <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
     <button id="editCh">チャンネルID設定</button>
     <button id="urlToChBtn" class="headerBtn" style="margin:0;white-space:nowrap;">🔗 URLから取得</button>
+    <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
   </div>
   <h1 id="title"></h1>
 
@@ -1316,10 +1316,10 @@
 
   <hr>
 
-  <div style="display:flex;align-items:center;gap:8px;margin:16px 0 4px;flex-wrap:wrap;">
+  <div style="display:flex;align-items:center;gap:8px;margin:24px 0 4px;flex-wrap:wrap;">
     <h3 style="margin:0;flex-shrink:0;">✨ 今日のオススメ 3本</h3>
     <button onclick="randomVideo()" class="headerBtn" style="margin:0;flex-shrink:0;">更新 ›</button>
-    <input id="searchInput" placeholder="🔍 チャンネル内検索..." style="flex:1;min-width:120px;">
+    <input id="searchInput" placeholder="🔍 検索..." style="width:140px;flex:0 1 140px;font-size:12px;padding:5px 10px;">
     <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
   </div>
   <p class="videoHint">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます&nbsp;&nbsp;🔗 タイトルのリンクから直接開いた場合は記録されません</p>
@@ -1762,7 +1762,7 @@ editCh.onclick = async () => {
   const i = getIndex();
   const p = data.pages[i];
   const oldChId = p.channelId;
-  const input = prompt("チャンネルID または チャンネルURL を入力", oldChId);
+  const input = prompt("チャンネルID・チャンネルURL・動画URL を入力\n例①: UCxxxxxxxx\n例②: https://youtube.com/@name\n例③: https://youtube.com/watch?v=xxxxx", oldChId);
   if (input === null) return;
 
   showLoading("チャンネルIDを解析中…");
@@ -2136,6 +2136,13 @@ function toggleSidebar() {
 let _activePreviewContainer = null;
 
 function startThumbPreview(container, videoId, clickFn) {
+  // モバイル（画面幅680px以下）では直接動画を開く
+  if (window.innerWidth <= 680) {
+    const vid = container.dataset.vid || videoId;
+    if (container.dataset.vid) openVideoById(vid);
+    else window.open('https://youtube.com/watch?v=' + vid);
+    return;
+  }
   if (_activePreviewContainer && _activePreviewContainer !== container) {
     stopThumbPreview(_activePreviewContainer);
   }
@@ -2429,7 +2436,7 @@ document.getElementById("guestLoginBtn").onclick = () => {
 
 /* ===== URLからチャンネルID取得ボタン ===== */
 document.getElementById("urlToChBtn").onclick = async () => {
-  const url = prompt("YouTubeのチャンネルURLを入力してください\n例: https://youtube.com/@channelname");
+  const url = prompt("YouTubeのチャンネルURL または 動画URLを入力\n\n例①（チャンネル）:\nhttps://youtube.com/@channelname\n\n例②（動画URL）:\nhttps://youtube.com/watch?v=xxxxxx");
   if (!url) return;
   showLoading("チャンネルIDを解析中…");
   const id = await resolveChannelId(url.trim());
@@ -2493,7 +2500,7 @@ async function resolveChannelId(input) {
 /* ===== ユーザーレベル ===== */
 function getUserLevel() {
   const watched = data.pages.reduce((sum, p) => sum + (p.seen || []).length, 0);
-  return Math.floor(Math.sqrt(watched / 2)) + 1;
+  return Math.min(100, Math.floor(Math.sqrt(watched / 2)) + 1);
 }
 
 function updateLevel() {
@@ -2504,42 +2511,48 @@ function updateLevel() {
 }
 
 /* ===== レベルモーダル ===== */
-const LEVEL_TABLE = [
-  { lv:1,  need:0,   name:"初心者" },
-  { lv:2,  need:2,   name:"見習い" },
-  { lv:3,  need:8,   name:"視聴者" },
-  { lv:4,  need:18,  name:"常連" },
-  { lv:5,  need:32,  name:"熱狂者" },
-  { lv:6,  need:50,  name:"コレクター" },
-  { lv:7,  need:72,  name:"マスター" },
-  { lv:8,  need:98,  name:"レジェンド" },
-  { lv:9,  need:128, name:"神" },
-  { lv:10, need:162, name:"∞マスター" },
+const LEVEL_NAMES = [
+  /* 1-10 */  "初心者","見習い","動画好き","チャンネル探索者","未知リンカー見習い","動画コレクター","熱心な視聴者","チャンネル通","動画ハンター","シルバービューワー",
+  /* 11-20 */ "動画鑑賞家","コンテンツ通","動画マニア","チャンネルコレクター","視聴の達人見習い","ゴールドビューワー","動画探偵","コンテンツ職人","動画職人","プレミアムビューワー",
+  /* 21-30 */ "動画エキスパート","チャンネルマスター","コンテンツマニア","動画評論家","視聴のプロ","プラチナビューワー","動画博士","コンテンツ博士","動画の賢者","ダイヤモンドビューワー",
+  /* 31-40 */ "視聴の達人","上級視聴者","コンテンツ研究家","動画アナリスト","視聴スペシャリスト","レジェンドビューワー見習い","動画の鬼","コンテンツ鬼","動画番人","エピックビューワー",
+  /* 41-50 */ "動画の覇者","コンテンツ覇者","視聴の覇者","動画チャンピオン","コンテンツチャンピオン","マスタービューワー","動画伝説","コンテンツ伝説","視聴伝説","グランドマスター",
+  /* 51-60 */ "動画の英雄","コンテンツ英雄","視聴英雄","動画勇者","コンテンツ勇者","アルティメットビューワー","動画の王","コンテンツ王","視聴の王","ロイヤルビューワー",
+  /* 61-70 */ "動画帝王","コンテンツ帝王","視聴帝王","動画将軍","コンテンツ将軍","インペリアルビューワー","動画の支配者","コンテンツ支配者","視聴の支配者","エクストリームビューワー",
+  /* 71-80 */ "動画の聖騎士","コンテンツ聖騎士","視聴聖騎士","動画神話","コンテンツ神話","ミシカルビューワー","動画の聖人","コンテンツ聖人","視聴聖人","セイントビューワー",
+  /* 81-90 */ "動画の神","コンテンツの神","視聴の神","動画神格","コンテンツ神格","ディバインビューワー","動画創造主","コンテンツ創造主","視聴創造主","クリエイターゴッド",
+  /* 91-100*/ "動画の宇宙","コンテンツ宇宙","視聴宇宙","動画の星","コンテンツ星","ギャラクシービューワー","動画銀河系","コンテンツ銀河系","∞に向かう者","∞マスター👑"
 ];
+const LEVEL_TABLE = LEVEL_NAMES.map((name, i) => ({ lv: i+1, need: 2*i*i, name }));
 
 function openLevelModal() {
   const watched = data.pages.reduce((sum, p) => sum + (p.seen || []).length, 0);
   const level = getUserLevel();
-  const nextLv = LEVEL_TABLE.find(l => l.lv === level + 1);
-  const toNext = nextLv ? Math.max(0, nextLv.need - watched) : 0;
-  const curName = LEVEL_TABLE.find(l => l.lv === level)?.name || "";
+  const nextEntry = LEVEL_TABLE[level]; // index=level は Lv.(level+1)
+  const toNext = nextEntry ? Math.max(0, nextEntry.need - watched) : 0;
+  const curEntry = LEVEL_TABLE[level - 1];
+  const curName = curEntry?.name || "";
 
   const body = document.getElementById("levelModalBody");
   body.innerHTML = `
     <h3 style="margin-top:0;">🏆 あなたのレベル</h3>
-    <div style="text-align:center;padding:16px 0;">
-      <div style="font-size:42px;font-weight:bold;background:linear-gradient(135deg,#ff8c00,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${level}</div>
-      <div style="font-size:16px;margin-top:2px;font-weight:bold;">Lv.${level} ${curName}</div>
-      <div style="font-size:13px;margin-top:10px;color:var(--text-color);">合計視聴数：<b>${watched}本</b></div>
-      ${toNext > 0 ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px;">次のレベルまで あと <b>${toNext}本</b></div>` : '<div style="font-size:12px;color:#ff8c00;margin-top:4px;">🎉 最高レベル達成！</div>'}
+    <div style="text-align:center;padding:14px 0 10px;">
+      <div style="font-size:44px;font-weight:bold;background:linear-gradient(135deg,#ff8c00,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;">${level}</div>
+      <div style="font-size:15px;margin-top:4px;font-weight:bold;">Lv.${level} ${curName}</div>
+      <div style="font-size:13px;margin-top:10px;">合計視聴数：<b>${watched}本</b></div>
+      ${toNext > 0
+        ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px;">次のLv.${level+1}まで あと <b>${toNext}本</b></div>`
+        : '<div style="font-size:12px;color:#ff8c00;margin-top:4px;">🎉 最高レベル Lv.100 達成！</div>'}
     </div>
-    <hr style="border:none;border-top:1px solid var(--history-item-border);margin:6px 0 10px;">
-    <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;font-weight:bold;letter-spacing:0.05em;">LEVEL TABLE</div>
+    <hr style="border:none;border-top:1px solid var(--history-item-border);margin:6px 0 8px;">
+    <div style="font-size:11px;color:var(--text-light);margin-bottom:6px;font-weight:bold;letter-spacing:0.05em;">LEVEL TABLE（全100段階）</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">
     ${LEVEL_TABLE.map(l => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--history-item-border);opacity:${l.lv<=level?'1':'0.35'};">
-        <span style="font-size:13px;">${l.lv<=level?'✅':'⬜'} <b>Lv.${l.lv}</b> ${l.name}</span>
-        <span style="font-size:12px;color:var(--text-light);">${l.need}本〜</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;border-radius:6px;background:${l.lv===level?'rgba(255,140,0,0.15)':'transparent'};opacity:${l.lv<=level?'1':'0.3'};">
+        <span style="font-size:11px;">${l.lv<=level?'✅':'⬜'} <b>Lv.${l.lv}</b></span>
+        <span style="font-size:10px;color:var(--text-light);margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">${l.name}</span>
       </div>`).join("")}
+    </div>
   `;
   document.getElementById("levelModal").style.display = "flex";
   document.getElementById("overlay").style.display = "block";
@@ -2551,20 +2564,23 @@ function closeLevelModal() {
 }
 
 /* ===== AI アシスタント (Gemini) ===== */
+const GEMINI_KEY = "AIzaSyB84Y0O_qGHqSR0YTEzAwqt6ifgt6-xCrw";
+
 const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTube動画管理アプリのサポートAIです。
 このアプリの主な機能：
 - YouTubeチャンネルを複数登録して未視聴動画を管理
 - 未視聴動画をランダムで3本表示する「今日のオススメ」機能
-- チャンネルID・チャンネルURL・動画URLから自動でチャンネルを登録可能
+- チャンネルID・チャンネルURL・動画URLから自動でチャンネルを登録可能（「🔗 URLから取得」ボタン）
 - 未視聴・視聴済み・お気に入りタブで絞り込みランダム再生
 - 視聴履歴の時系列管理（今日・昨日・1週間前など）
 - 連続視聴日数の記録（ストリーク）
-- チャンネル内検索機能
+- チャンネル内検索機能（「今日のオススメ」横の検索欄）
 - ゲストログイン（ブラウザのローカルストレージに保存）とGoogleログイン・メールログイン
 - ゲストから本アカウントへのデータ引き継ぎ機能
-- レベルシステム（視聴本数に応じてLv.1〜10に上昇）
+- レベルシステム（視聴本数に応じてLv.1〜100に上昇、ヘッダーのLv.バッジをタップで確認）
 - テーマ切替（ピンク・ホワイト・グレー・ダーク）
-- サイドバーで複数チャンネルを管理・並び替え可能
+- サイドバーで複数チャンネルを管理・ドラッグで並び替え可能
+- チャンネル削除はページ下部の赤いテキストから可能
 ユーザーの質問に日本語で簡潔・丁寧に答えてください。`;
 
 let aiHistory = [];
@@ -2601,16 +2617,6 @@ async function sendAiMessage() {
   appendAiMessage("user", text);
   aiHistory.push({ role: "user", parts: [{ text }] });
 
-  let geminiKey = localStorage.getItem("GEMINI_KEY");
-  if (!geminiKey) {
-    geminiKey = prompt("Gemini APIキーを入力してください。\n取得先: https://aistudio.google.com/app/apikey\n（無料で取得できます）");
-    if (!geminiKey) {
-      appendAiMessage("bot", "APIキーが入力されませんでした。\nGoogle AI Studio（https://aistudio.google.com/）で無料で取得できます。");
-      return;
-    }
-    localStorage.setItem("GEMINI_KEY", geminiKey);
-  }
-
   const loadingDiv = appendAiMessage("bot", "…");
 
   try {
@@ -2619,7 +2625,7 @@ async function sendAiMessage() {
       contents: aiHistory,
       generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
     };
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reqBody)
@@ -2631,10 +2637,6 @@ async function sendAiMessage() {
     aiHistory.push({ role: "model", parts: [{ text: reply }] });
   } catch(e) {
     loadingDiv.textContent = "エラー: " + e.message;
-    if (e.message.includes("API_KEY_INVALID") || e.message.includes("invalid")) {
-      localStorage.removeItem("GEMINI_KEY");
-      loadingDiv.textContent += "\n（APIキーが無効です。次回入力し直してください）";
-    }
   }
   document.getElementById("aiMessages").scrollTop = document.getElementById("aiMessages").scrollHeight;
 }
