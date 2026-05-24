@@ -583,6 +583,7 @@
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       padding-bottom: 8px;
+      align-items: flex-start;
     }
 
     .thumbBox {
@@ -795,8 +796,9 @@
       border: 1px solid var(--history-item-border);
       border-radius: 12px;
       padding: 12px;
-      flex: 1;
-      min-width: 300px;
+      flex: 0 0 var(--video-card-width, 300px);
+      width: var(--video-card-width, 300px);
+      min-width: 240px;
       display: flex;
       flex-direction: column;
     }
@@ -844,10 +846,106 @@
       flex: 1;
       min-width: 0;
       font-size: 24px;
+      transition: box-shadow 0.3s ease;
     }
 
     #searchInput::placeholder {
       color: var(--text-light);
+    }
+
+    #searchInput.multiFilterActive {
+      box-shadow: 0 0 0 2px var(--btn-border), 0 0 14px rgba(230,100,180,0.5);
+      animation: searchGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes searchGlow {
+      0%, 100% { box-shadow: 0 0 0 2px var(--btn-border), 0 0 10px rgba(230,100,180,0.4); }
+      50%       { box-shadow: 0 0 0 2px var(--btn-border), 0 0 22px rgba(230,100,180,0.75); }
+    }
+
+    /* チャンネルアイコン */
+    #channelIconImg {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      object-fit: cover;
+      display: none;
+    }
+
+    #title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* 波打ち近未来背景 */
+    #waveBg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .waveOrb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(72px);
+      opacity: 0.85;
+    }
+
+    .waveOrb1 {
+      width: 65%;
+      height: 65%;
+      top: 10%;
+      left: -10%;
+      background: radial-gradient(circle, rgba(255,120,190,0.16) 0%, transparent 68%);
+      animation: orbDrift1 22s ease-in-out infinite;
+    }
+
+    .waveOrb2 {
+      width: 55%;
+      height: 55%;
+      bottom: 5%;
+      right: -8%;
+      background: radial-gradient(circle, rgba(130,155,255,0.13) 0%, transparent 68%);
+      animation: orbDrift2 28s ease-in-out infinite;
+    }
+
+    .waveOrb3 {
+      width: 40%;
+      height: 40%;
+      top: 40%;
+      left: 45%;
+      background: radial-gradient(circle, rgba(210,120,255,0.10) 0%, transparent 65%);
+      animation: orbDrift3 35s ease-in-out infinite;
+    }
+
+    @keyframes orbDrift1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      30%  { transform: translate(6%,-9%) scale(1.08); }
+      60%  { transform: translate(-4%,6%) scale(0.94); }
+    }
+    @keyframes orbDrift2 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%  { transform: translate(-7%,5%) scale(0.92); }
+      66%  { transform: translate(5%,-7%) scale(1.07); }
+    }
+    @keyframes orbDrift3 {
+      0%,100% { transform: translate(0,0) scale(1) rotate(0deg); }
+      25%  { transform: translate(8%,-5%) scale(1.1) rotate(5deg); }
+      75%  { transform: translate(-6%,8%) scale(0.93) rotate(-4deg); }
+    }
+
+    [data-theme="dark"] .waveOrb1 {
+      background: radial-gradient(circle, rgba(0,160,255,0.18) 0%, transparent 68%);
+    }
+    [data-theme="dark"] .waveOrb2 {
+      background: radial-gradient(circle, rgba(0,220,200,0.15) 0%, transparent 68%);
+    }
+    [data-theme="dark"] .waveOrb3 {
+      background: radial-gradient(circle, rgba(80,80,255,0.12) 0%, transparent 65%);
     }
 
     /* AIモーダル（右下ポップアップ） */
@@ -1016,7 +1114,7 @@
       }
 
       .videoCard {
-        min-width: 280px;
+        min-width: 240px;
       }
 
       #login {
@@ -1064,6 +1162,13 @@
 </head>
 
 <body>
+
+<!-- 波打ち近未来背景 -->
+<div id="waveBg" aria-hidden="true">
+  <div class="waveOrb waveOrb1"></div>
+  <div class="waveOrb waveOrb2"></div>
+  <div class="waveOrb waveOrb3"></div>
+</div>
 
 <div id="header">
   <div id="appTitle">
@@ -1288,6 +1393,15 @@
     </div>
     <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
     <div style="margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:10px;">📐 動画カードサイズ</div>
+      <select id="videoCardSizeSelect" onchange="localStorage.setItem('videoCardSize', this.value); applyCardSize();" style="background:var(--select-bg);border:1px solid var(--select-border);color:var(--select-color);font-size:16px;padding:10px 14px;border-radius:12px;cursor:pointer;outline:none;font-family:inherit;width:100%;box-sizing:border-box;">
+        <option value="1">大（1枚分の幅）</option>
+        <option value="2">中（2枚分の幅）</option>
+        <option value="3">小（3枚分の幅）</option>
+      </select>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
+    <div style="margin-bottom:20px;">
       <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:12px;">🤖 AIアシスタント</div>
       <div id="settingsAiToggle"></div>
     </div>
@@ -1326,14 +1440,14 @@
   <div id="topControls">
     <button id="editCh">チャンネル設定</button>
   </div>
-  <h1 id="title"></h1>
+  <h1 id="title"><img id="channelIconImg" src="" alt=""></h1>
 
   <hr>
 
-  <div class="tabBar" style="margin-bottom:8px;">
-    <button class="tabBtn active" id="filterUnseen" onclick="setVideoFilter('unseen')">🎬 未視聴</button>
-    <button class="tabBtn" id="filterSeen" onclick="setVideoFilter('seen')">✅ 視聴済み</button>
-    <button class="tabBtn" id="filterFav" onclick="setVideoFilter('favorites')">❤️ お気に入り</button>
+  <div class="tabBar" style="margin-bottom:8px; justify-content:flex-end;">
+    <button class="tabBtn active" id="filterUnseen" onclick="toggleVideoFilter('unseen')">🎬 未視聴</button>
+    <button class="tabBtn" id="filterSeen" onclick="toggleVideoFilter('seen')">✅ 視聴済み</button>
+    <button class="tabBtn" id="filterFav" onclick="toggleVideoFilter('favorites')">❤️ お気に入り</button>
   </div>
 
   <hr>
@@ -1521,6 +1635,8 @@ function toggleAiVisibility(show) {
 function updateSettingsModal() {
   const cntEl = document.getElementById('videoCardCountSelect');
   if (cntEl) cntEl.value = localStorage.getItem('videoCardCount') || '3';
+  const sizeEl = document.getElementById('videoCardSizeSelect');
+  if (sizeEl) sizeEl.value = localStorage.getItem('videoCardSize') || '3';
   const aiToggleEl = document.getElementById('settingsAiToggle');
   if (aiToggleEl) {
     const aiVisible = localStorage.getItem('aiVisible') !== '0';
@@ -1629,7 +1745,7 @@ let videos = [];
 let currentVideos = [];
 let newCount = 0;
 let currentTab = "history";
-let videoFilter = "unseen";
+let videoFilters = new Set(['unseen']);
 
 /* ===== 初期化 ===== */
 async function init() {
@@ -1875,10 +1991,63 @@ function render() {
 
   const p = data.pages[getIndex()];
   const titleEl = document.getElementById("title");
+  const iconEl = document.getElementById("channelIconImg");
+
+  if (iconEl) {
+    if (p.channelIcon) {
+      iconEl.src = p.channelIcon;
+      iconEl.style.display = "block";
+    } else {
+      iconEl.style.display = "none";
+    }
+  }
+
   if (p.channelId) {
-    titleEl.innerHTML = `<a href="https://youtube.com/channel/${p.channelId}" target="_blank" style="color:inherit;text-decoration:none;">${p.title}</a>`;
+    const textSpan = titleEl.querySelector('.titleText') || (() => {
+      const s = document.createElement('a');
+      s.className = 'titleText';
+      titleEl.appendChild(s);
+      return s;
+    })();
+    textSpan.href = `https://youtube.com/channel/${p.channelId}`;
+    textSpan.target = "_blank";
+    textSpan.style.cssText = "color:inherit;text-decoration:none;";
+    textSpan.textContent = p.title;
+    // Remove non-icon non-anchor children (text nodes)
+    [...titleEl.childNodes].forEach(n => {
+      if (n !== iconEl && n !== textSpan) n.remove();
+    });
   } else {
-    titleEl.textContent = p.title;
+    const textSpan = titleEl.querySelector('.titleText') || (() => {
+      const s = document.createElement('span');
+      s.className = 'titleText';
+      titleEl.appendChild(s);
+      return s;
+    })();
+    textSpan.textContent = p.title;
+    [...titleEl.childNodes].forEach(n => {
+      if (n !== iconEl && n !== textSpan) n.remove();
+    });
+  }
+
+  // アイコン未取得の場合はバックグラウンドで取得
+  if (p.channelId && p.channelIcon === undefined) {
+    p.channelIcon = null; // fetching
+    fetchAndSetChannelIcon(p);
+  }
+}
+
+async function fetchAndSetChannelIcon(page) {
+  try {
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${page.channelId}&key=${API_KEY}`);
+    const d = await res.json();
+    const url = d.items?.[0]?.snippet?.thumbnails?.medium?.url
+      || d.items?.[0]?.snippet?.thumbnails?.default?.url || '';
+    page.channelIcon = url;
+    savePage(page);
+    render();
+  } catch(e) {
+    page.channelIcon = '';
   }
 }
 
@@ -2034,7 +2203,9 @@ async function loadVideo() {
 
     const uploadsId = chData.items[0].contentDetails.relatedPlaylists.uploads;
     const oldTitle = p.title;
-    p.title = chData.items[0].snippet.title;
+    const snip = chData.items[0].snippet;
+    p.title = snip.title;
+    p.channelIcon = snip.thumbnails?.medium?.url || snip.thumbnails?.default?.url || '';
     savePage(p, oldTitle); // タイトルが変わった場合は旧ドキュメントを削除
     render();
 
@@ -2103,6 +2274,7 @@ function buildVideoCard(v, page) {
   <div class="videoActions">
     <button class="seenCardBtn" onclick="markAsSeenCard('${v.id}')">☑️ 視聴済み</button>
     <button class="favCardBtn" onclick="toggleFavCard('${v.id}')">${isFav ? "❤️ お気に入り" : "🤍 お気に入り"}</button>
+    <button class="skipCardBtn" onclick="skipCard('${v.id}')">⏭ スキップ</button>
   </div>
 </div>`;
 }
@@ -2111,7 +2283,25 @@ function showVideoCards(vids) {
   const page = data.pages[getIndex()];
   currentVideos = vids.map(v => v.id);
   document.getElementById("videoArea").innerHTML = vids.map(v => buildVideoCard(v, page)).join("");
+  applyCardSize();
 }
+
+/* ===== カードサイズ適用 ===== */
+function applyCardSize() {
+  const area = document.getElementById('videoArea');
+  if (!area) return;
+  const sizeCol = parseInt(localStorage.getItem('videoCardSize') || '3');
+  const totalW = area.offsetWidth || (window.innerWidth - 300);
+  const gap = 10;
+  const w = Math.max(240, Math.floor((totalW - gap * (sizeCol - 1)) / sizeCol));
+  document.documentElement.style.setProperty('--video-card-width', w + 'px');
+}
+
+let _resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(applyCardSize, 180);
+});
 
 function openVideoById(id) {
   const page = data.pages[getIndex()];
@@ -2125,16 +2315,7 @@ function openVideoById(id) {
 }
 
 function replaceCard(oldId) {
-  const page = data.pages[getIndex()];
-  const skipped = page.skipped || [];
-  let pool;
-  if (videoFilter === "unseen") {
-    pool = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id) && !currentVideos.includes(v.id));
-  } else if (videoFilter === "seen") {
-    pool = videos.filter(v => page.seen.includes(v.id) && !currentVideos.includes(v.id));
-  } else {
-    pool = videos.filter(v => (page.favorites || []).includes(v.id) && !currentVideos.includes(v.id));
-  }
+  const pool = buildPool().filter(v => !currentVideos.includes(v.id));
   const idx = currentVideos.indexOf(oldId);
   const cardEl = document.querySelector(`.videoCard[data-card-id="${oldId}"]`);
   if (pool.length > 0) {
@@ -2145,7 +2326,11 @@ function replaceCard(oldId) {
     currentVideos.splice(idx, 1);
     if (cardEl) cardEl.remove();
     if (!currentVideos.length) {
-      const msg = videoFilter === "unseen" ? "🎉 全部見た！" : videoFilter === "seen" ? "まだ視聴済みの動画はありません" : "お気に入りがまだありません";
+      const labels = [];
+      if (videoFilters.has('unseen')) labels.push('未視聴');
+      if (videoFilters.has('seen')) labels.push('視聴済み');
+      if (videoFilters.has('favorites')) labels.push('お気に入り');
+      const msg = (videoFilters.has('unseen') && videoFilters.size === 1) ? "🎉 全部見た！" : `${labels.join('・')}の動画はありません`;
       document.getElementById("videoArea").innerHTML = msg;
     }
   }
@@ -2187,13 +2372,43 @@ function toggleFavCard(id) {
   });
 }
 
-/* ===== フィルター切り替え ===== */
-function setVideoFilter(filter) {
-  videoFilter = filter;
-  document.getElementById("filterUnseen").classList.toggle("active", filter === "unseen");
-  document.getElementById("filterSeen").classList.toggle("active", filter === "seen");
-  document.getElementById("filterFav").classList.toggle("active", filter === "favorites");
-  randomVideo();
+/* ===== フィルター切り替え（多重選択） ===== */
+function buildPool() {
+  const page = data.pages[getIndex()];
+  const skipped = page.skipped || [];
+  const seen = page.seen;
+  const favIds = page.favorites || [];
+  const added = new Set();
+  const pool = [];
+  function push(v) { if (!added.has(v.id)) { added.add(v.id); pool.push(v); } }
+  if (videoFilters.has('unseen')) {
+    videos.filter(v => !seen.includes(v.id) && !skipped.includes(v.id)).forEach(push);
+  }
+  if (videoFilters.has('seen')) {
+    videos.filter(v => seen.includes(v.id)).forEach(push);
+  }
+  if (videoFilters.has('favorites')) {
+    videos.filter(v => favIds.includes(v.id)).forEach(push);
+  }
+  return pool;
+}
+
+function toggleVideoFilter(filter) {
+  if (videoFilters.has(filter) && videoFilters.size === 1) return;
+  if (videoFilters.has(filter)) {
+    videoFilters.delete(filter);
+  } else {
+    videoFilters.add(filter);
+  }
+  updateFilterButtons();
+  if (searchQuery) { showSearchResults(); } else { randomVideo(); }
+}
+
+function updateFilterButtons() {
+  document.getElementById("filterUnseen").classList.toggle("active", videoFilters.has('unseen'));
+  document.getElementById("filterSeen").classList.toggle("active", videoFilters.has('seen'));
+  document.getElementById("filterFav").classList.toggle("active", videoFilters.has('favorites'));
+  document.getElementById('searchInput').classList.toggle('multiFilterActive', videoFilters.size > 1);
 }
 
 /* ===== ランダム ===== */
@@ -2203,21 +2418,16 @@ async function randomVideo() {
     if (videos.length === 0) return;
   }
 
-  const page = data.pages[getIndex()];
-  const skipped = page.skipped || [];
-  let pool;
-
-  if (videoFilter === "unseen") {
-    pool = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id));
-  } else if (videoFilter === "seen") {
-    pool = videos.filter(v => page.seen.includes(v.id));
-  } else {
-    const favIds = page.favorites || [];
-    pool = videos.filter(v => favIds.includes(v.id));
-  }
+  const pool = buildPool();
 
   if (!pool.length) {
-    const msg = videoFilter === "unseen" ? "🎉 全部見た！" : videoFilter === "seen" ? "まだ視聴済みの動画はありません" : "お気に入りがまだありません";
+    const labels = [];
+    if (videoFilters.has('unseen')) labels.push('未視聴');
+    if (videoFilters.has('seen')) labels.push('視聴済み');
+    if (videoFilters.has('favorites')) labels.push('お気に入り');
+    const msg = videoFilters.has('unseen') && videoFilters.size === 1
+      ? "🎉 全部見た！"
+      : `${labels.join('・')}の動画はありません`;
     document.getElementById("videoArea").innerHTML = msg;
     return;
   }
@@ -2239,8 +2449,8 @@ function randomPage() {
 /* ===== サイドバー開閉 ===== */
 function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
-  const btn = document.getElementById("sidebarToggle");
   sidebar.classList.toggle("hidden");
+  setTimeout(applyCardSize, 320); // トランジション完了後に再計算
 }
 
 /* ===== サイドバートグル長押しツールチップ ===== */
@@ -2831,22 +3041,14 @@ function clearSearch() {
 
 function showSearchResults() {
   if (!searchQuery || !videos.length) return;
-  const page = data.pages[getIndex()];
-  let pool = videos;
-  if (videoFilter === "unseen") {
-    const skipped = page.skipped || [];
-    pool = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id));
-  } else if (videoFilter === "seen") {
-    pool = videos.filter(v => page.seen.includes(v.id));
-  } else {
-    pool = videos.filter(v => (page.favorites || []).includes(v.id));
-  }
+  const pool = buildPool();
   const results = pool.filter(v => v.title.toLowerCase().includes(searchQuery));
   if (!results.length) {
     document.getElementById("videoArea").innerHTML = `<p style="color:var(--text-light);font-size:13px;">「${searchQuery}」に一致する動画が見つかりません</p>`;
     return;
   }
-  showVideoCards(results.slice(0, 9));
+  // 検索結果は全件を横スクロールで表示
+  showVideoCards(results);
 }
 
 async function initApp() {
@@ -2872,6 +3074,7 @@ async function initApp() {
     render();
     setIndex(0);
     updateLevel();
+    setTimeout(applyCardSize, 100);
     return;
   }
 
@@ -2894,6 +3097,7 @@ async function initApp() {
   render();
   setIndex(0);
   updateLevel();
+  setTimeout(applyCardSize, 100);
 }
 
 /* ===== PWA ホームスクリーンアイコン ===== */
