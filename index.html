@@ -1750,7 +1750,6 @@ function updateSettingsModal() {
   }
   const infoEl = document.getElementById('settingsAccountInfo');
   if (!infoEl) return;
-  const icon = document.getElementById('userIcon');
   if (isGuest) {
     infoEl.innerHTML = `
       <div style="margin-bottom:12px;">
@@ -1760,11 +1759,13 @@ function updateSettingsModal() {
       <button onclick="closeAllModals();document.getElementById('login').style.display='block';document.getElementById('overlay').style.display='block';" style="font-size:14px;padding:8px 18px;border-radius:12px;box-shadow:none;margin:0;">🔑 アカウントにログイン</button>
     `;
   } else if (currentUser) {
-    let iconHtml = `<div style="width:44px;height:44px;border-radius:50%;background:#aaa;flex-shrink:0;"></div>`;
-    if (icon && icon.style.backgroundImage) {
-      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background-image:${icon.style.backgroundImage};background-size:cover;background-position:center;"></div>`;
-    } else if (icon && icon.style.background) {
-      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background:${icon.style.background};"></div>`;
+    let iconHtml;
+    if (currentUserPhotoURL) {
+      iconHtml = `<img src="${currentUserPhotoURL}" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;object-fit:cover;">`;
+    } else {
+      const icon = document.getElementById('userIcon');
+      const bg = (icon && icon.style.background) ? icon.style.background : '#aaa';
+      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background:${bg};"></div>`;
     }
     infoEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
@@ -1841,6 +1842,7 @@ const storage = firebase.storage();
 const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
 let currentUser = null;
 let isGuest = false;
+let currentUserPhotoURL = null;
 
 /* ===== 状態 ===== */
 let data = { pages: [] };
@@ -1863,6 +1865,7 @@ async function init() {
       const accountArea = document.getElementById("userAccountArea");
       if (accountArea) accountArea.style.display = "flex";
 
+      currentUserPhotoURL = user.photoURL || null;
       if (user.photoURL) {
         icon.style.backgroundImage = `url(${user.photoURL})`;
         icon.style.backgroundSize = "cover";
