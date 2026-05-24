@@ -2627,10 +2627,10 @@ async function sendAiMessage() {
     steps[0].ok = true;
 
     // Step 2: API送信
-    steps.push({ label: "Gemini API へ送信 (gemini-2.0-flash)", ok: null });
+    steps.push({ label: "Gemini API へ送信 (gemini-2.5-flash)", ok: null });
     renderSteps();
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
       { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(reqBody) }
     );
     steps[1].ok = true;
