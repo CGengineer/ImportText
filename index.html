@@ -8,9 +8,8 @@
   <meta name="apple-mobile-web-app-title" content="未知リンク">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#ffd0e6">
-  <title>未知リンク</title>
-  <link rel="icon" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png">
+  <title>♾️未知リンク</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♾️</text></svg>">
 
   <style>
     /* ===== テーマ変数 ===== */
@@ -162,17 +161,12 @@
       --login-register-bg: #1e3254;
     }
 
-    html {
-      overflow-x: hidden;
-    }
-
     body {
       display: flex;
       font-family: "Hiragino Maru Gothic Pro", "Arial Rounded MT", sans-serif;
       margin: 0;
       background: var(--bg);
       color: var(--text-color);
-      overflow-x: hidden;
     }
 
     [data-theme="pink"] body {
@@ -231,11 +225,12 @@
     /* ヘッダー内の子要素は横スクロール領域内で折り返さない */
     #appTitle > * { flex: 0 0 auto; }
 
-    #appNameText {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 160px;
+    /* 長いアプリ名は省略表示 */
+    #appName { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+
+    #appName {
+      font-weight: bold;
+      font-size: 24px;
     }
 
     #userArea {
@@ -244,14 +239,6 @@
       gap: 10px;
       font-size: 14px;
       flex-shrink: 0; /* ユーザーエリアは縮めすぎない */
-    }
-
-    #userAccountArea:hover {
-      background: var(--header-btn-hover);
-    }
-    #userAccountArea.btn-active {
-      background: var(--header-btn-hover);
-      box-shadow: 0 0 0 2px var(--btn-border);
     }
 
     #userIcon {
@@ -414,7 +401,7 @@
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid var(--modal-border);
-      max-height: 75vh;
+      max-height: 52vh;
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -588,12 +575,14 @@
       margin-top: 82px;
     }
 
-    /* 通常モード：グリッドでぴったり収まる */
     #videoArea {
-      display: grid;
-      grid-template-columns: repeat(var(--card-cols, 3), 1fr);
+      display: flex;
       gap: 10px;
       margin-top: 20px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
     }
 
     .thumbBox {
@@ -806,7 +795,8 @@
       border: 1px solid var(--history-item-border);
       border-radius: 12px;
       padding: 12px;
-      min-width: 0;
+      flex: 1;
+      min-width: 300px;
       display: flex;
       flex-direction: column;
     }
@@ -849,98 +839,15 @@
       user-select: none;
     }
 
-    /* チャンネル設定未設定時グロー */
-    #editCh.needsSetup {
-      animation: editChGlow 2s ease-in-out infinite;
-    }
-    @keyframes editChGlow {
-      0%, 100% { box-shadow: 0 0 0 2px var(--btn-border), 0 0 10px rgba(100,180,255,0.5); }
-      50%       { box-shadow: 0 0 0 2px var(--btn-border), 0 0 22px rgba(100,180,255,0.85); }
+    /* 検索入力 */
+    #searchInput {
+      flex: 1;
+      min-width: 0;
+      font-size: 24px;
     }
 
-    /* チャンネルアイコン */
-    #channelIconImg {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      object-fit: cover;
-      display: none;
-    }
-
-    #title {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    /* 波打ち近未来背景 */
-    #waveBg {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: -1;
-      overflow: hidden;
-    }
-
-    .waveOrb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(72px);
-      opacity: 0.85;
-    }
-
-    .waveOrb1 {
-      width: 65%;
-      height: 65%;
-      top: 10%;
-      left: -10%;
-      background: radial-gradient(circle, rgba(255,120,190,0.16) 0%, transparent 68%);
-      animation: orbDrift1 22s ease-in-out infinite;
-    }
-
-    .waveOrb2 {
-      width: 55%;
-      height: 55%;
-      bottom: 5%;
-      right: -8%;
-      background: radial-gradient(circle, rgba(130,155,255,0.13) 0%, transparent 68%);
-      animation: orbDrift2 28s ease-in-out infinite;
-    }
-
-    .waveOrb3 {
-      width: 40%;
-      height: 40%;
-      top: 40%;
-      left: 45%;
-      background: radial-gradient(circle, rgba(210,120,255,0.10) 0%, transparent 65%);
-      animation: orbDrift3 35s ease-in-out infinite;
-    }
-
-    @keyframes orbDrift1 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      30%  { transform: translate(6%,-9%) scale(1.08); }
-      60%  { transform: translate(-4%,6%) scale(0.94); }
-    }
-    @keyframes orbDrift2 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      33%  { transform: translate(-7%,5%) scale(0.92); }
-      66%  { transform: translate(5%,-7%) scale(1.07); }
-    }
-    @keyframes orbDrift3 {
-      0%,100% { transform: translate(0,0) scale(1) rotate(0deg); }
-      25%  { transform: translate(8%,-5%) scale(1.1) rotate(5deg); }
-      75%  { transform: translate(-6%,8%) scale(0.93) rotate(-4deg); }
-    }
-
-    [data-theme="dark"] .waveOrb1 {
-      background: radial-gradient(circle, rgba(0,160,255,0.18) 0%, transparent 68%);
-    }
-    [data-theme="dark"] .waveOrb2 {
-      background: radial-gradient(circle, rgba(0,220,200,0.15) 0%, transparent 68%);
-    }
-    [data-theme="dark"] .waveOrb3 {
-      background: radial-gradient(circle, rgba(80,80,255,0.12) 0%, transparent 65%);
+    #searchInput::placeholder {
+      color: var(--text-light);
     }
 
     /* AIモーダル（右下ポップアップ） */
@@ -1102,18 +1009,15 @@
         flex: 1;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        gap: 5px;
       }
 
       #appTitle .headerBtn {
         flex-shrink: 0;
       }
 
-      #appIconImg {
-        height: 44px;
-        max-width: 120px;
+      .videoCard {
+        min-width: 280px;
       }
-
 
       #login {
         width: calc(100vw - 48px);
@@ -1124,7 +1028,7 @@
       /* モバイル: コンテンツモーダルを全幅に */
       #helpModal, #meritModal, #statusModal, #levelModal, #settingsModal {
         top: 82px;           /* ← ここも 82px に合わせる */
-        max-height: 75vh;
+        max-height: 52vh;
         border-radius: 0 0 16px 16px;
         border-top: none;
         max-width: 100%;
@@ -1142,89 +1046,13 @@
         from { opacity: 0; transform: translateY(-10px); }
         to   { opacity: 1; transform: translateY(0); }
       }
-      /* モバイル: AIボタンのすぐ左上に表示 */
+      /* モバイル: AI modalはそのまま右下 */
       #aiModal {
-        bottom: 130px;
+        bottom: 78px;
         right: 8px;
-        left: auto;
-        width: min(340px, calc(100vw - 16px));
-        height: 440px;
-        max-height: calc(100vh - 170px);
-      }
-
-      /* モバイル: フォントサイズ縮小 */
-      h1 { font-size: 28px; }
-      h2 { font-size: 20px; }
-      h3 { font-size: 16px; }
-
-      #sidebarToggle {
-        font-size: 24px;
-        width: 60px;
-        height: 60px;
-      }
-
-      #editCh {
-        font-size: 16px;
-        padding: 10px 18px;
-      }
-
-      .tabBtn {
-        font-size: 14px;
-        padding: 8px 14px;
-      }
-
-      .statsCardHeader { font-size: 14px; }
-
-      .statsGrid {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 4px;
-      }
-
-      .statIconWrap {
-        width: 48px;
-        height: 48px;
-        font-size: 26px;
-        border-radius: 12px;
-      }
-
-      .statValue { font-size: 22px; }
-      .statUnit  { font-size: 12px; }
-      .statLabel { font-size: 11px; }
-
-      .statsProgressHeader { font-size: 14px; margin-bottom: 8px; }
-
-      .videoActions button {
-        font-size: 13px;
-        padding: 8px 6px;
-      }
-
-      .historyItem a { font-size: 15px; }
-
-      .historyThumb { width: 120px; }
-
-      #videoArea {
-        gap: 6px;
-      }
-
-      .videoCard { padding: 8px; }
-
-      .headerBtn {
-        font-size: 12px;
-        padding: 6px 10px;
-        border-radius: 16px;
-      }
-
-      #appNameText {
-        font-size: 15px;
-        max-width: 70px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      #levelBadge {
-        font-size: 11px;
-        padding: 3px 7px;
-        white-space: nowrap;
+        left: 8px;
+        width: auto;
+        height: calc(100vh - 130px);
       }
     }
   </style>
@@ -1232,32 +1060,21 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 </head>
 
 <body>
 
-<!-- 波打ち近未来背景 -->
-<div id="waveBg" aria-hidden="true">
-  <div class="waveOrb waveOrb1"></div>
-  <div class="waveOrb waveOrb2"></div>
-  <div class="waveOrb waveOrb3"></div>
-</div>
-
 <div id="header">
   <div id="appTitle">
-    <img id="appIconImg" src="" alt="未知リンク" style="height:56px;width:auto;max-width:150px;object-fit:contain;display:none;flex-shrink:0;">
-    <span id="appNameText" style="font-weight:bold;font-size:24px;white-space:nowrap;">♾️未知リンク</span>
+    <div id="appName">♾️未知リンク</div>
     <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
     <button id="meritBtn" class="headerBtn">機能概要</button>
     <button id="helpBtn" class="headerBtn">使用方法</button>
     <button id="statusBtn" class="headerBtn">通信状態</button>
   </div>
   <div id="userArea">
-    <div id="userAccountArea" style="display:none;">
-      <div id="userIcon"></div>
-      <span id="userEmail"></span>
-    </div>
+    <span id="userEmail" style="display:none;"></span>
+    <div id="userIcon" onclick="toggleMenu()" style="position:absolute;width:0;height:0;overflow:hidden;"></div>
     <button id="settingsBtn" class="headerBtn">⚙️ 設定</button>
   </div>
 </div>
@@ -1304,6 +1121,13 @@
     <p><b>更新ボタンを押す</b><br>
     タブで選んだ範囲からランダムで3本選んで表示します。</p>
 
+    <p><b>サムネイルをタップして再生</b><br>
+    サムネイルをタップすると動画が開いて「視聴済み」に記録されます。<br>
+    タイトルのリンクから直接開いた場合は記録されません。</p>
+
+    <h3>🔍 チャンネル内検索</h3>
+    <p>「今日のオススメ」横の検索欄にキーワードを入力すると、タイトルでフィルタリングできます。現在のタブ（未視聴・視聴済み・お気に入り）に合わせた絞り込みになります。</p>
+
     <h3>🏆 レベルシステム</h3>
     <p>動画を視聴するとレベルが上がります。ヘッダーの「Lv.バッジ」をタップするとレベル一覧と次のレベルまでの本数が確認できます。</p>
   </div>
@@ -1324,7 +1148,7 @@
         </tr>
         <tr style="border-bottom:1px solid var(--history-item-border);">
           <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">✅</td>
-          <td style="padding:9px 4px;vertical-align:top;"><b>視聴記録を自動管理</b><br><span style="color:var(--text-light);font-size:12px;">動画を開くと「視聴済み」に自動登録。同じ動画が繰り返し出てこない。</span></td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>視聴記録を自動管理</b><br><span style="color:var(--text-light);font-size:12px;">サムネタップで「視聴済み」に自動登録。同じ動画が繰り返し出てこない。</span></td>
         </tr>
         <tr style="border-bottom:1px solid var(--history-item-border);">
           <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">🎬</td>
@@ -1458,15 +1282,6 @@
     </div>
     <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
     <div style="margin-bottom:20px;">
-      <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:10px;">📺 動画カード表示数</div>
-      <select id="videoCardCountSelect" onchange="localStorage.setItem('videoCardCount', this.value); randomVideo();" style="background:var(--select-bg);border:1px solid var(--select-border);color:var(--select-color);font-size:16px;padding:10px 14px;border-radius:12px;cursor:pointer;outline:none;font-family:inherit;width:100%;box-sizing:border-box;">
-        <option value="1">1本</option>
-        <option value="2">2本</option>
-        <option value="3">3本</option>
-      </select>
-    </div>
-    <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
-    <div style="margin-bottom:20px;">
       <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:12px;">🤖 AIアシスタント</div>
       <div id="settingsAiToggle"></div>
     </div>
@@ -1505,21 +1320,26 @@
   <div id="topControls">
     <button id="editCh">チャンネル設定</button>
   </div>
-  <h1 id="title"><img id="channelIconImg" src="" alt=""></h1>
+  <h1 id="title"></h1>
 
   <hr>
 
   <div class="tabBar" style="margin-bottom:8px;">
-    <button class="tabBtn active" id="filterUnseen" onclick="toggleVideoFilter('unseen')">🎬 未視聴</button>
-    <button class="tabBtn" id="filterSeen" onclick="toggleVideoFilter('seen')">✅ 視聴済み</button>
-    <button class="tabBtn" id="filterFav" onclick="toggleVideoFilter('favorites')">❤️ お気に入り</button>
+    <button class="tabBtn active" id="filterUnseen" onclick="setVideoFilter('unseen')">🎬 未視聴</button>
+    <button class="tabBtn" id="filterSeen" onclick="setVideoFilter('seen')">✅ 視聴済み</button>
+    <button class="tabBtn" id="filterFav" onclick="setVideoFilter('favorites')">❤️ お気に入り</button>
   </div>
 
   <hr>
 
   <div style="display:flex;align-items:center;gap:8px;margin:24px 0 4px;flex-wrap:wrap;">
     <h3 style="margin:0;flex-shrink:0;font-size:36px;">✨ 今日のオススメ</h3>
+    <button onclick="randomVideo()" class="headerBtn" style="margin:0;flex-shrink:0;">更新 ›</button>
+    <input id="searchInput" placeholder="🔍 チャンネル内検索..." style="width:220px;flex:0 1 220px;font-size:24px;padding:8px 14px;">
+    <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
   </div>
+  <p class="videoHint" style="margin-top:14px;">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます<br>🔗 タイトルのリンクから直接開いた場合は記録されません</p>
+
   <div id="videoArea"></div>
 
   <div class="statsCard">
@@ -1593,30 +1413,6 @@
 
 <script>
 
-/* ===== アプリアイコン ===== */
-function applyAppIcon(url) {
-  if (!url) return;
-  const img = document.getElementById('appIconImg');
-  const txt = document.getElementById('appNameText');
-  if (img) { img.src = url; img.style.display = 'block'; }
-  if (txt) txt.style.display = 'none';
-  let favicon = document.querySelector('link[rel="icon"]');
-  if (!favicon) { favicon = document.createElement('link'); favicon.rel = 'icon'; document.head.appendChild(favicon); }
-  favicon.href = url;
-  let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
-  if (appleIcon) appleIcon.href = url;
-  localStorage.setItem('appIconUrl', url);
-}
-
-async function loadAppIcon() {
-  const cached = localStorage.getItem('appIconUrl');
-  if (cached) applyAppIcon(cached);
-  try {
-    const url = await storage.ref('916A94F1-98DF-4DB2-AF62-200F47161312.PNG').getDownloadURL();
-    applyAppIcon(url);
-  } catch(e) { console.warn('icon load failed:', e.message); }
-}
-
 /* ===== テーマ ===== */
 const themeSelect = document.getElementById("themeSelect");
 
@@ -1650,7 +1446,7 @@ function clearAllBtnActive() {
   Object.values(MODAL_BTN_MAP).forEach(btnId => {
     document.getElementById(btnId)?.classList.remove('btn-active');
   });
-  document.getElementById('userAccountArea')?.classList.remove('btn-active');
+  document.getElementById('userIcon')?.classList.remove('btn-active');
 }
 
 function closeAllModals() {
@@ -1697,7 +1493,7 @@ document.getElementById('overlay').addEventListener('click', () => {
 function closeLoginPopup() {
   document.getElementById('login').style.display = 'none';
   document.getElementById('overlay').style.display = 'none';
-  document.getElementById('userAccountArea')?.classList.remove('btn-active');
+  document.getElementById('userIcon').classList.remove('btn-active');
 }
 
 const helpBtn = document.getElementById("helpBtn");
@@ -1719,8 +1515,6 @@ function toggleAiVisibility(show) {
 }
 
 function updateSettingsModal() {
-  const cntEl = document.getElementById('videoCardCountSelect');
-  if (cntEl) cntEl.value = localStorage.getItem('videoCardCount') || '3';
   const aiToggleEl = document.getElementById('settingsAiToggle');
   if (aiToggleEl) {
     const aiVisible = localStorage.getItem('aiVisible') !== '0';
@@ -1733,6 +1527,7 @@ function updateSettingsModal() {
   }
   const infoEl = document.getElementById('settingsAccountInfo');
   if (!infoEl) return;
+  const icon = document.getElementById('userIcon');
   if (isGuest) {
     infoEl.innerHTML = `
       <div style="margin-bottom:12px;">
@@ -1742,13 +1537,11 @@ function updateSettingsModal() {
       <button onclick="closeAllModals();document.getElementById('login').style.display='block';document.getElementById('overlay').style.display='block';" style="font-size:14px;padding:8px 18px;border-radius:12px;box-shadow:none;margin:0;">🔑 アカウントにログイン</button>
     `;
   } else if (currentUser) {
-    let iconHtml;
-    if (currentUserPhotoURL) {
-      iconHtml = `<img src="${currentUserPhotoURL}" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;object-fit:cover;">`;
-    } else {
-      const icon = document.getElementById('userIcon');
-      const bg = (icon && icon.style.background) ? icon.style.background : '#aaa';
-      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background:${bg};"></div>`;
+    let iconHtml = `<div style="width:44px;height:44px;border-radius:50%;background:#aaa;flex-shrink:0;"></div>`;
+    if (icon && icon.style.backgroundImage) {
+      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background-image:${icon.style.backgroundImage};background-size:cover;background-position:center;"></div>`;
+    } else if (icon && icon.style.background) {
+      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background:${icon.style.background};"></div>`;
     }
     infoEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
@@ -1780,7 +1573,7 @@ function toggleMenu() {
   } else {
     loginEl.style.display = 'block';
     document.getElementById('overlay').style.display = 'block';
-    document.getElementById('userAccountArea')?.classList.add('btn-active');
+    document.getElementById('userIcon').classList.add('btn-active');
   }
 }
 
@@ -1815,18 +1608,14 @@ function hideLoading() {
 firebase.initializeApp({
   apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
   authDomain: "importtext-b229d.firebaseapp.com",
-  projectId: "importtext-b229d",
-  storageBucket: "importtext-b229d.appspot.com"
+  projectId: "importtext-b229d"
 });
 const db = firebase.firestore();
-const storage = firebase.storage();
-loadAppIcon();
 
 /* ===== 設定 ===== */
 const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
 let currentUser = null;
 let isGuest = false;
-let currentUserPhotoURL = null;
 
 /* ===== 状態 ===== */
 let data = { pages: [] };
@@ -1834,7 +1623,7 @@ let videos = [];
 let currentVideos = [];
 let newCount = 0;
 let currentTab = "history";
-let videoFilters = new Set(['unseen']);
+let videoFilter = "unseen";
 
 /* ===== 初期化 ===== */
 async function init() {
@@ -1846,7 +1635,7 @@ async function init() {
       document.getElementById("userEmail").textContent = user.isAnonymous ? "ゲスト" : user.email;
 
       const icon = document.getElementById("userIcon");
-      currentUserPhotoURL = user.photoURL || null;
+
       if (user.photoURL) {
         icon.style.backgroundImage = `url(${user.photoURL})`;
         icon.style.backgroundSize = "cover";
@@ -2080,67 +1869,10 @@ function render() {
 
   const p = data.pages[getIndex()];
   const titleEl = document.getElementById("title");
-  const iconEl = document.getElementById("channelIconImg");
-
-  if (iconEl) {
-    if (p.channelIcon) {
-      iconEl.src = p.channelIcon;
-      iconEl.style.display = "block";
-    } else {
-      iconEl.style.display = "none";
-    }
-  }
-
   if (p.channelId) {
-    const textSpan = titleEl.querySelector('.titleText') || (() => {
-      const s = document.createElement('a');
-      s.className = 'titleText';
-      titleEl.appendChild(s);
-      return s;
-    })();
-    textSpan.href = `https://youtube.com/channel/${p.channelId}`;
-    textSpan.target = "_blank";
-    textSpan.style.cssText = "color:inherit;text-decoration:none;";
-    textSpan.textContent = p.title;
-    // Remove non-icon non-anchor children (text nodes)
-    [...titleEl.childNodes].forEach(n => {
-      if (n !== iconEl && n !== textSpan) n.remove();
-    });
+    titleEl.innerHTML = `<a href="https://youtube.com/channel/${p.channelId}" target="_blank" style="color:inherit;text-decoration:none;">${p.title}</a>`;
   } else {
-    const textSpan = titleEl.querySelector('.titleText') || (() => {
-      const s = document.createElement('span');
-      s.className = 'titleText';
-      titleEl.appendChild(s);
-      return s;
-    })();
-    textSpan.textContent = p.title;
-    [...titleEl.childNodes].forEach(n => {
-      if (n !== iconEl && n !== textSpan) n.remove();
-    });
-  }
-
-  // アイコン未取得の場合はバックグラウンドで取得
-  if (p.channelId && p.channelIcon === undefined) {
-    p.channelIcon = null; // fetching
-    fetchAndSetChannelIcon(p);
-  }
-
-  // チャンネル未設定ならチャンネル設定ボタンをグロー
-  const editChBtn = document.getElementById('editCh');
-  if (editChBtn) editChBtn.classList.toggle('needsSetup', !p.channelId);
-}
-
-async function fetchAndSetChannelIcon(page) {
-  try {
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${page.channelId}&key=${API_KEY}`);
-    const d = await res.json();
-    const url = d.items?.[0]?.snippet?.thumbnails?.medium?.url
-      || d.items?.[0]?.snippet?.thumbnails?.default?.url || '';
-    page.channelIcon = url;
-    savePage(page);
-    render();
-  } catch(e) {
-    page.channelIcon = '';
+    titleEl.textContent = p.title;
   }
 }
 
@@ -2296,9 +2028,7 @@ async function loadVideo() {
 
     const uploadsId = chData.items[0].contentDetails.relatedPlaylists.uploads;
     const oldTitle = p.title;
-    const snip = chData.items[0].snippet;
-    p.title = snip.title;
-    p.channelIcon = snip.thumbnails?.medium?.url || snip.thumbnails?.default?.url || '';
+    p.title = chData.items[0].snippet.title;
     savePage(p, oldTitle); // タイトルが変わった場合は旧ドキュメントを削除
     render();
 
@@ -2361,13 +2091,12 @@ function buildVideoCard(v, page) {
     <img src="${v.thumb}">
     <div class="playBtn">▶</div>
   </div>
-  <a href="https://youtube.com/watch?v=${v.id}" target="_blank" onclick="markAsSeenCard('${v.id}')" style="display:block;margin-top:8px;font-size:clamp(13px,2vw,18px);line-height:1.4;">
+  <a href="https://youtube.com/watch?v=${v.id}" target="_blank" style="display:block;margin-top:8px;font-size:28px;line-height:1.4;">
     ${v.title}
   </a>
   <div class="videoActions">
     <button class="seenCardBtn" onclick="markAsSeenCard('${v.id}')">☑️ 視聴済み</button>
     <button class="favCardBtn" onclick="toggleFavCard('${v.id}')">${isFav ? "❤️ お気に入り" : "🤍 お気に入り"}</button>
-    <button class="skipCardBtn" onclick="skipCard('${v.id}')">⏭ スキップ</button>
   </div>
 </div>`;
 }
@@ -2375,12 +2104,8 @@ function buildVideoCard(v, page) {
 function showVideoCards(vids) {
   const page = data.pages[getIndex()];
   currentVideos = vids.map(v => v.id);
-  const area = document.getElementById("videoArea");
-  const cols = Math.min(vids.length, parseInt(localStorage.getItem('videoCardCount') || '3'));
-  area.style.setProperty('--card-cols', cols);
-  area.innerHTML = vids.map(v => buildVideoCard(v, page)).join("");
+  document.getElementById("videoArea").innerHTML = vids.map(v => buildVideoCard(v, page)).join("");
 }
-
 
 function openVideoById(id) {
   const page = data.pages[getIndex()];
@@ -2394,7 +2119,16 @@ function openVideoById(id) {
 }
 
 function replaceCard(oldId) {
-  const pool = buildPool().filter(v => !currentVideos.includes(v.id));
+  const page = data.pages[getIndex()];
+  const skipped = page.skipped || [];
+  let pool;
+  if (videoFilter === "unseen") {
+    pool = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id) && !currentVideos.includes(v.id));
+  } else if (videoFilter === "seen") {
+    pool = videos.filter(v => page.seen.includes(v.id) && !currentVideos.includes(v.id));
+  } else {
+    pool = videos.filter(v => (page.favorites || []).includes(v.id) && !currentVideos.includes(v.id));
+  }
   const idx = currentVideos.indexOf(oldId);
   const cardEl = document.querySelector(`.videoCard[data-card-id="${oldId}"]`);
   if (pool.length > 0) {
@@ -2405,11 +2139,7 @@ function replaceCard(oldId) {
     currentVideos.splice(idx, 1);
     if (cardEl) cardEl.remove();
     if (!currentVideos.length) {
-      const labels = [];
-      if (videoFilters.has('unseen')) labels.push('未視聴');
-      if (videoFilters.has('seen')) labels.push('視聴済み');
-      if (videoFilters.has('favorites')) labels.push('お気に入り');
-      const msg = (videoFilters.has('unseen') && videoFilters.size === 1) ? "🎉 全部見た！" : `${labels.join('・')}の動画はありません`;
+      const msg = videoFilter === "unseen" ? "🎉 全部見た！" : videoFilter === "seen" ? "まだ視聴済みの動画はありません" : "お気に入りがまだありません";
       document.getElementById("videoArea").innerHTML = msg;
     }
   }
@@ -2451,42 +2181,13 @@ function toggleFavCard(id) {
   });
 }
 
-/* ===== フィルター切り替え（多重選択） ===== */
-function buildPool() {
-  const page = data.pages[getIndex()];
-  const skipped = page.skipped || [];
-  const seen = page.seen;
-  const favIds = page.favorites || [];
-  const added = new Set();
-  const pool = [];
-  function push(v) { if (!added.has(v.id)) { added.add(v.id); pool.push(v); } }
-  if (videoFilters.has('unseen')) {
-    videos.filter(v => !seen.includes(v.id) && !skipped.includes(v.id)).forEach(push);
-  }
-  if (videoFilters.has('seen')) {
-    videos.filter(v => seen.includes(v.id)).forEach(push);
-  }
-  if (videoFilters.has('favorites')) {
-    videos.filter(v => favIds.includes(v.id)).forEach(push);
-  }
-  return pool;
-}
-
-function toggleVideoFilter(filter) {
-  if (videoFilters.has(filter) && videoFilters.size === 1) return;
-  if (videoFilters.has(filter)) {
-    videoFilters.delete(filter);
-  } else {
-    videoFilters.add(filter);
-  }
-  updateFilterButtons();
+/* ===== フィルター切り替え ===== */
+function setVideoFilter(filter) {
+  videoFilter = filter;
+  document.getElementById("filterUnseen").classList.toggle("active", filter === "unseen");
+  document.getElementById("filterSeen").classList.toggle("active", filter === "seen");
+  document.getElementById("filterFav").classList.toggle("active", filter === "favorites");
   randomVideo();
-}
-
-function updateFilterButtons() {
-  document.getElementById("filterUnseen").classList.toggle("active", videoFilters.has('unseen'));
-  document.getElementById("filterSeen").classList.toggle("active", videoFilters.has('seen'));
-  document.getElementById("filterFav").classList.toggle("active", videoFilters.has('favorites'));
 }
 
 /* ===== ランダム ===== */
@@ -2496,22 +2197,27 @@ async function randomVideo() {
     if (videos.length === 0) return;
   }
 
-  const pool = buildPool();
+  const page = data.pages[getIndex()];
+  const skipped = page.skipped || [];
+  let pool;
+
+  if (videoFilter === "unseen") {
+    pool = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id));
+  } else if (videoFilter === "seen") {
+    pool = videos.filter(v => page.seen.includes(v.id));
+  } else {
+    const favIds = page.favorites || [];
+    pool = videos.filter(v => favIds.includes(v.id));
+  }
 
   if (!pool.length) {
-    const labels = [];
-    if (videoFilters.has('unseen')) labels.push('未視聴');
-    if (videoFilters.has('seen')) labels.push('視聴済み');
-    if (videoFilters.has('favorites')) labels.push('お気に入り');
-    const msg = videoFilters.has('unseen') && videoFilters.size === 1
-      ? "🎉 全部見た！"
-      : `${labels.join('・')}の動画はありません`;
+    const msg = videoFilter === "unseen" ? "🎉 全部見た！" : videoFilter === "seen" ? "まだ視聴済みの動画はありません" : "お気に入りがまだありません";
     document.getElementById("videoArea").innerHTML = msg;
     return;
   }
 
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  const pickCount = parseInt(localStorage.getItem('videoCardCount') || '3');
+  const pickCount = window.innerHeight > window.innerWidth ? 1 : 3;
   const picked = shuffled.slice(0, pickCount);
   showVideoCards(picked);
 }
@@ -2527,6 +2233,7 @@ function randomPage() {
 /* ===== サイドバー開閉 ===== */
 function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
+  const btn = document.getElementById("sidebarToggle");
   sidebar.classList.toggle("hidden");
 }
 
@@ -3002,6 +2709,7 @@ const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTub
 - 未視聴・視聴済み・お気に入りタブで絞り込みランダム再生
 - 視聴履歴の時系列管理（今日・昨日・1週間前など）
 - 連続視聴日数の記録（ストリーク）
+- チャンネル内検索機能（「今日のオススメ」横の検索欄）
 - ゲストログイン（ブラウザのローカルストレージに保存）とGoogleログイン・メールログイン
 - ゲストから本アカウントへのデータ引き継ぎ機能
 - レベルシステム（視聴本数に応じてLv.1〜100に上昇、ヘッダーのLv.バッジをタップで確認）
@@ -3094,6 +2802,46 @@ async function sendAiMessage() {
 
 document.getElementById("aiBtn").onclick = openAiModal;
 
+/* ===== チャンネル内検索 ===== */
+let searchQuery = "";
+
+document.getElementById("searchInput").addEventListener("input", function() {
+  searchQuery = this.value.trim().toLowerCase();
+  const clearBtn = document.getElementById("clearSearchBtn");
+  clearBtn.style.display = searchQuery ? "inline-block" : "none";
+  if (searchQuery) {
+    showSearchResults();
+  } else {
+    randomVideo();
+  }
+});
+
+function clearSearch() {
+  searchQuery = "";
+  document.getElementById("searchInput").value = "";
+  document.getElementById("clearSearchBtn").style.display = "none";
+  randomVideo();
+}
+
+function showSearchResults() {
+  if (!searchQuery || !videos.length) return;
+  const page = data.pages[getIndex()];
+  let pool = videos;
+  if (videoFilter === "unseen") {
+    const skipped = page.skipped || [];
+    pool = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id));
+  } else if (videoFilter === "seen") {
+    pool = videos.filter(v => page.seen.includes(v.id));
+  } else {
+    pool = videos.filter(v => (page.favorites || []).includes(v.id));
+  }
+  const results = pool.filter(v => v.title.toLowerCase().includes(searchQuery));
+  if (!results.length) {
+    document.getElementById("videoArea").innerHTML = `<p style="color:var(--text-light);font-size:13px;">「${searchQuery}」に一致する動画が見つかりません</p>`;
+    return;
+  }
+  showVideoCards(results.slice(0, 9));
+}
 
 async function initApp() {
   if (isGuest) {
@@ -3140,24 +2888,57 @@ async function initApp() {
   render();
   setIndex(0);
   updateLevel();
-  setTimeout(applyCardSize, 100);
 }
 
-/* ===== PWA マニフェスト ===== */
+/* ===== PWA ホームスクリーンアイコン ===== */
 (function() {
-  const iconUrl = new URL('icon.png', location.href).href;
+  function generateAppIcon(size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const r = size * 0.22;
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    ctx.lineTo(size - r, 0);
+    ctx.arcTo(size, 0, size, r, r);
+    ctx.lineTo(size, size - r);
+    ctx.arcTo(size, size, size - r, size, r);
+    ctx.lineTo(r, size);
+    ctx.arcTo(0, size, 0, size - r, r);
+    ctx.lineTo(0, r);
+    ctx.arcTo(0, 0, r, 0, r);
+    ctx.closePath();
+    ctx.fillStyle = '#ffd0e6';
+    ctx.fill();
+    ctx.font = `${Math.round(size * 0.56)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('♾️', size / 2, size / 2 + size * 0.04);
+    return canvas.toDataURL('image/png');
+  }
+
+  const icon180 = generateAppIcon(180);
+  if (!icon180) return;
+
+  const touchIcon = document.createElement('link');
+  touchIcon.rel = 'apple-touch-icon';
+  touchIcon.href = icon180;
+  document.head.appendChild(touchIcon);
+
   try {
     const manifest = {
-      name: '未知リンク',
+      name: '♾️未知リンク',
       short_name: '未知リンク',
       icons: [
-        { src: iconUrl, sizes: '192x192', type: 'image/png' },
-        { src: iconUrl, sizes: '512x512', type: 'image/png' }
+        { src: generateAppIcon(192), sizes: '192x192', type: 'image/png' },
+        { src: generateAppIcon(512), sizes: '512x512', type: 'image/png' }
       ],
       start_url: location.href,
       display: 'standalone',
-      background_color: '#000000',
-      theme_color: '#000000'
+      background_color: '#ffd0e6',
+      theme_color: '#ffd0e6'
     };
     const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
     const manifestLink = document.createElement('link');
