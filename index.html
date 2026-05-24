@@ -523,20 +523,17 @@
     }
 
     #sidebarToggle {
-      position: fixed;
-      bottom: 24px;
-      left: 20px;
-      font-size: 28px;
-      width: 62px;
-      height: 62px;
+      font-size: 20px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 0;
       margin: 0;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-      z-index: 998;
+      box-shadow: none;
+      flex-shrink: 0;
     }
 
     #editCh {
@@ -818,7 +815,7 @@
       border-radius: 10px;
       white-space: nowrap;
       display: none;
-      cursor: default;
+      cursor: pointer;
       user-select: none;
     }
 
@@ -833,32 +830,233 @@
       color: var(--text-light);
     }
 
+    /* AIモーダル */
+    #aiModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--modal-bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border: 2px solid var(--modal-border);
+      width: 340px;
+      max-width: 94vw;
+      height: 70vh;
+      max-height: 560px;
+      display: none;
+      flex-direction: column;
+      z-index: 1002;
+      color: var(--text-color);
+    }
+
+    #aiMessages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .aiMsg {
+      max-width: 88%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .aiMsg.user {
+      align-self: flex-end;
+      background: #e06090;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .aiMsg.bot {
+      align-self: flex-start;
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      border-bottom-left-radius: 4px;
+    }
+
+    #aiInputRow {
+      display: flex;
+      gap: 6px;
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--modal-border);
+      flex-shrink: 0;
+    }
+
+    #aiInput {
+      flex: 1;
+      min-width: 0;
+      font-size: 14px;
+      border-radius: 20px;
+      padding: 8px 14px;
+    }
+
+    #aiSendBtn {
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      box-shadow: none;
+      flex-shrink: 0;
+    }
+
+    /* レベルモーダル */
+    #levelModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--modal-bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border: 2px solid var(--modal-border);
+      width: 300px;
+      max-width: 92vw;
+      max-height: 80vh;
+      display: none;
+      flex-direction: column;
+      z-index: 1002;
+      color: var(--text-color);
+    }
+
     /* モバイル対応 */
     @media (max-width: 680px) {
       #header {
         padding: 6px 10px;
+        min-height: 52px;
       }
       #appTitle .headerBtn {
         display: none;
       }
       #appName {
-        font-size: 15px;
+        font-size: 16px;
       }
       #userEmail {
         display: none;
       }
       #themeSelect {
-        font-size: 11px;
-        padding: 3px 6px;
+        font-size: 12px;
+        padding: 4px 8px;
       }
       #sidebar {
-        margin-top: 60px;
+        margin-top: 52px;
+        width: 260px;
+        min-width: 260px;
       }
       #main {
-        margin-top: 60px;
+        margin-top: 52px;
+        padding: 8px;
       }
       .videoCard {
-        min-width: calc(100% - 0px);
+        min-width: 100%;
+      }
+      #topControls {
+        gap: 6px;
+        flex-wrap: wrap;
+        margin: 12px 0 8px;
+      }
+      button {
+        font-size: 15px;
+        padding: 12px 16px;
+        min-height: 44px;
+      }
+      .headerBtn {
+        font-size: 13px;
+        padding: 8px 12px;
+        min-height: 40px;
+      }
+      .tabBtn {
+        font-size: 14px;
+        padding: 10px 16px;
+        min-height: 44px;
+      }
+      input {
+        font-size: 16px;
+        padding: 10px 12px;
+        min-height: 44px;
+      }
+      h1 {
+        font-size: 22px;
+      }
+      h3 {
+        font-size: 17px;
+      }
+      .statValue {
+        font-size: 18px;
+      }
+      .statLabel {
+        font-size: 11px;
+      }
+      .statIconWrap {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+      .videoActions button {
+        font-size: 13px;
+        padding: 10px 6px;
+        min-height: 44px;
+      }
+      .historyItem {
+        gap: 10px;
+        padding: 10px;
+      }
+      .historyThumb {
+        width: 130px;
+      }
+      .historyItem a {
+        font-size: 14px;
+      }
+      .historyItem button {
+        font-size: 13px;
+        padding: 8px 12px;
+        min-height: 40px;
+      }
+      #sidebarToggle {
+        width: 46px;
+        height: 46px;
+        font-size: 22px;
+      }
+      .videoHint {
+        font-size: 12px;
+      }
+      #searchInput {
+        font-size: 16px;
+      }
+      #levelBadge {
+        font-size: 13px;
+        padding: 4px 10px;
+      }
+      .statsGrid {
+        gap: 4px;
+      }
+      #pageList button {
+        font-size: 15px;
+        padding: 13px 14px;
+        min-height: 48px;
+      }
+      #add {
+        padding: 16px !important;
+        font-size: 15px !important;
+      }
+      .aiMsg {
+        font-size: 14px;
+      }
+      #aiInput {
+        font-size: 16px;
       }
     }
   </style>
@@ -876,6 +1074,7 @@
     <button id="meritBtn" class="headerBtn">使うメリット✨</button>
     <button id="helpBtn" class="headerBtn">使い方💡</button>
     <button id="statusBtn" class="headerBtn">📡 通信状態</button>
+    <button id="aiBtn" class="headerBtn" style="margin:0;" title="AIアシスタント">🤖 AI</button>
   </div>
   <div id="userArea">
     <select id="themeSelect">
@@ -885,7 +1084,7 @@
       <option value="dark">🌙 ダーク</option>
     </select>
     <span id="userEmail"></span>
-    <span id="levelBadge">Lv.1</span>
+    <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
     <div id="userIcon" onclick="toggleMenu()"></div>
   </div>
 </div>
@@ -1070,7 +1269,26 @@
 
 <div id="sidebarTooltip"></div>
 
-<button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
+<!-- レベルモーダル -->
+<div id="levelModal">
+  <div class="modalBody" id="levelModalBody"></div>
+  <div class="modalFooter">
+    <button onclick="closeLevelModal()">閉じる</button>
+  </div>
+</div>
+
+<!-- AIアシスタントモーダル -->
+<div id="aiModal">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px;border-bottom:1px solid var(--modal-border);flex-shrink:0;">
+    <span style="font-weight:bold;font-size:15px;">🤖 AIアシスタント</span>
+    <button onclick="closeAiModal()" style="background:none;border:none;box-shadow:none;font-size:20px;padding:0;margin:0;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;min-height:unset;">✕</button>
+  </div>
+  <div id="aiMessages"></div>
+  <div id="aiInputRow">
+    <input id="aiInput" placeholder="質問を入力…" onkeydown="if(event.key==='Enter')sendAiMessage();">
+    <button id="aiSendBtn" onclick="sendAiMessage()">➤</button>
+  </div>
+</div>
 
 <div id="sidebar">
   <button id="add" style="width:100%;border-radius:14px;padding:14px 16px;font-size:14px;font-weight:bold;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -1082,10 +1300,9 @@
 
 <div id="main">
   <div id="topControls">
+    <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
     <button id="editCh">チャンネルID設定</button>
     <button id="urlToChBtn" class="headerBtn" style="margin:0;white-space:nowrap;">🔗 URLから取得</button>
-    <input id="searchInput" placeholder="🔍 チャンネル内検索...">
-    <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;">✕</button>
   </div>
   <h1 id="title"></h1>
 
@@ -1099,9 +1316,11 @@
 
   <hr>
 
-  <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 4px;">
-    <h3 style="margin:0;">✨ 今日のオススメ 3本</h3>
-    <button onclick="randomVideo()" class="headerBtn" style="margin:0;font-size:12px;">更新 ›</button>
+  <div style="display:flex;align-items:center;gap:8px;margin:16px 0 4px;flex-wrap:wrap;">
+    <h3 style="margin:0;flex-shrink:0;">✨ 今日のオススメ 3本</h3>
+    <button onclick="randomVideo()" class="headerBtn" style="margin:0;flex-shrink:0;">更新 ›</button>
+    <input id="searchInput" placeholder="🔍 チャンネル内検索..." style="flex:1;min-width:120px;">
+    <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
   </div>
   <p class="videoHint">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます&nbsp;&nbsp;🔗 タイトルのリンクから直接開いた場合は記録されません</p>
 
@@ -1273,7 +1492,7 @@ let videoFilter = "unseen";
 
 /* ===== 初期化 ===== */
 async function init() {
-  firebase.auth().onAuthStateChanged(user => {
+  firebase.auth().onAuthStateChanged(async user => {
     if (user) {
       currentUser = user.email || ("guest_" + user.uid);
       document.getElementById("login").style.display = "none";
@@ -1293,12 +1512,45 @@ async function init() {
         icon.style.backgroundImage = "none";
       }
 
+      // ゲストデータの引き継ぎ確認
+      const guestPages = localStorage.getItem("GUEST_pages");
+      if (guestPages && !user.isAnonymous) {
+        const migrate = confirm("ゲストで保存したデータをこのアカウントに引き継ぎますか？\n（引き継ぐとゲストデータは削除されます）");
+        if (migrate) await migrateGuestData();
+      }
+
       initApp();
     } else {
       document.getElementById("login").style.display = "block";
       document.getElementById("overlay").style.display = "block";
     }
   });
+}
+
+async function migrateGuestData() {
+  try {
+    showLoading("ゲストデータを引き継ぎ中…");
+    const guestPages = localStorage.getItem("GUEST_pages");
+    if (!guestPages) { hideLoading(); return; }
+    const pages = JSON.parse(guestPages);
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      page.order = i;
+      const { videos: _v, ...slim } = page;
+      await db.collection(currentUser).doc(page.title).set(slim);
+      const vids = localStorage.getItem("GUEST_ch_" + page.title);
+      if (vids) {
+        await db.collection(currentUser).doc(page.title).collection("v").doc("items").set({ items: JSON.parse(vids) });
+      }
+    }
+    localStorage.removeItem("GUEST_pages");
+    pages.forEach(p => localStorage.removeItem("GUEST_ch_" + p.title));
+    hideLoading();
+    alert("引き継ぎ完了！");
+  } catch(e) {
+    hideLoading();
+    alert("引き継ぎ中にエラーが起きました: " + e.message);
+  }
 }
 
 init();
@@ -2208,6 +2460,15 @@ async function resolveChannelId(input) {
   // /channel/UCxxxxxxxx 形式
   const chMatch = input.match(/youtube\.com\/channel\/(UC[\w-]+)/i);
   if (chMatch) return chMatch[1];
+  // 動画URL形式 (watch?v=xxx / youtu.be/xxx) → 動画からチャンネルID取得
+  const videoMatch = input.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/)([\w-]{11})/i);
+  if (videoMatch) {
+    try {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoMatch[1]}&key=${API_KEY}`);
+      const d = await res.json();
+      if (d.items?.[0]?.snippet?.channelId) return d.items[0].snippet.channelId;
+    } catch(e) {}
+  }
   // /@handle 形式
   const handleMatch = input.match(/youtube\.com\/@([\w.-]+)/i);
   if (handleMatch) {
@@ -2241,6 +2502,144 @@ function updateLevel() {
   badge.textContent = "Lv." + getUserLevel();
   badge.style.display = "inline-block";
 }
+
+/* ===== レベルモーダル ===== */
+const LEVEL_TABLE = [
+  { lv:1,  need:0,   name:"初心者" },
+  { lv:2,  need:2,   name:"見習い" },
+  { lv:3,  need:8,   name:"視聴者" },
+  { lv:4,  need:18,  name:"常連" },
+  { lv:5,  need:32,  name:"熱狂者" },
+  { lv:6,  need:50,  name:"コレクター" },
+  { lv:7,  need:72,  name:"マスター" },
+  { lv:8,  need:98,  name:"レジェンド" },
+  { lv:9,  need:128, name:"神" },
+  { lv:10, need:162, name:"∞マスター" },
+];
+
+function openLevelModal() {
+  const watched = data.pages.reduce((sum, p) => sum + (p.seen || []).length, 0);
+  const level = getUserLevel();
+  const nextLv = LEVEL_TABLE.find(l => l.lv === level + 1);
+  const toNext = nextLv ? Math.max(0, nextLv.need - watched) : 0;
+  const curName = LEVEL_TABLE.find(l => l.lv === level)?.name || "";
+
+  const body = document.getElementById("levelModalBody");
+  body.innerHTML = `
+    <h3 style="margin-top:0;">🏆 あなたのレベル</h3>
+    <div style="text-align:center;padding:16px 0;">
+      <div style="font-size:42px;font-weight:bold;background:linear-gradient(135deg,#ff8c00,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${level}</div>
+      <div style="font-size:16px;margin-top:2px;font-weight:bold;">Lv.${level} ${curName}</div>
+      <div style="font-size:13px;margin-top:10px;color:var(--text-color);">合計視聴数：<b>${watched}本</b></div>
+      ${toNext > 0 ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px;">次のレベルまで あと <b>${toNext}本</b></div>` : '<div style="font-size:12px;color:#ff8c00;margin-top:4px;">🎉 最高レベル達成！</div>'}
+    </div>
+    <hr style="border:none;border-top:1px solid var(--history-item-border);margin:6px 0 10px;">
+    <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;font-weight:bold;letter-spacing:0.05em;">LEVEL TABLE</div>
+    ${LEVEL_TABLE.map(l => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--history-item-border);opacity:${l.lv<=level?'1':'0.35'};">
+        <span style="font-size:13px;">${l.lv<=level?'✅':'⬜'} <b>Lv.${l.lv}</b> ${l.name}</span>
+        <span style="font-size:12px;color:var(--text-light);">${l.need}本〜</span>
+      </div>`).join("")}
+  `;
+  document.getElementById("levelModal").style.display = "flex";
+  document.getElementById("overlay").style.display = "block";
+}
+
+function closeLevelModal() {
+  document.getElementById("levelModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+}
+
+/* ===== AI アシスタント (Gemini) ===== */
+const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTube動画管理アプリのサポートAIです。
+このアプリの主な機能：
+- YouTubeチャンネルを複数登録して未視聴動画を管理
+- 未視聴動画をランダムで3本表示する「今日のオススメ」機能
+- チャンネルID・チャンネルURL・動画URLから自動でチャンネルを登録可能
+- 未視聴・視聴済み・お気に入りタブで絞り込みランダム再生
+- 視聴履歴の時系列管理（今日・昨日・1週間前など）
+- 連続視聴日数の記録（ストリーク）
+- チャンネル内検索機能
+- ゲストログイン（ブラウザのローカルストレージに保存）とGoogleログイン・メールログイン
+- ゲストから本アカウントへのデータ引き継ぎ機能
+- レベルシステム（視聴本数に応じてLv.1〜10に上昇）
+- テーマ切替（ピンク・ホワイト・グレー・ダーク）
+- サイドバーで複数チャンネルを管理・並び替え可能
+ユーザーの質問に日本語で簡潔・丁寧に答えてください。`;
+
+let aiHistory = [];
+
+function openAiModal() {
+  document.getElementById("aiModal").style.display = "flex";
+  document.getElementById("overlay").style.display = "block";
+  if (aiHistory.length === 0) {
+    appendAiMessage("bot", "こんにちは！♾️未知リンクのサポートAIです😊\n使い方やアプリの機能について何でも聞いてね！\n\n例：「チャンネルの追加方法は？」「レベルはどう上がるの？」「ゲストとログインの違いは？」");
+  }
+}
+
+function closeAiModal() {
+  document.getElementById("aiModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+}
+
+function appendAiMessage(role, text) {
+  const area = document.getElementById("aiMessages");
+  const div = document.createElement("div");
+  div.className = "aiMsg " + role;
+  div.textContent = text;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  return div;
+}
+
+async function sendAiMessage() {
+  const input = document.getElementById("aiInput");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+
+  appendAiMessage("user", text);
+  aiHistory.push({ role: "user", parts: [{ text }] });
+
+  let geminiKey = localStorage.getItem("GEMINI_KEY");
+  if (!geminiKey) {
+    geminiKey = prompt("Gemini APIキーを入力してください。\n取得先: https://aistudio.google.com/app/apikey\n（無料で取得できます）");
+    if (!geminiKey) {
+      appendAiMessage("bot", "APIキーが入力されませんでした。\nGoogle AI Studio（https://aistudio.google.com/）で無料で取得できます。");
+      return;
+    }
+    localStorage.setItem("GEMINI_KEY", geminiKey);
+  }
+
+  const loadingDiv = appendAiMessage("bot", "…");
+
+  try {
+    const reqBody = {
+      system_instruction: { parts: [{ text: AI_SYSTEM_PROMPT }] },
+      contents: aiHistory,
+      generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
+    };
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(reqBody)
+    });
+    const d = await res.json();
+    if (d.error) throw new Error(d.error.message);
+    const reply = d.candidates?.[0]?.content?.parts?.[0]?.text || "返答を取得できませんでした。";
+    loadingDiv.textContent = reply;
+    aiHistory.push({ role: "model", parts: [{ text: reply }] });
+  } catch(e) {
+    loadingDiv.textContent = "エラー: " + e.message;
+    if (e.message.includes("API_KEY_INVALID") || e.message.includes("invalid")) {
+      localStorage.removeItem("GEMINI_KEY");
+      loadingDiv.textContent += "\n（APIキーが無効です。次回入力し直してください）";
+    }
+  }
+  document.getElementById("aiMessages").scrollTop = document.getElementById("aiMessages").scrollHeight;
+}
+
+document.getElementById("aiBtn").onclick = openAiModal;
 
 /* ===== チャンネル内検索 ===== */
 let searchQuery = "";
