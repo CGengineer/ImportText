@@ -2643,24 +2643,7 @@ async function sendAiMessage() {
 
     if (d.error) {
       steps[2].ok = false;
-      const code = d.error.code;
-      const status = d.error.status || "";
-      const msg = d.error.message || "";
-      let detail;
-      if (code === 429 || status === "RESOURCE_EXHAUSTED") {
-        detail = "⚠️ クォータ超過（無料枠の上限に達した）\n1分ほど待ってから再試行してください。";
-      } else if (status === "PERMISSION_DENIED" || msg.includes("API key not valid")) {
-        detail = "⚠️ APIキーが無効または権限なし\nGoogle Cloud Console で「Generative Language API」が有効か確認してください。";
-      } else if (code === 404 || status === "NOT_FOUND") {
-        detail = "⚠️ モデルが見つかりません\nこのAPIキーでは gemini-2.0-flash を使用できません。別のキーを試してください。";
-      } else if (code === 400 || status === "INVALID_ARGUMENT") {
-        detail = `⚠️ リクエスト形式エラー\n${msg}`;
-      } else if (status === "UNAUTHENTICATED") {
-        detail = "⚠️ 認証エラー\nAPIキーが正しくない可能性があります。";
-      } else {
-        detail = `⚠️ APIエラー [${code} ${status}]\n${msg}`;
-      }
-      renderSteps(detail);
+      renderSteps(JSON.stringify(d.error, null, 2));
       return;
     }
     steps[2].ok = true;
@@ -2671,7 +2654,7 @@ async function sendAiMessage() {
     const reply = d.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!reply) {
       steps[3].ok = false;
-      renderSteps("⚠️ 返答が空でした。もう一度試してください。");
+      renderSteps("candidates[0].content.parts[0].text が存在しない\n" + JSON.stringify(d, null, 2));
       return;
     }
     steps[3].ok = true;
@@ -2683,14 +2666,7 @@ async function sendAiMessage() {
   } catch(e) {
     const last = steps[steps.length - 1];
     if (last && last.ok === null) last.ok = false;
-    const msg = e.message || "";
-    let detail;
-    if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("network")) {
-      detail = "⚠️ ネットワークエラー\nインターネット接続を確認してください。";
-    } else {
-      detail = "⚠️ 予期しないエラー\n" + msg;
-    }
-    renderSteps(detail);
+    renderSteps(String(e));
   } finally {
     sendBtn.disabled = false;
     sendBtn.textContent = "➤";
