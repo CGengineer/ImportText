@@ -300,13 +300,14 @@
       background: var(--select-bg);
       border: 1px solid var(--select-border);
       color: var(--select-color);
-      font-size: 12px;
-      padding: 4px 8px;
+      font-size: 16px;
+      padding: 10px 14px;
       border-radius: 12px;
       cursor: pointer;
       outline: none;
-      transform: translateY(1px);
       font-family: inherit;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     /* ログイン */
@@ -360,7 +361,7 @@
     }
 
     /* モーダル共通 */
-    #helpModal, #meritModal, #statusModal, #levelModal {
+    #helpModal, #meritModal, #statusModal, #levelModal, #settingsModal {
       position: fixed;
       top: 82px;
       left: 50%;
@@ -376,6 +377,10 @@
       flex-direction: column;
       z-index: 1002;
       color: var(--text-color);
+    }
+
+    #settingsModal {
+      max-width: 420px;
     }
 
     .modalBody {
@@ -1097,7 +1102,7 @@
       }
 
       /* モバイル: コンテンツモーダルを全幅に */
-      #helpModal, #meritModal, #statusModal, #levelModal {
+      #helpModal, #meritModal, #statusModal, #levelModal, #settingsModal {
         top: 62px;
         max-height: 52vh;
         border-radius: 0 0 16px 16px;
@@ -1108,7 +1113,8 @@
         transform: none;
       }
       #helpModal.modal-anim, #meritModal.modal-anim,
-      #statusModal.modal-anim, #levelModal.modal-anim {
+      #statusModal.modal-anim, #levelModal.modal-anim,
+      #settingsModal.modal-anim {
         animation: modalDropMobile 0.22s ease forwards;
       }
       @keyframes modalDropMobile {
@@ -1143,20 +1149,15 @@
 <div id="header">
   <div id="appTitle">
     <div id="appName">♾️未知リンク</div>
+    <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
     <button id="meritBtn" class="headerBtn">使うメリット✨</button>
     <button id="helpBtn" class="headerBtn">使い方💡</button>
     <button id="statusBtn" class="headerBtn">📡 通信状態</button>
   </div>
   <div id="userArea">
-    <select id="themeSelect">
-      <option value="pink">🌸 ピンク</option>
-      <option value="white">⬜ ホワイト</option>
-      <option value="gray">🩶 グレー</option>
-      <option value="dark">🌙 ダーク</option>
-    </select>
-    <span id="userEmail"></span>
-    <div id="userIcon" onclick="toggleMenu()"></div>
-    <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
+    <span id="userEmail" style="display:none;"></span>
+    <div id="userIcon" onclick="toggleMenu()" style="position:absolute;width:0;height:0;overflow:hidden;"></div>
+    <button id="settingsBtn" class="headerBtn">⚙️ 設定</button>
   </div>
 </div>
 
@@ -1349,6 +1350,26 @@
   <div class="modalBody" id="levelModalBody"></div>
 </div>
 
+<!-- 設定モーダル -->
+<div id="settingsModal">
+  <div class="modalBody">
+    <div style="margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:10px;">🎨 テーマ</div>
+      <select id="themeSelect">
+        <option value="pink">🌸 ピンク</option>
+        <option value="white">⬜ ホワイト</option>
+        <option value="gray">🩶 グレー</option>
+        <option value="dark">🌙 ダーク</option>
+      </select>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
+    <div>
+      <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:12px;">👤 アカウント</div>
+      <div id="settingsAccountInfo"></div>
+    </div>
+  </div>
+</div>
+
 <!-- AI FAB -->
 <button id="aiBtn" title="AIアシスタント">🤖</button>
 
@@ -1389,7 +1410,7 @@
   <hr>
 
   <div style="display:flex;align-items:center;gap:8px;margin:24px 0 4px;flex-wrap:wrap;">
-    <h3 style="margin:0;flex-shrink:0;">✨ 今日のオススメ</h3>
+    <h3 style="margin:0;flex-shrink:0;font-size:36px;">✨ 今日のオススメ</h3>
     <button onclick="randomVideo()" class="headerBtn" style="margin:0;flex-shrink:0;">更新 ›</button>
     <input id="searchInput" placeholder="🔍 チャンネル内検索..." style="width:140px;flex:0 1 140px;font-size:12px;padding:5px 10px;">
     <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
@@ -1446,10 +1467,10 @@
     <div id="historyArea"></div>
     <div id="favoritesArea" style="display:none;"></div>
     <div id="historyActions" style="border-bottom:1px solid var(--sidebar-border); padding-bottom:10px; margin-top:20px; margin-bottom:10px; text-align:center;">
-      <button onclick="resetHistory()" style="font-size:12px; padding:6px 16px; margin:0; border-radius:12px; box-shadow:none;">🗑 視聴済み全リセット</button>
+      <button onclick="resetHistory()" style="font-size:24px; padding:12px 32px; margin:0; border-radius:12px; box-shadow:none;">🗑 視聴済み全リセット</button>
     </div>
     <div id="favActions" style="display:none; border-bottom:1px solid var(--sidebar-border); padding-bottom:10px; margin-top:20px; margin-bottom:10px; text-align:center;">
-      <button onclick="resetFavorites()" style="font-size:12px; padding:6px 16px; margin:0; border-radius:12px; box-shadow:none;">🗑 お気に入り全リセット</button>
+      <button onclick="resetFavorites()" style="font-size:24px; padding:12px 32px; margin:0; border-radius:12px; box-shadow:none;">🗑 お気に入り全リセット</button>
     </div>
   </div>
 
@@ -1457,7 +1478,7 @@
     <div style="display:flex;align-items:center;">
       <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉" style="flex-shrink:0;">☰</button>
       <div style="flex:1;text-align:center;">
-        <button onclick="removeChannel()" style="background:none;border:none;color:#e53935;font-size:13px;cursor:pointer;box-shadow:none;padding:6px 12px;margin:0;font-family:inherit;">🗑 このチャンネルを削除する</button>
+        <button onclick="removeChannel()" style="background:none;border:none;color:#e53935;font-size:26px;cursor:pointer;box-shadow:none;padding:12px 24px;margin:0;font-family:inherit;">🗑 このチャンネルを削除する</button>
       </div>
       <div style="width:48px;flex-shrink:0;"></div>
     </div>
@@ -1483,7 +1504,7 @@ applyTheme(localStorage.getItem("theme") || "pink");
 themeSelect.onchange = () => applyTheme(themeSelect.value);
 
 /* ===== モーダル トグル共通 ===== */
-const CONTENT_MODALS = ['helpModal', 'meritModal', 'statusModal', 'aiModal', 'levelModal'];
+const CONTENT_MODALS = ['helpModal', 'meritModal', 'statusModal', 'aiModal', 'levelModal', 'settingsModal'];
 
 const MODAL_BTN_MAP = {
   helpModal: 'helpBtn',
@@ -1491,6 +1512,7 @@ const MODAL_BTN_MAP = {
   statusModal: 'statusBtn',
   levelModal: 'levelBadge',
   aiModal: 'aiBtn',
+  settingsModal: 'settingsBtn',
 };
 
 function clearAllBtnActive() {
@@ -1558,6 +1580,46 @@ function closeMerit() { closeAllModals(); }
 const statusBtn = document.getElementById("statusBtn");
 statusBtn.onclick = () => toggleModal('statusModal');
 function closeStatus() { closeAllModals(); }
+
+function updateSettingsModal() {
+  const infoEl = document.getElementById('settingsAccountInfo');
+  if (!infoEl) return;
+  const icon = document.getElementById('userIcon');
+  if (isGuest) {
+    infoEl.innerHTML = `
+      <div style="margin-bottom:12px;">
+        <div style="font-size:15px;font-weight:500;margin-bottom:4px;">👤 ゲスト</div>
+        <div style="font-size:12px;color:var(--text-light);">ローカル保存中（ブラウザを消すとデータが消える可能性あり）</div>
+      </div>
+      <button onclick="closeAllModals();document.getElementById('login').style.display='block';document.getElementById('overlay').style.display='block';" style="font-size:14px;padding:8px 18px;border-radius:12px;box-shadow:none;margin:0;">🔑 アカウントにログイン</button>
+    `;
+  } else if (currentUser) {
+    let iconHtml = `<div style="width:44px;height:44px;border-radius:50%;background:#aaa;flex-shrink:0;"></div>`;
+    if (icon && icon.style.backgroundImage) {
+      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background-image:${icon.style.backgroundImage};background-size:cover;background-position:center;"></div>`;
+    } else if (icon && icon.style.background) {
+      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background:${icon.style.background};"></div>`;
+    }
+    infoEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        ${iconHtml}
+        <div>
+          <div style="font-size:14px;font-weight:500;">${currentUser}</div>
+          <div style="font-size:12px;color:var(--text-light);">ログイン中</div>
+        </div>
+      </div>
+      <button onclick="logout();closeAllModals();" style="font-size:14px;padding:8px 18px;border-radius:12px;box-shadow:none;margin:0;">🚪 ログアウト</button>
+    `;
+  } else {
+    infoEl.innerHTML = `
+      <div style="font-size:14px;color:var(--text-light);margin-bottom:12px;">未ログイン</div>
+      <button onclick="closeAllModals();document.getElementById('login').style.display='block';document.getElementById('overlay').style.display='block';" style="font-size:14px;padding:8px 18px;border-radius:12px;box-shadow:none;margin:0;">🔑 ログイン</button>
+    `;
+  }
+}
+
+const settingsBtn = document.getElementById('settingsBtn');
+settingsBtn.onclick = () => toggleModal('settingsModal', updateSettingsModal);
 
 function toggleMenu() {
   if (!currentUser) return;
