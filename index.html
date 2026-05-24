@@ -965,8 +965,16 @@
         padding: 6px 14px;
         min-height: 62px;
       }
+      #appTitle {
+        flex: 1;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
       #appTitle .headerBtn {
-        display: none;
+        flex-shrink: 0;
+        font-size: 15px;
+        padding: 9px 16px;
+        min-height: 40px;
       }
       #appName {
         font-size: 20px;
@@ -1009,6 +1017,16 @@
         font-size: 22px;
         padding: 14px 22px;
         min-height: 56px;
+      }
+      #login {
+        width: calc(100vw - 48px);
+        max-width: 380px;
+        box-sizing: border-box;
+      }
+      #login button {
+        font-size: 15px;
+        padding: 12px 16px;
+        min-height: 44px;
       }
       input {
         font-size: 16px;
@@ -1165,9 +1183,9 @@
   <div id="appTitle">
     <div id="appName">♾️未知リンク</div>
     <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
-    <button id="meritBtn" class="headerBtn">使うメリット✨</button>
-    <button id="helpBtn" class="headerBtn">使い方💡</button>
-    <button id="statusBtn" class="headerBtn">📡 通信状態</button>
+    <button id="meritBtn" class="headerBtn">機能概要</button>
+    <button id="helpBtn" class="headerBtn">使用方法</button>
+    <button id="statusBtn" class="headerBtn">通信状態</button>
   </div>
   <div id="userArea">
     <span id="userEmail" style="display:none;"></span>
@@ -2192,7 +2210,7 @@ function buildVideoCard(v, page) {
     ${v.title}
   </a>
   <div class="videoActions">
-    <button onclick="markAsSeenCard('${v.id}')">✅ 視聴済み</button>
+    <button class="seenCardBtn" onclick="markAsSeenCard('${v.id}')">☑️ 視聴済み</button>
     <button class="favCardBtn" onclick="toggleFavCard('${v.id}')">${isFav ? "❤️ お気に入り" : "🤍 お気に入り"}</button>
   </div>
 </div>`;
@@ -2251,6 +2269,8 @@ function skipCard(id) {
 
 function markAsSeenCard(id) {
   const page = data.pages[getIndex()];
+  const btn = document.querySelector(`.videoCard[data-card-id="${id}"] .seenCardBtn`);
+  if (btn) btn.textContent = "✅ 視聴済み";
   if (!page.seen.includes(id)) {
     page.seen.push(id);
     if (!page.history) page.history = [];
@@ -2259,7 +2279,7 @@ function markAsSeenCard(id) {
     updateProgress();
     updateHistory();
   }
-  replaceCard(id);
+  setTimeout(() => replaceCard(id), 400);
 }
 
 function toggleFavCard(id) {
@@ -2568,7 +2588,7 @@ function updateHistory() {
             <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
             <br>
             <button onclick="toggleFavoriteById('${v.id}')" style="font-size:22px; padding:10px 16px; margin-top:8px; border-radius:12px; box-shadow:none;">${isFav ? '❤️ お気に入り解除' : '🤍 お気に入り追加'}</button>
-            <button onclick="removeFromHistory('${v.id}')" style="font-size:22px; padding:10px 16px; margin-top:8px; border-radius:12px; box-shadow:none;">🗑 履歴から削除</button>
+            <button onclick="removeFromHistory('${v.id}')" style="font-size:22px; padding:10px 16px; margin-top:8px; border-radius:12px; box-shadow:none;">↩️ 視聴済み解除</button>
           </div>
         </div>`;
       }).join("")}
@@ -2579,7 +2599,7 @@ function updateHistory() {
 
 /* ===== 履歴から個別削除 ===== */
 function removeFromHistory(id) {
-  const ok = confirm("この動画を履歴から消すよ。視聴済みからも消えちゃうけど大丈夫？");
+  const ok = confirm("この動画を視聴済みから解除するよ。履歴からも消えちゃうけど大丈夫？");
   if (!ok) return;
   const page = data.pages[getIndex()];
   page.history = (page.history || []).filter(e => e.id !== id);
