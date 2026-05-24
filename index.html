@@ -805,6 +805,25 @@
       width: 100%;
     }
 
+    .videoCard.viewed {
+      opacity: 0.72;
+    }
+
+    .viewedOverlay {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 26px;
+      background: rgba(0,0,0,0.55);
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
     /* 動画アクションボタン */
     .videoActions {
       display: flex;
@@ -1110,9 +1129,8 @@
     <p><b>更新ボタンを押す</b><br>
     タブで選んだ範囲からランダムで3本選んで表示します。</p>
 
-    <p><b>サムネイルをタップして再生</b><br>
-    サムネイルをタップすると動画が開いて「視聴済み」に記録されます。<br>
-    タイトルのリンクから直接開いた場合は記録されません。</p>
+    <p><b>サムネイルまたはタイトルをタップして再生</b><br>
+    サムネイルかタイトルをタップすると動画が開き、自動で「視聴済み」に記録されます。カードに ✅ マークが表示されます。</p>
 
     <h3>🏆 レベルシステム</h3>
     <p>動画を視聴するとレベルが上がります。ヘッダーの「Lv.バッジ」をタップするとレベル一覧と次のレベルまでの本数が確認できます。</p>
@@ -1331,7 +1349,6 @@
     <h3 style="margin:0;flex-shrink:0;font-size:36px;">✨ 今日のオススメ</h3>
     <button onclick="randomVideo()" class="headerBtn" style="margin:0;flex-shrink:0;">更新 ›</button>
   </div>
-  <p class="videoHint" style="margin-top:14px;">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます<br>🔗 タイトルのリンクから直接開いた場合は記録されません</p>
 
   <div id="videoArea"></div>
 
@@ -2096,7 +2113,7 @@ function buildVideoCard(v, page) {
     <img src="${v.thumb}">
     <div class="playBtn">▶</div>
   </div>
-  <a href="https://youtube.com/watch?v=${v.id}" target="_blank" style="display:block;margin-top:8px;font-size:28px;line-height:1.4;">
+  <a href="#" onclick="event.preventDefault();openVideoById('${v.id}')" style="display:block;margin-top:8px;font-size:28px;line-height:1.4;color:var(--link-color);text-decoration:none;">
     ${v.title}
   </a>
   <div class="videoActions">
@@ -2114,12 +2131,27 @@ function showVideoCards(vids) {
 
 function openVideoById(id) {
   const page = data.pages[getIndex()];
-  if (!page.seen.includes(id)) page.seen.push(id);
-  if (!page.history) page.history = [];
-  page.history.push({ id, at: Date.now() });
-  save();
-  updateProgress();
-  updateHistory();
+  if (!page.seen.includes(id)) {
+    page.seen.push(id);
+    if (!page.history) page.history = [];
+    page.history.push({ id, at: Date.now() });
+    save();
+    updateProgress();
+    updateHistory();
+  }
+  const card = document.querySelector(`.videoCard[data-card-id="${id}"]`);
+  if (card) {
+    card.classList.add('viewed');
+    const thumbBox = card.querySelector('.thumbBox');
+    if (thumbBox && !thumbBox.querySelector('.viewedOverlay')) {
+      const overlay = document.createElement('div');
+      overlay.className = 'viewedOverlay';
+      overlay.textContent = '✅';
+      thumbBox.appendChild(overlay);
+    }
+    const seenBtn = card.querySelector('.seenCardBtn');
+    if (seenBtn) seenBtn.textContent = '✅ 視聴済み';
+  }
   window.open("https://youtube.com/watch?v=" + id);
 }
 
