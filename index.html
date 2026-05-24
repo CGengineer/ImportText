@@ -523,17 +523,21 @@
     }
 
     #sidebarToggle {
-      font-size: 20px;
-      width: 42px;
-      height: 42px;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 0;
       margin: 0;
-      box-shadow: none;
-      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+      z-index: 998;
     }
 
     #editCh {
@@ -1026,9 +1030,10 @@
         min-height: 40px;
       }
       #sidebarToggle {
-        width: 46px;
-        height: 46px;
+        width: 52px;
+        height: 52px;
         font-size: 22px;
+        bottom: 16px;
       }
       .videoHint {
         font-size: 12px;
@@ -1082,10 +1087,10 @@
       <option value="gray">🩶 グレー</option>
       <option value="dark">🌙 ダーク</option>
     </select>
-    <span id="userEmail"></span>
     <button id="aiBtn" class="headerBtn" style="margin:0;" title="AIアシスタント">🤖 AI</button>
-    <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
+    <span id="userEmail"></span>
     <div id="userIcon" onclick="toggleMenu()"></div>
+    <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
   </div>
 </div>
 
@@ -1298,11 +1303,11 @@
   <div id="pageList"></div>
 </div>
 
+<button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
+
 <div id="main">
   <div id="topControls">
     <button id="editCh">チャンネルID設定</button>
-    <button id="urlToChBtn" class="headerBtn" style="margin:0;white-space:nowrap;">🔗 URLから取得</button>
-    <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
   </div>
   <h1 id="title"></h1>
 
@@ -1322,7 +1327,7 @@
     <input id="searchInput" placeholder="🔍 検索..." style="width:140px;flex:0 1 140px;font-size:12px;padding:5px 10px;">
     <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
   </div>
-  <p class="videoHint">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます&nbsp;&nbsp;🔗 タイトルのリンクから直接開いた場合は記録されません</p>
+  <p class="videoHint" style="margin-top:14px;">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます&nbsp;&nbsp;🔗 タイトルのリンクから直接開いた場合は記録されません</p>
 
   <div id="videoArea"></div>
 
@@ -1943,11 +1948,7 @@ function buildVideoCard(v, page) {
   return `
 <div class="videoCard" data-card-id="${v.id}">
   <div class="thumbBox" data-thumb="${v.thumb}" data-vid="${v.id}"
-    onmouseenter="startThumbPreview(this,'${v.id}')"
-    onmouseleave="stopThumbPreview(this)"
-    ontouchstart="event.preventDefault();startThumbPreview(this,'${v.id}')"
-    ontouchcancel="stopThumbPreview(this)"
-    onclick="openVideoById('${v.id}')">
+    onclick="openVideoById('${v.id}')" style="cursor:pointer;">
     <img src="${v.thumb}">
     <div class="playBtn">▶</div>
   </div>
@@ -2132,33 +2133,6 @@ function toggleSidebar() {
   btn.addEventListener("mouseleave", hideTooltip);
 })();
 
-/* ===== サムネイルホバープレビュー ===== */
-let _activePreviewContainer = null;
-
-function startThumbPreview(container, videoId, clickFn) {
-  // モバイル（画面幅680px以下）では直接動画を開く
-  if (window.innerWidth <= 680) {
-    const vid = container.dataset.vid || videoId;
-    if (container.dataset.vid) openVideoById(vid);
-    else window.open('https://youtube.com/watch?v=' + vid);
-    return;
-  }
-  if (_activePreviewContainer && _activePreviewContainer !== container) {
-    stopThumbPreview(_activePreviewContainer);
-  }
-  _activePreviewContainer = container;
-  const vid = container.dataset.vid || videoId;
-  const handler = clickFn !== undefined ? clickFn
-    : (container.dataset.vid ? `openVideoById('${vid}')` : `window.open('https://youtube.com/watch?v=${vid}')`);
-  container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0&playsinline=1" style="width:100%;aspect-ratio:16/9;border:none;border-radius:6px;display:block;pointer-events:none;" allow="autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe><div style="position:absolute;inset:0;cursor:pointer;" onclick="event.stopPropagation();${handler}"></div><button style="position:absolute;top:4px;right:4px;z-index:10;background:rgba(0,0,0,0.7);color:white;border:none;border-radius:50%;width:26px;height:26px;font-size:13px;cursor:pointer;padding:0;line-height:1;box-shadow:none;min-height:unset;" onclick="event.stopPropagation();stopThumbPreview(this.parentElement)">✕</button>`;
-}
-
-function stopThumbPreview(container) {
-  if (!container) return;
-  if (_activePreviewContainer === container) _activePreviewContainer = null;
-  const thumb = container.dataset.thumb;
-  container.innerHTML = `<img src="${thumb}" alt="" style="width:100%;border-radius:6px;display:block;"><div class="playBtn">▶</div>`;
-}
 
 /* ===== タブ切り替え ===== */
 function switchTab(tab) {
@@ -2191,11 +2165,7 @@ function updateFavorites() {
   favArea.innerHTML = favVideos.map(v => `
     <div class="historyItem">
       <div class="historyThumb" data-thumb="${v.thumb}"
-        onmouseenter="startThumbPreview(this,'${v.id}')"
-        onmouseleave="stopThumbPreview(this)"
-        ontouchstart="event.preventDefault();startThumbPreview(this,'${v.id}')"
-        ontouchcancel="stopThumbPreview(this)"
-        onclick="window.open('https://youtube.com/watch?v=${v.id}')">
+        onclick="window.open('https://youtube.com/watch?v=${v.id}')" style="cursor:pointer;">
         <img src="${v.thumb}" alt="">
         <div class="playBtn">▶</div>
       </div>
@@ -2353,11 +2323,7 @@ function updateHistory() {
         return `
         <div class="historyItem">
           <div class="historyThumb" data-thumb="${v.thumb}"
-            onmouseenter="startThumbPreview(this,'${v.id}')"
-            onmouseleave="stopThumbPreview(this)"
-            ontouchstart="event.preventDefault();startThumbPreview(this,'${v.id}')"
-            ontouchcancel="stopThumbPreview(this)"
-            onclick="window.open('https://youtube.com/watch?v=${v.id}')">
+            onclick="window.open('https://youtube.com/watch?v=${v.id}')" style="cursor:pointer;">
             <img src="${v.thumb}" alt="">
             <div class="playBtn">▶</div>
           </div>
@@ -2432,31 +2398,6 @@ document.getElementById("guestLoginBtn").onclick = () => {
   icon.style.background = "#888888";
   icon.style.backgroundImage = "none";
   initApp();
-};
-
-/* ===== URLからチャンネルID取得ボタン ===== */
-document.getElementById("urlToChBtn").onclick = async () => {
-  const url = prompt("YouTubeのチャンネルURL または 動画URLを入力\n\n例①（チャンネル）:\nhttps://youtube.com/@channelname\n\n例②（動画URL）:\nhttps://youtube.com/watch?v=xxxxxx");
-  if (!url) return;
-  showLoading("チャンネルIDを解析中…");
-  const id = await resolveChannelId(url.trim());
-  hideLoading();
-  if (!id || !id.startsWith("UC")) {
-    alert("チャンネルIDを取得できませんでした。\nURLを確認してください。");
-    return;
-  }
-  const i = getIndex();
-  const p = data.pages[i];
-  const oldChId = p.channelId;
-  if (oldChId !== id) deleteChannelData(p.title);
-  p.channelId = id;
-  p.seen = [];
-  p.videos = [];
-  videos = [];
-  render();
-  showLoading("保存中…");
-  await savePage(p);
-  await loadVideo();
 };
 
 /* ===== URL からチャンネルID解析 ===== */
@@ -2625,7 +2566,7 @@ async function sendAiMessage() {
       contents: aiHistory,
       generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
     };
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reqBody)
