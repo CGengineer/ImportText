@@ -596,17 +596,6 @@
       margin-top: 20px;
     }
 
-    /* 検索モード：横スクロール */
-    #videoArea.searchMode {
-      display: flex;
-      flex-wrap: nowrap;
-      overflow-x: scroll;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 8px;
-      align-items: stretch;
-      scrollbar-width: thin;
-    }
-
     .thumbBox {
       position: relative;
       width: 300px;
@@ -822,16 +811,6 @@
       flex-direction: column;
     }
 
-    /* 検索モード時のカードはビューポートの1/3 */
-    #videoArea.searchMode .videoCard {
-      flex-grow: 0;
-      flex-shrink: 0;
-      flex-basis: calc(33.33vw - 20px);
-      width: calc(33.33vw - 20px);
-      min-width: calc(33.33vw - 20px);
-      max-width: calc(33.33vw - 20px);
-    }
-
     .videoCard .thumbBox {
       width: 100%;
     }
@@ -868,18 +847,6 @@
       display: inline-block;
       cursor: pointer;
       user-select: none;
-    }
-
-    /* 検索入力 */
-    #searchInput {
-      flex: 1;
-      min-width: 0;
-      font-size: 24px;
-      transition: box-shadow 0.3s ease;
-    }
-
-    #searchInput::placeholder {
-      color: var(--text-light);
     }
 
     /* チャンネル設定未設定時グロー */
@@ -1261,9 +1228,6 @@
     <p><b>更新ボタンを押す</b><br>
     タブで選んだ範囲からランダムで3本選んで表示します。</p>
 
-    <h3>🔍 チャンネル内検索</h3>
-    <p>「今日のオススメ」横の検索欄にキーワードを入力すると、タイトルでフィルタリングできます。現在のタブ（未視聴・視聴済み・お気に入り）に合わせた絞り込みになります。</p>
-
     <h3>🏆 レベルシステム</h3>
     <p>動画を視聴するとレベルが上がります。ヘッダーの「Lv.バッジ」をタップするとレベル一覧と次のレベルまでの本数が確認できます。</p>
   </div>
@@ -1492,8 +1456,6 @@
 
   <div style="display:flex;align-items:center;gap:8px;margin:24px 0 4px;flex-wrap:wrap;">
     <h3 style="margin:0;flex-shrink:0;font-size:36px;">✨ 今日のオススメ</h3>
-    <input id="searchInput" placeholder="🔍 チャンネル内検索..." style="width:220px;flex:0 1 220px;font-size:24px;padding:8px 14px;">
-    <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
   </div>
   <div id="videoArea"></div>
 
@@ -2397,7 +2359,6 @@ function showVideoCards(vids) {
   const page = data.pages[getIndex()];
   currentVideos = vids.map(v => v.id);
   const area = document.getElementById("videoArea");
-  area.classList.remove("searchMode");
   const cols = Math.min(vids.length, parseInt(localStorage.getItem('videoCardCount') || '3'));
   area.style.setProperty('--card-cols', cols);
   area.innerHTML = vids.map(v => buildVideoCard(v, page)).join("");
@@ -2502,7 +2463,7 @@ function toggleVideoFilter(filter) {
     videoFilters.add(filter);
   }
   updateFilterButtons();
-  if (searchQuery) { showSearchResults(); } else { randomVideo(); }
+  randomVideo();
 }
 
 function updateFilterButtons() {
@@ -3024,7 +2985,6 @@ const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTub
 - 未視聴・視聴済み・お気に入りタブで絞り込みランダム再生
 - 視聴履歴の時系列管理（今日・昨日・1週間前など）
 - 連続視聴日数の記録（ストリーク）
-- チャンネル内検索機能（「今日のオススメ」横の検索欄）
 - ゲストログイン（ブラウザのローカルストレージに保存）とGoogleログイン・メールログイン
 - ゲストから本アカウントへのデータ引き継ぎ機能
 - レベルシステム（視聴本数に応じてLv.1〜100に上昇、ヘッダーのLv.バッジをタップで確認）
@@ -3117,42 +3077,6 @@ async function sendAiMessage() {
 
 document.getElementById("aiBtn").onclick = openAiModal;
 
-/* ===== チャンネル内検索 ===== */
-let searchQuery = "";
-
-document.getElementById("searchInput").addEventListener("input", function() {
-  searchQuery = this.value.trim().toLowerCase();
-  const clearBtn = document.getElementById("clearSearchBtn");
-  clearBtn.style.display = searchQuery ? "inline-block" : "none";
-  if (searchQuery) {
-    showSearchResults();
-  } else {
-    randomVideo();
-  }
-});
-
-function clearSearch() {
-  searchQuery = "";
-  document.getElementById("searchInput").value = "";
-  document.getElementById("clearSearchBtn").style.display = "none";
-  randomVideo();
-}
-
-function showSearchResults() {
-  if (!searchQuery || !videos.length) return;
-  const results = videos.filter(v => v.title.toLowerCase().includes(searchQuery));
-  const area = document.getElementById("videoArea");
-  if (!results.length) {
-    area.classList.remove("searchMode");
-    area.innerHTML = `<p style="color:var(--text-light);font-size:13px;">「${searchQuery}」に一致する動画が見つかりません</p>`;
-    return;
-  }
-  const page = data.pages[getIndex()];
-  currentVideos = results.map(v => v.id);
-  // 常に横スクロール（カード幅はCSSのvwで制御）
-  area.classList.add("searchMode");
-  area.innerHTML = results.map(v => buildVideoCard(v, page)).join("");
-}
 
 async function initApp() {
   if (isGuest) {
