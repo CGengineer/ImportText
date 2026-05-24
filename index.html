@@ -223,28 +223,13 @@
       border-radius: 50%;
       background: #aaa;
       cursor: pointer;
+      transition: box-shadow 0.15s ease;
     }
 
-    #userMenu {
-      position: absolute;
-      top: 50px;
-      right: 16px;
-      background: var(--menu-bg);
-      border: 1px solid var(--header-border);
-      border-radius: 6px;
-      display: none;
-      z-index: 1001;
+    #userIcon.btn-active {
+      box-shadow: 0 0 0 3px var(--btn-border);
     }
 
-    #userMenu div {
-      padding: 8px 12px;
-      cursor: pointer;
-      color: var(--text-color);
-    }
-
-    #userMenu div:hover {
-      background: var(--menu-hover);
-    }
 
     /* ボタン */
     button {
@@ -1146,9 +1131,6 @@
   </div>
 </div>
 
-<div id="userMenu">
-  <div onclick="logout()">別のアカウントでログイン</div>
-</div>
 
 <div id="loading">
   <div id="loadingCard">
@@ -1486,6 +1468,7 @@ function clearAllBtnActive() {
   Object.values(MODAL_BTN_MAP).forEach(btnId => {
     document.getElementById(btnId)?.classList.remove('btn-active');
   });
+  document.getElementById('userIcon')?.classList.remove('btn-active');
 }
 
 function closeAllModals() {
@@ -1522,8 +1505,18 @@ document.getElementById('overlay').addEventListener('click', () => {
   const anyOpen = CONTENT_MODALS.some(id =>
     document.getElementById(id).classList.contains('modal-visible')
   );
-  if (anyOpen) closeAllModals();
+  if (anyOpen) {
+    closeAllModals();
+  } else if (currentUser && document.getElementById('login').style.display === 'block') {
+    closeLoginPopup();
+  }
 });
+
+function closeLoginPopup() {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('userIcon').classList.remove('btn-active');
+}
 
 const helpBtn = document.getElementById("helpBtn");
 helpBtn.onclick = () => toggleModal('helpModal');
@@ -1538,8 +1531,16 @@ statusBtn.onclick = () => toggleModal('statusModal');
 function closeStatus() { closeAllModals(); }
 
 function toggleMenu() {
-  const menu = document.getElementById("userMenu");
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
+  if (!currentUser) return;
+  const loginEl = document.getElementById('login');
+  const isOpen = loginEl.style.display === 'block';
+  if (isOpen) {
+    closeLoginPopup();
+  } else {
+    loginEl.style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('userIcon').classList.add('btn-active');
+  }
 }
 
 function logout() {
