@@ -813,10 +813,10 @@
       flex-direction: column;
     }
 
-    /* 検索モード時のカードは固定幅 */
+    /* 検索モード時のカードは3枚見える幅 */
     #videoArea.searchMode .videoCard {
-      flex: 0 0 280px;
-      width: 280px;
+      flex: 0 0 calc(100% / 3 - 7px);
+      width: calc(100% / 3 - 7px);
     }
 
     .videoCard .thumbBox {
@@ -869,14 +869,13 @@
       color: var(--text-light);
     }
 
-    #searchInput.multiFilterActive {
-      box-shadow: 0 0 0 2px var(--btn-border), 0 0 14px rgba(230,100,180,0.5);
-      animation: searchGlow 2s ease-in-out infinite;
+    /* チャンネル設定未設定時グロー */
+    #editCh.needsSetup {
+      animation: editChGlow 2s ease-in-out infinite;
     }
-
-    @keyframes searchGlow {
-      0%, 100% { box-shadow: 0 0 0 2px var(--btn-border), 0 0 10px rgba(230,100,180,0.4); }
-      50%       { box-shadow: 0 0 0 2px var(--btn-border), 0 0 22px rgba(230,100,180,0.75); }
+    @keyframes editChGlow {
+      0%, 100% { box-shadow: 0 0 0 2px var(--btn-border), 0 0 10px rgba(100,180,255,0.5); }
+      50%       { box-shadow: 0 0 0 2px var(--btn-border), 0 0 22px rgba(100,180,255,0.85); }
     }
 
     /* チャンネルアイコン */
@@ -2129,6 +2128,10 @@ function render() {
     p.channelIcon = null; // fetching
     fetchAndSetChannelIcon(p);
   }
+
+  // チャンネル未設定ならチャンネル設定ボタンをグロー
+  const editChBtn = document.getElementById('editCh');
+  if (editChBtn) editChBtn.classList.toggle('needsSetup', !p.channelId);
 }
 
 async function fetchAndSetChannelIcon(page) {
@@ -2489,7 +2492,6 @@ function updateFilterButtons() {
   document.getElementById("filterUnseen").classList.toggle("active", videoFilters.has('unseen'));
   document.getElementById("filterSeen").classList.toggle("active", videoFilters.has('seen'));
   document.getElementById("filterFav").classList.toggle("active", videoFilters.has('favorites'));
-  document.getElementById('searchInput').classList.toggle('multiFilterActive', videoFilters.size > 1);
 }
 
 /* ===== ランダム ===== */
