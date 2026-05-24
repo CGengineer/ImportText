@@ -2,6 +2,12 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="未知リンク">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#ffd0e6">
   <title>♾️未知リンク</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♾️</text></svg>">
 
@@ -533,6 +539,7 @@
       width: 100%;
       margin-bottom: 10px;
       cursor: grab;
+      font-size: 21px;
     }
 
     #pageList button.dragOver {
@@ -552,7 +559,10 @@
       display: flex;
       gap: 10px;
       margin-top: 20px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
     }
 
     .thumbBox {
@@ -766,7 +776,7 @@
       border-radius: 12px;
       padding: 12px;
       flex: 1;
-      min-width: 200px;
+      min-width: 300px;
       display: flex;
       flex-direction: column;
     }
@@ -978,7 +988,7 @@
         padding: 8px;
       }
       .videoCard {
-        min-width: 100%;
+        min-width: 280px;
       }
       #topControls {
         gap: 6px;
@@ -1396,7 +1406,7 @@
 </div>
 
 <div id="sidebar">
-  <button id="add" style="width:100%;border-radius:14px;padding:14px 16px;font-size:28px;font-weight:bold;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+  <button id="add" style="width:100%;border-radius:14px;padding:14px 16px;font-size:20px;font-weight:bold;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
     <span>新規チャンネル追加</span>
     <span style="font-size:26px;line-height:1;">+</span>
   </button>
@@ -2974,6 +2984,64 @@ async function initApp() {
   setIndex(0);
   updateLevel();
 }
+
+/* ===== PWA ホームスクリーンアイコン ===== */
+(function() {
+  function generateAppIcon(size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const r = size * 0.22;
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    ctx.lineTo(size - r, 0);
+    ctx.arcTo(size, 0, size, r, r);
+    ctx.lineTo(size, size - r);
+    ctx.arcTo(size, size, size - r, size, r);
+    ctx.lineTo(r, size);
+    ctx.arcTo(0, size, 0, size - r, r);
+    ctx.lineTo(0, r);
+    ctx.arcTo(0, 0, r, 0, r);
+    ctx.closePath();
+    ctx.fillStyle = '#ffd0e6';
+    ctx.fill();
+    ctx.font = `${Math.round(size * 0.56)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('♾️', size / 2, size / 2 + size * 0.04);
+    return canvas.toDataURL('image/png');
+  }
+
+  const icon180 = generateAppIcon(180);
+  if (!icon180) return;
+
+  const touchIcon = document.createElement('link');
+  touchIcon.rel = 'apple-touch-icon';
+  touchIcon.href = icon180;
+  document.head.appendChild(touchIcon);
+
+  try {
+    const manifest = {
+      name: '♾️未知リンク',
+      short_name: '未知リンク',
+      icons: [
+        { src: generateAppIcon(192), sizes: '192x192', type: 'image/png' },
+        { src: generateAppIcon(512), sizes: '512x512', type: 'image/png' }
+      ],
+      start_url: location.href,
+      display: 'standalone',
+      background_color: '#ffd0e6',
+      theme_color: '#ffd0e6'
+    };
+    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = URL.createObjectURL(blob);
+    document.head.appendChild(manifestLink);
+  } catch(e) {}
+})();
 
 </script>
 
