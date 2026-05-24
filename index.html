@@ -934,6 +934,44 @@
       color: var(--text-color);
     }
 
+    /* AI FAB */
+    #aiBtn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1003;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      background: var(--btn-bg);
+      border: 2px solid var(--btn-border);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    #aiBtn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    #aiBtn:active {
+      transform: scale(0.95);
+    }
+
+    /* モーダル開くアニメーション */
+    @keyframes modalDrop {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .modal-anim {
+      animation: modalDrop 0.22s ease forwards;
+    }
+
     /* モバイル対応 */
     @media (max-width: 680px) {
       #header {
@@ -1069,6 +1107,13 @@
       #aiModal {
         height: calc(100vh - 52px);
       }
+      #aiBtn {
+        bottom: 16px;
+        right: 16px;
+        width: 50px;
+        height: 50px;
+        font-size: 22px;
+      }
     }
   </style>
 
@@ -1093,7 +1138,6 @@
       <option value="gray">🩶 グレー</option>
       <option value="dark">🌙 ダーク</option>
     </select>
-    <button id="aiBtn" class="headerBtn" style="margin:0;" title="AIアシスタント">🤖 AI</button>
     <span id="userEmail"></span>
     <div id="userIcon" onclick="toggleMenu()"></div>
     <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
@@ -1307,6 +1351,9 @@
   </div>
 </div>
 
+<!-- AI FAB -->
+<button id="aiBtn" title="AIアシスタント">🤖</button>
+
 <!-- AIアシスタントモーダル -->
 <div id="aiModal">
   <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px;border-bottom:1px solid var(--modal-border);flex-shrink:0;">
@@ -1442,7 +1489,11 @@ themeSelect.onchange = () => applyTheme(themeSelect.value);
 const CONTENT_MODALS = ['helpModal', 'meritModal', 'statusModal', 'aiModal', 'levelModal'];
 
 function closeAllModals() {
-  CONTENT_MODALS.forEach(id => document.getElementById(id).style.display = 'none');
+  CONTENT_MODALS.forEach(id => {
+    const el = document.getElementById(id);
+    el.style.display = 'none';
+    el.classList.remove('modal-anim');
+  });
   document.getElementById('overlay').style.display = 'none';
 }
 
@@ -1453,6 +1504,9 @@ function toggleModal(id, onOpen) {
   if (!isOpen) {
     if (onOpen) onOpen();
     el.style.display = 'flex';
+    el.classList.remove('modal-anim');
+    void el.offsetWidth;
+    el.classList.add('modal-anim');
     document.getElementById('overlay').style.display = 'block';
   }
 }
