@@ -600,10 +600,11 @@
     #videoArea.searchMode {
       display: flex;
       flex-wrap: nowrap;
-      overflow-x: auto;
+      overflow-x: scroll;
       -webkit-overflow-scrolling: touch;
       padding-bottom: 8px;
       align-items: stretch;
+      scrollbar-width: thin;
     }
 
     .thumbBox {
@@ -821,10 +822,14 @@
       flex-direction: column;
     }
 
-    /* 検索モード時のカード幅はJSで計算したコンテナ1/3 */
+    /* 検索モード時のカードはビューポートの1/3 */
     #videoArea.searchMode .videoCard {
-      flex: 0 0 var(--search-card-width, 280px);
-      width: var(--search-card-width, 280px);
+      flex-grow: 0;
+      flex-shrink: 0;
+      flex-basis: calc(33.33vw - 20px);
+      width: calc(33.33vw - 20px);
+      min-width: calc(33.33vw - 20px);
+      max-width: calc(33.33vw - 20px);
     }
 
     .videoCard .thumbBox {
@@ -3140,16 +3145,12 @@ function showSearchResults() {
   const area = document.getElementById("videoArea");
   if (!results.length) {
     area.classList.remove("searchMode");
-    area.style.removeProperty('--search-card-width');
     area.innerHTML = `<p style="color:var(--text-light);font-size:13px;">「${searchQuery}」に一致する動画が見つかりません</p>`;
     return;
   }
   const page = data.pages[getIndex()];
   currentVideos = results.map(v => v.id);
-  // 常に横スクロール、カード幅はコンテナ実幅の1/3
-  area.classList.remove("searchMode");
-  const cardWidth = Math.floor(area.offsetWidth / 3) - 7;
-  area.style.setProperty('--search-card-width', cardWidth + 'px');
+  // 常に横スクロール（カード幅はCSSのvwで制御）
   area.classList.add("searchMode");
   area.innerHTML = results.map(v => buildVideoCard(v, page)).join("");
 }
