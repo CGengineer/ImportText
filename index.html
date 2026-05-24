@@ -1378,12 +1378,15 @@
     </div>
   </div>
 
-  <div style="padding:24px 0 0;border-top:1px solid var(--sidebar-border);margin-top:24px;">
-    <div style="display:flex;align-items:center;gap:12px;padding-bottom:16px;">
-      <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
-      <button onclick="removeChannel()" style="background:none;border:none;color:#e53935;font-size:13px;cursor:pointer;box-shadow:none;padding:6px 12px;margin:0;font-family:inherit;">🗑 このチャンネルを削除する</button>
+  <div style="margin-top:24px;padding:20px 0 0;">
+    <div style="display:flex;align-items:center;">
+      <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉" style="flex-shrink:0;">☰</button>
+      <div style="flex:1;text-align:center;">
+        <button onclick="removeChannel()" style="background:none;border:none;color:#e53935;font-size:13px;cursor:pointer;box-shadow:none;padding:6px 12px;margin:0;font-family:inherit;">🗑 このチャンネルを削除する</button>
+      </div>
+      <div style="width:48px;flex-shrink:0;"></div>
     </div>
-    <div style="text-align:center;padding:14px 0 40px;border-top:1px solid var(--history-item-border);font-size:11px;color:var(--text-light);">
+    <div style="text-align:center;padding:14px 0 40px;font-size:11px;color:var(--text-light);">
       Made with ❤️ by <a href="https://www.youtube.com/@Kororin" target="_blank" style="color:var(--text-light);text-decoration:none;font-weight:bold;">@Kororin</a>
     </div>
   </div>
@@ -2578,7 +2581,7 @@ async function sendAiMessage() {
       contents: aiHistory,
       generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
     };
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reqBody)
@@ -2596,7 +2599,7 @@ async function sendAiMessage() {
     aiHistory.push({ role: "model", parts: [{ text: reply }] });
   } catch(e) {
     if (e.message === "QUOTA") {
-      loadingDiv.textContent = "⚠️ AIサービスの無料枠の上限に達しました。しばらく時間をおいてからお試しください。";
+      loadingDiv.textContent = "⚠️ AIが使えません。Google Cloud Console でこのAPIキーのプロジェクトに「Generative Language API」が有効になっているか確認してください。";
     } else {
       loadingDiv.textContent = "エラー: " + e.message;
     }
