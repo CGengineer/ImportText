@@ -259,13 +259,15 @@
       transition: 0.3s;
     }
 
-    button:hover {
-      background: var(--btn-hover);
-      transform: translateY(-2px);
-    }
+    @media (hover: hover) {
+      button:hover {
+        background: var(--btn-hover);
+        transform: translateY(-2px);
+      }
 
-    button:hover::after {
-      opacity: 1;
+      button:hover::after {
+        opacity: 1;
+      }
     }
 
     button:active {
@@ -690,7 +692,7 @@
       font-size: 26px;
       padding: 12px 28px;
       margin: 0;
-      border-radius: 20px;
+      border-radius: 30px;
       box-shadow: none;
       opacity: 0.55;
     }
@@ -707,7 +709,7 @@
     }
 
     .historyGroupLabel {
-      font-size: 11px;
+      font-size: 22px;
       font-weight: bold;
       color: var(--history-group-color);
       letter-spacing: 0.05em;
@@ -1063,7 +1065,7 @@
         min-height: 56px;
       }
       .historyGroupLabel {
-        font-size: 16px;
+        font-size: 22px;
         padding: 14px 0 6px;
       }
       #sidebarToggle {
@@ -2700,8 +2702,23 @@ function getUserLevel() {
 function updateLevel() {
   const badge = document.getElementById("levelBadge");
   if (!badge) return;
-  badge.textContent = "Lv." + getUserLevel();
+  const lv = getUserLevel();
+  badge.textContent = "Lv." + lv;
   badge.style.display = "inline-block";
+  // color tier by level
+  if (lv >= 91) {
+    badge.style.background = "linear-gradient(135deg, #f43, #f90, #ff0, #0f9, #09f, #93f)";
+  } else if (lv >= 71) {
+    badge.style.background = "linear-gradient(135deg, #ffd700, #ffb300)";
+  } else if (lv >= 51) {
+    badge.style.background = "linear-gradient(135deg, #b0c4de, #778899)";
+  } else if (lv >= 31) {
+    badge.style.background = "linear-gradient(135deg, #a855f7, #7c3aed)";
+  } else if (lv >= 11) {
+    badge.style.background = "linear-gradient(135deg, #3b82f6, #1d4ed8)";
+  } else {
+    badge.style.background = "linear-gradient(135deg, #ff8c00, #ffd700)";
+  }
 }
 
 /* ===== レベルモーダル ===== */
