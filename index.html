@@ -380,9 +380,9 @@
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid var(--modal-border);
-      width: 560px;
-      max-width: 94%;
-      max-height: 50vh;
+      width: 760px;
+      max-width: 96%;
+      max-height: 70vh;
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -2611,7 +2611,7 @@ async function sendAiMessage() {
       ],
       generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
     };
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reqBody)
