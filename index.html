@@ -205,7 +205,7 @@
       align-items: center;
       padding: 0 24px;
       z-index: 1000;
-      flex-wrap: wrap;
+      flex-wrap: nowrap; /* サイドバー開閉で折り返さない */
       gap: 8px;
     }
 
@@ -213,6 +213,9 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex: 1;       /* 可変幅にしてヘッダー内で縮小可能に */
+      min-width: 0;  /* flexで正しく縮むように */
+      overflow: hidden;
     }
 
     #appName {
@@ -225,6 +228,7 @@
       align-items: center;
       gap: 10px;
       font-size: 14px;
+      flex-shrink: 0; /* ユーザーエリアは縮めすぎない */
     }
 
     #userIcon {
@@ -256,6 +260,9 @@
       position: relative;
       overflow: hidden;
     }
+
+    /* ヘッダー内のボタンだけ余白を消して高さ固定を維持 */
+    #header button { margin-bottom: 0; }
 
     button::after {
       content: "";
