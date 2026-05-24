@@ -1071,6 +1071,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 </head>
 
 <body>
@@ -1631,9 +1632,22 @@ function hideLoading() {
 firebase.initializeApp({
   apiKey: "AIzaSyCnkShkUx2dj_nGn2-GuyNGShc5ooh55h8",
   authDomain: "importtext-b229d.firebaseapp.com",
-  projectId: "importtext-b229d"
+  projectId: "importtext-b229d",
+  storageBucket: "importtext-b229d.firebasestorage.app"
 });
 const db = firebase.firestore();
+const storage = firebase.storage();
+
+// Firebase StorageのアイコンをfaviconとApple Touch Iconに適用
+(async function loadFavicon() {
+  try {
+    const url = await storage.ref('916A94F1-98DF-4DB2-AF62-200F47161312.PNG').getDownloadURL();
+    const iconEl = document.querySelector("link[rel='icon']");
+    if (iconEl) iconEl.href = url;
+    const touchEl = document.querySelector("link[rel='apple-touch-icon']");
+    if (touchEl) touchEl.href = url;
+  } catch(e) {}
+})();
 
 /* ===== 設定 ===== */
 const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
