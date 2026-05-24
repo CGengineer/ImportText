@@ -197,7 +197,9 @@
       height: 82px;       /* ← 固定 */
       min-height: unset;  /* ← 伸びないようにする */
       max-height: 82px;   /* ← 念のため */
-      overflow: hidden;   /* ← 中身がはみ出すのを防ぐ */
+      overflow-x: auto;   /* 横方向はスクロール可能にして切れないようにする */
+      overflow-y: hidden; /* 縦にははみ出さない */
+      -webkit-overflow-scrolling: touch;
       background: var(--header-bg);
       border-bottom: 1px solid var(--header-border);
       display: flex;
@@ -215,8 +217,16 @@
       gap: 8px;
       flex: 1;       /* 可変幅にしてヘッダー内で縮小可能に */
       min-width: 0;  /* flexで正しく縮むように */
-      overflow: hidden;
+      overflow-x: auto; /* 横スクロールで見切れを回避 */
+      white-space: nowrap; /* 子要素を横並びで維持 */
+      -webkit-overflow-scrolling: touch;
     }
+
+    /* ヘッダー内の子要素は横スクロール領域内で折り返さない */
+    #appTitle > * { flex: 0 0 auto; }
+
+    /* 長いアプリ名は省略表示 */
+    #appName { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
 
     #appName {
       font-weight: bold;
