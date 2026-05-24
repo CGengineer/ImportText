@@ -839,17 +839,6 @@
       user-select: none;
     }
 
-    /* 検索入力 */
-    #searchInput {
-      flex: 1;
-      min-width: 0;
-      font-size: 24px;
-    }
-
-    #searchInput::placeholder {
-      color: var(--text-light);
-    }
-
     /* AIモーダル（右下ポップアップ） */
     #aiModal {
       position: fixed;
@@ -1125,9 +1114,6 @@
     サムネイルをタップすると動画が開いて「視聴済み」に記録されます。<br>
     タイトルのリンクから直接開いた場合は記録されません。</p>
 
-    <h3>🔍 チャンネル内検索</h3>
-    <p>「今日のオススメ」横の検索欄にキーワードを入力すると、タイトルでフィルタリングできます。現在のタブ（未視聴・視聴済み・お気に入り）に合わせた絞り込みになります。</p>
-
     <h3>🏆 レベルシステム</h3>
     <p>動画を視聴するとレベルが上がります。ヘッダーの「Lv.バッジ」をタップするとレベル一覧と次のレベルまでの本数が確認できます。</p>
   </div>
@@ -1286,6 +1272,15 @@
       <div id="settingsAiToggle"></div>
     </div>
     <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
+    <div style="margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:12px;">🎬 動画カード枚数</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="setCardCount(1)" id="cardCount1" style="flex:1;padding:10px;border-radius:12px;font-size:16px;font-weight:bold;">1枚</button>
+        <button onclick="setCardCount(2)" id="cardCount2" style="flex:1;padding:10px;border-radius:12px;font-size:16px;font-weight:bold;">2枚</button>
+        <button onclick="setCardCount(3)" id="cardCount3" style="flex:1;padding:10px;border-radius:12px;font-size:16px;font-weight:bold;">3枚</button>
+      </div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
     <div>
       <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:12px;">👤 アカウント</div>
       <div id="settingsAccountInfo"></div>
@@ -1335,8 +1330,6 @@
   <div style="display:flex;align-items:center;gap:8px;margin:24px 0 4px;flex-wrap:wrap;">
     <h3 style="margin:0;flex-shrink:0;font-size:36px;">✨ 今日のオススメ</h3>
     <button onclick="randomVideo()" class="headerBtn" style="margin:0;flex-shrink:0;">更新 ›</button>
-    <input id="searchInput" placeholder="🔍 チャンネル内検索..." style="width:220px;flex:0 1 220px;font-size:24px;padding:8px 14px;">
-    <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
   </div>
   <p class="videoHint" style="margin-top:14px;">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます<br>🔗 タイトルのリンクから直接開いた場合は記録されません</p>
 
@@ -1515,6 +1508,7 @@ function toggleAiVisibility(show) {
 }
 
 function updateSettingsModal() {
+  updateCardCountButtons();
   const aiToggleEl = document.getElementById('settingsAiToggle');
   if (aiToggleEl) {
     const aiVisible = localStorage.getItem('aiVisible') !== '0';
@@ -1527,36 +1521,45 @@ function updateSettingsModal() {
   }
   const infoEl = document.getElementById('settingsAccountInfo');
   if (!infoEl) return;
-  const icon = document.getElementById('userIcon');
   if (isGuest) {
     infoEl.innerHTML = `
-      <div style="margin-bottom:12px;">
-        <div style="font-size:15px;font-weight:500;margin-bottom:4px;">👤 ゲスト</div>
-        <div style="font-size:12px;color:var(--text-light);">ローカル保存中（ブラウザを消すとデータが消える可能性あり）</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:#888;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;">👤</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:500;">ゲスト</div>
+          <div style="font-size:11px;color:var(--text-light);">ローカル保存中</div>
+        </div>
+        <button onclick="closeAllModals();document.getElementById('login').style.display='block';document.getElementById('overlay').style.display='block';" style="font-size:13px;padding:8px 14px;border-radius:12px;box-shadow:none;margin:0;flex-shrink:0;">🔑 ログイン</button>
       </div>
-      <button onclick="closeAllModals();document.getElementById('login').style.display='block';document.getElementById('overlay').style.display='block';" style="font-size:14px;padding:8px 18px;border-radius:12px;box-shadow:none;margin:0;">🔑 アカウントにログイン</button>
     `;
   } else if (currentUser) {
-    let iconHtml = `<div style="width:44px;height:44px;border-radius:50%;background:#aaa;flex-shrink:0;"></div>`;
-    if (icon && icon.style.backgroundImage) {
+    const icon = document.getElementById('userIcon');
+    let iconHtml;
+    if (currentUserPhotoURL) {
+      iconHtml = `<img src="${currentUserPhotoURL}" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;object-fit:cover;">`;
+    } else if (icon && icon.style.backgroundImage && icon.style.backgroundImage !== 'none') {
       iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background-image:${icon.style.backgroundImage};background-size:cover;background-position:center;"></div>`;
-    } else if (icon && icon.style.background) {
-      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background:${icon.style.background};"></div>`;
+    } else {
+      const bg = (icon && icon.style.background) ? icon.style.background : '#aaa';
+      iconHtml = `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;background:${bg};"></div>`;
     }
     infoEl.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:12px;">
         ${iconHtml}
-        <div>
-          <div style="font-size:14px;font-weight:500;">${currentUser}</div>
-          <div style="font-size:12px;color:var(--text-light);">ログイン中</div>
+        <div style="flex:1;overflow:hidden;">
+          <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${currentUser}</div>
+          <div style="font-size:11px;color:var(--text-light);">ログイン中</div>
         </div>
+        <button onclick="logout();closeAllModals();" style="font-size:13px;padding:8px 14px;border-radius:12px;box-shadow:none;margin:0;flex-shrink:0;">🚪 ログアウト</button>
       </div>
-      <button onclick="logout();closeAllModals();" style="font-size:14px;padding:8px 18px;border-radius:12px;box-shadow:none;margin:0;">🚪 ログアウト</button>
     `;
   } else {
     infoEl.innerHTML = `
-      <div style="font-size:14px;color:var(--text-light);margin-bottom:12px;">未ログイン</div>
-      <button onclick="closeAllModals();document.getElementById('login').style.display='block';document.getElementById('overlay').style.display='block';" style="font-size:14px;padding:8px 18px;border-radius:12px;box-shadow:none;margin:0;">🔑 ログイン</button>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:#888;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;">👤</div>
+        <div style="flex:1;font-size:14px;color:var(--text-light);">未ログイン</div>
+        <button onclick="closeAllModals();document.getElementById('login').style.display='block';document.getElementById('overlay').style.display='block';" style="font-size:13px;padding:8px 14px;border-radius:12px;box-shadow:none;margin:0;flex-shrink:0;">🔑 ログイン</button>
+      </div>
     `;
   }
 }
@@ -1615,6 +1618,7 @@ const db = firebase.firestore();
 /* ===== 設定 ===== */
 const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
 let currentUser = null;
+let currentUserPhotoURL = null;
 let isGuest = false;
 
 /* ===== 状態 ===== */
@@ -1630,6 +1634,7 @@ async function init() {
   firebase.auth().onAuthStateChanged(async user => {
     if (user) {
       currentUser = user.email || ("guest_" + user.uid);
+      currentUserPhotoURL = user.photoURL || null;
       document.getElementById("login").style.display = "none";
       document.getElementById("overlay").style.display = "none";
       document.getElementById("userEmail").textContent = user.isAnonymous ? "ゲスト" : user.email;
@@ -2217,7 +2222,7 @@ async function randomVideo() {
   }
 
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  const pickCount = window.innerHeight > window.innerWidth ? 1 : 3;
+  const pickCount = parseInt(localStorage.getItem('videoCardCount') || '3');
   const picked = shuffled.slice(0, pickCount);
   showVideoCards(picked);
 }
@@ -2802,45 +2807,23 @@ async function sendAiMessage() {
 
 document.getElementById("aiBtn").onclick = openAiModal;
 
-/* ===== チャンネル内検索 ===== */
-let searchQuery = "";
-
-document.getElementById("searchInput").addEventListener("input", function() {
-  searchQuery = this.value.trim().toLowerCase();
-  const clearBtn = document.getElementById("clearSearchBtn");
-  clearBtn.style.display = searchQuery ? "inline-block" : "none";
-  if (searchQuery) {
-    showSearchResults();
-  } else {
-    randomVideo();
-  }
-});
-
-function clearSearch() {
-  searchQuery = "";
-  document.getElementById("searchInput").value = "";
-  document.getElementById("clearSearchBtn").style.display = "none";
+/* ===== カード枚数設定 ===== */
+function setCardCount(n) {
+  localStorage.setItem('videoCardCount', String(n));
+  updateCardCountButtons();
   randomVideo();
 }
 
-function showSearchResults() {
-  if (!searchQuery || !videos.length) return;
-  const page = data.pages[getIndex()];
-  let pool = videos;
-  if (videoFilter === "unseen") {
-    const skipped = page.skipped || [];
-    pool = videos.filter(v => !page.seen.includes(v.id) && !skipped.includes(v.id));
-  } else if (videoFilter === "seen") {
-    pool = videos.filter(v => page.seen.includes(v.id));
-  } else {
-    pool = videos.filter(v => (page.favorites || []).includes(v.id));
-  }
-  const results = pool.filter(v => v.title.toLowerCase().includes(searchQuery));
-  if (!results.length) {
-    document.getElementById("videoArea").innerHTML = `<p style="color:var(--text-light);font-size:13px;">「${searchQuery}」に一致する動画が見つかりません</p>`;
-    return;
-  }
-  showVideoCards(results.slice(0, 9));
+function updateCardCountButtons() {
+  const count = parseInt(localStorage.getItem('videoCardCount') || '3');
+  [1, 2, 3].forEach(n => {
+    const btn = document.getElementById('cardCount' + n);
+    if (!btn) return;
+    btn.style.background = n === count ? '#3b82f6' : 'var(--btn-bg)';
+    btn.style.color = n === count ? '#fff' : 'var(--text)';
+    btn.style.border = n === count ? '1px solid #3b82f6' : '1px solid var(--btn-border)';
+    btn.style.boxShadow = 'none';
+  });
 }
 
 async function initApp() {
