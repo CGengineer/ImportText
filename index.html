@@ -1057,6 +1057,25 @@
       #aiInput {
         font-size: 16px;
       }
+
+      /* モーダルをヘッダー直下に全幅展開 */
+      #helpModal, #meritModal, #statusModal, #aiModal, #levelModal {
+        top: 52px;
+        left: 0;
+        right: 0;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100vh - 52px);
+        border-radius: 0 0 16px 16px;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+      }
+      #aiModal {
+        height: calc(100vh - 52px);
+        max-height: calc(100vh - 52px);
+      }
     }
   </style>
 
@@ -1110,21 +1129,18 @@
 
     <h3>📺 チャンネルの追加方法</h3>
 
-    <p>まず見たいYouTubeチャンネルの「チャンネルID」を取得する必要があります。</p>
+    <p>「チャンネル設定」ボタンを押して、以下のどれかを貼り付けるだけ！自動でチャンネルIDを取得します。</p>
 
-    <p><b>① チャンネルIDを調べる</b><br>
-    下のサイトにアクセスして、見たいYouTubeチャンネルのURLを貼り付けよう。<br>
-    <a href="https://commentpicker.com/youtube-channel-id.php" target="_blank">🔗 YouTube Channel ID取得サイト</a>
-    </p>
+    <p><b>対応しているURL・ID形式</b></p>
+    <ul style="font-size:13px;line-height:2;padding-left:18px;margin:0 0 10px;">
+      <li><b>チャンネルID直接入力</b>：<code style="font-size:11px;">UCxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
+      <li><b>チャンネルURL（@ハンドル）</b>：<code style="font-size:11px;">https://youtube.com/@Kororin</code></li>
+      <li><b>動画URL</b>：<code style="font-size:11px;">https://youtube.com/watch?v=xxxxxxxxxx</code></li>
+      <li><b>ショートURL</b>：<code style="font-size:11px;">https://youtube.com/shorts/xxxxxxxxxx</code></li>
+      <li><b>チャンネルURL（/channel/）</b>：<code style="font-size:11px;">https://youtube.com/channel/UCxxxxxx</code></li>
+    </ul>
 
-    <p><b>② 数式を解いてボタンを押す</b><br>
-    「Solve sum」の計算式を入力して、「WATCH & GET YOUTUBE CHANNEL ID」を押す。</p>
-
-    <b>③ Channel IDをコピー</b><br>
-    <p>表示された「Channel ID」（UCから始まる文字列）をコピーする。</p>
-
-    <p><b>④ アプリに登録する</b><br>
-    サイドバーの「チャンネル追加」でページを作り、「チャンネルID設定」に貼り付けよう！</p>
+    <p style="font-size:12px;color:var(--text-light);">💡 動画やショートのURLを貼ると、その投稿者のチャンネルが自動で登録されます。</p>
 
     <p style="color:#888;font-size:11px;">⚠️ 初回は動画の読み込みに時間がかかることがあります。</p>
 
@@ -1133,12 +1149,18 @@
     <p><b>タブで絞り込む</b><br>
     「未視聴」「視聴済み」「お気に入り」のタブで再生対象を切り替えられます。</p>
 
-    <p><b>ランダムボタンを押す</b><br>
-    タブで選んだ範囲から1本ランダムで選んで表示します。</p>
+    <p><b>更新ボタンを押す</b><br>
+    タブで選んだ範囲からランダムで3本選んで表示します。</p>
 
     <p><b>サムネイルをタップして再生</b><br>
     サムネイルをタップすると動画が開いて「視聴済み」に記録されます。<br>
     タイトルのリンクから直接開いた場合は記録されません。</p>
+
+    <h3>🔍 チャンネル内検索</h3>
+    <p>「今日のオススメ」横の検索欄にキーワードを入力すると、タイトルでフィルタリングできます。現在のタブ（未視聴・視聴済み・お気に入り）に合わせた絞り込みになります。</p>
+
+    <h3>🏆 レベルシステム</h3>
+    <p>動画を視聴するとレベルが上がります。ヘッダーの「Lv.バッジ」をタップするとレベル一覧と次のレベルまでの本数が確認できます。</p>
   </div>
   <div class="modalFooter">
     <button onclick="closeHelp()">閉じる</button>
@@ -1149,8 +1171,11 @@
   <div class="modalBody">
     <h3>✨ 未知リンクでできること</h3>
 
-    <p>📺 <b>未視聴の動画をランダムで再生</b><br>
-    好きなYouTubeチャンネルを登録しておけば、まだ見ていない動画を1本ランダムで選んでくれる。「何見よう」って悩まなくていい！</p>
+    <p>📺 <b>未視聴の動画をランダムで表示</b><br>
+    好きなYouTubeチャンネルを登録しておけば、まだ見ていない動画を3本ランダムで選んでくれる。「何見よう」って悩まなくていい！</p>
+
+    <p>🔗 <b>URLをそのまま貼るだけで登録完了</b><br>
+    チャンネルURL・動画URL・ショートURL、どれを貼ってもそのチャンネルを自動登録。チャンネルIDを調べる手間なし！</p>
 
     <p>✅ <b>見た動画を自動で記録</b><br>
     サムネイルをタップして再生すると「視聴済み」として記録される。同じ動画が何度も出てこないから快適！</p>
@@ -1160,6 +1185,9 @@
 
     <p>❤️ <b>お気に入り登録</b><br>
     動画カードの♡ボタンでお気に入り登録。後から一覧で確認したり、お気に入りだけランダム再生もできる。</p>
+
+    <p>🔍 <b>チャンネル内キーワード検索</b><br>
+    動画タイトルで絞り込み検索できる。「あの動画どこだっけ」がすぐ見つかる。</p>
 
     <p>📊 <b>進捗・残り本数をひと目で確認</b><br>
     あと何本残っているか、何本見たかをバーとカウントで表示。全部見終わるまでのモチベになる！</p>
@@ -1173,16 +1201,22 @@
     <p>🔥 <b>連続視聴日数を記録</b><br>
     毎日続けて見ていると連続視聴日数が増えていく。習慣化のモチベにしよう！</p>
 
+    <p>🏆 <b>レベルシステム</b><br>
+    視聴本数が増えるとLv.1〜100でレベルアップ。称号もついてくる。ヘッダーのバッジをタップで確認！</p>
+
     <h3>💡 こんなときにおすすめ</h3>
 
     <p>🤔 「何見よう…」って毎回迷う人<br>
-    → ランダムボタン1回で即決定！選ぶ手間ゼロ</p>
+    → 更新ボタン1回で即決定！選ぶ手間ゼロ</p>
 
     <p>📦 好きなチャンネルの過去動画を全部見たい人<br>
     → 視聴済み管理してくれるから取りこぼしなし</p>
 
     <p>🕐 隙間時間にサクッと動画を見たい人<br>
     → 開いてボタン押すだけ、すぐ始められる</p>
+
+    <p>📱 スマホでよく動画を見る人<br>
+    → ショートのURLをそのまま貼ってチャンネル登録OK！</p>
   </div>
   <div class="modalFooter">
     <button onclick="closeMerit()">閉じる</button>
@@ -1775,7 +1809,7 @@ editCh.onclick = async () => {
   const i = getIndex();
   const p = data.pages[i];
   const oldChId = p.channelId;
-  const input = prompt("チャンネルID・チャンネルURL・動画URL を入力\n例①: UCxxxxxxxx\n例②: https://youtube.com/@name\n例③: https://youtube.com/watch?v=xxxxx", oldChId);
+  const input = prompt("チャンネルID・チャンネルURL・動画URL を入力\n例①: UCxxxxxxxx\n例②: https://youtube.com/@name\n例③: https://youtube.com/watch?v=xxxxx\n例④: https://youtube.com/shorts/xxxxxxxxxx", oldChId);
   if (input === null) return;
 
   showLoading("チャンネルIDを解析中…");
@@ -2437,6 +2471,15 @@ async function resolveChannelId(input) {
   // /channel/UCxxxxxxxx 形式
   const chMatch = input.match(/youtube\.com\/channel\/(UC[\w-]+)/i);
   if (chMatch) return chMatch[1];
+  // ショートURL形式 (shorts/xxxxx) → 動画からチャンネルID取得
+  const shortsMatch = input.match(/youtube\.com\/shorts\/([\w-]{11})/i);
+  if (shortsMatch) {
+    try {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${shortsMatch[1]}&key=${API_KEY}`);
+      const d = await res.json();
+      if (d.items?.[0]?.snippet?.channelId) return d.items[0].snippet.channelId;
+    } catch(e) {}
+  }
   // 動画URL形式 (watch?v=xxx / youtu.be/xxx) → 動画からチャンネルID取得
   const videoMatch = input.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/)([\w-]{11})/i);
   if (videoMatch) {
