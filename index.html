@@ -610,29 +610,41 @@
       background: var(--history-item-bg);
       border: 1px solid var(--history-item-border);
       border-radius: 16px;
-      padding: 14px;
+      padding: 16px;
       margin: 14px 0;
+    }
+
+    .statsCardHeader {
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--text-light);
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
     }
 
     .statsGrid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 16px;
     }
 
     .statItem {
-      background: var(--btn-bg);
-      border: 1px solid var(--btn-border);
-      border-radius: 12px;
-      padding: 10px 6px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
       text-align: center;
     }
 
-    .statEmoji {
-      font-size: 16px;
-      line-height: 1;
-      margin-bottom: 4px;
+    .statIconWrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
     }
 
     .statValue {
@@ -640,7 +652,6 @@
       font-weight: bold;
       color: var(--text-color);
       line-height: 1.1;
-      margin-bottom: 3px;
     }
 
     .statUnit {
@@ -657,10 +668,8 @@
     }
 
     .statsProgress {
-      background: var(--btn-bg);
-      border: 1px solid var(--btn-border);
-      border-radius: 12px;
-      padding: 10px 12px;
+      border-top: 1px solid var(--history-item-border);
+      padding-top: 12px;
     }
 
     .statsProgressHeader {
@@ -1015,42 +1024,46 @@
 
   <hr>
 
-  <h3>📺 今日のオススメ 3本</h3>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 4px;">
+    <h3 style="margin:0;">✨ 今日のオススメ 3本</h3>
+    <button onclick="randomVideo()" class="headerBtn" style="margin:0;font-size:12px;">更新 ›</button>
+  </div>
   <p class="videoHint">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます&nbsp;&nbsp;🔗 タイトルのリンクから直接開いた場合は記録されません</p>
 
   <div id="videoArea"></div>
 
   <div class="statsCard">
+    <div class="statsCardHeader">📊 視聴サマリー</div>
     <div class="statsGrid">
       <div class="statItem">
-        <div class="statEmoji">📋</div>
+        <div class="statIconWrap" style="background:rgba(59,100,210,0.18);">📹</div>
         <div class="statValue"><span id="remain">-</span><span class="statUnit">本</span></div>
         <div class="statLabel">残り</div>
       </div>
       <div class="statItem">
-        <div class="statEmoji">✅</div>
+        <div class="statIconWrap" style="background:rgba(39,174,96,0.18);">✅</div>
         <div class="statValue"><span id="done">-</span><span class="statUnit">本</span></div>
         <div class="statLabel">視聴済み</div>
       </div>
       <div class="statItem">
-        <div class="statEmoji">🆕</div>
-        <div class="statValue"><span id="newCount">0</span><span class="statUnit">本</span></div>
-        <div class="statLabel">新着</div>
-      </div>
-      <div class="statItem">
-        <div class="statEmoji">❤️</div>
+        <div class="statIconWrap" style="background:rgba(231,76,60,0.18);">❤️</div>
         <div class="statValue"><span id="favCount">0</span><span class="statUnit">本</span></div>
         <div class="statLabel">お気に入り</div>
       </div>
       <div class="statItem">
-        <div class="statEmoji">🔥</div>
+        <div class="statIconWrap" style="background:rgba(230,126,34,0.18);">🔥</div>
         <div class="statValue"><span id="streakCount">0</span><span class="statUnit">日</span></div>
         <div class="statLabel">連続視聴</div>
+      </div>
+      <div class="statItem">
+        <div class="statIconWrap" style="background:rgba(100,90,200,0.18);">🔖</div>
+        <div class="statValue"><span id="newCount">0</span><span class="statUnit">本</span></div>
+        <div class="statLabel">新着</div>
       </div>
     </div>
     <div class="statsProgress">
       <div class="statsProgressHeader">
-        <span>📊 視聴進捗</span>
+        <span>視聴進捗</span>
         <span id="progressLabel">-/-本</span>
       </div>
       <div id="progressBar"><div id="progressFill"></div></div>
