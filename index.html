@@ -1391,19 +1391,6 @@
     </div>
     <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
     <div style="margin-bottom:20px;">
-      <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:10px;">🖼 アプリアイコン</div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <img id="settingsIconPreview" src="" alt="" style="width:52px;height:52px;border-radius:10px;object-fit:cover;background:var(--btn-bg);border:1px solid var(--btn-border);display:none;">
-        <div id="settingsIconPlaceholder" style="width:52px;height:52px;border-radius:10px;background:var(--btn-bg);border:1px solid var(--btn-border);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">♾️</div>
-        <label style="cursor:pointer;flex:1;">
-          <input type="file" id="iconFileInput" accept="image/*" style="display:none;" onchange="uploadAppIcon(this)">
-          <div style="background:var(--btn-bg);border:1px solid var(--btn-border);padding:10px 16px;border-radius:12px;font-size:14px;text-align:center;">📤 画像をアップロード</div>
-        </label>
-      </div>
-      <div id="iconUploadStatus" style="font-size:12px;color:var(--text-light);margin-top:8px;"></div>
-    </div>
-    <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
-    <div style="margin-bottom:20px;">
       <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:12px;">🤖 AIアシスタント</div>
       <div id="settingsAiToggle"></div>
     </div>
@@ -1537,55 +1524,28 @@ function applyAppIcon(url) {
   const txt = document.getElementById('appNameText');
   if (img) { img.src = url; img.style.display = 'block'; }
   if (txt) txt.style.display = 'none';
-  // favicon 更新
   let favicon = document.querySelector('link[rel="icon"]');
   if (!favicon) { favicon = document.createElement('link'); favicon.rel = 'icon'; document.head.appendChild(favicon); }
   favicon.href = url;
   let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
   if (appleIcon) appleIcon.href = url;
   localStorage.setItem('appIconUrl', url);
-  // 設定画面のプレビューも更新
-  const prev = document.getElementById('settingsIconPreview');
-  const ph = document.getElementById('settingsIconPlaceholder');
-  if (prev) { prev.src = url; prev.style.display = 'block'; }
-  if (ph) ph.style.display = 'none';
 }
 
 async function loadAppIcon() {
-  // localStorage からキャッシュを即時適用（速い）
   const cached = localStorage.getItem('appIconUrl');
-  if (cached) applyAppIcon(cached);
-  // Firestore から最新を取得
+  if (cached && !cached.startsWith('gs://')) applyAppIcon(cached);
   try {
     const doc = await db.collection('_app').doc('settings').get();
     if (doc.exists && doc.data().iconUrl) {
-      applyAppIcon(doc.data().iconUrl);
+      let url = doc.data().iconUrl;
+      if (url.startsWith('gs://')) {
+        url = await storage.refFromURL(url).getDownloadURL();
+        localStorage.setItem('appIconUrl', url);
+      }
+      applyAppIcon(url);
     }
   } catch(e) {}
-}
-
-async function uploadAppIcon(inputEl) {
-  const file = inputEl.files[0];
-  if (!file) return;
-  const statusEl = document.getElementById('iconUploadStatus');
-  if (statusEl) statusEl.textContent = 'アップロード中…';
-  showLoading('アイコンをアップロード中…');
-  try {
-    const ref = storage.ref('appIcon/icon.png');
-    await ref.put(file);
-    const url = await ref.getDownloadURL();
-    applyAppIcon(url);
-    // Firestore に保存（全端末で同期）
-    try {
-      await db.collection('_app').doc('settings').set({ iconUrl: url }, { merge: true });
-    } catch(e) { console.warn('Firestore icon save failed:', e.message); }
-    if (statusEl) statusEl.textContent = '✅ アップロード完了！';
-    hideLoading();
-  } catch(e) {
-    hideLoading();
-    if (statusEl) statusEl.textContent = '⚠️ エラー: ' + e.message;
-  }
-  inputEl.value = '';
 }
 
 loadAppIcon();
@@ -1694,17 +1654,6 @@ function toggleAiVisibility(show) {
 function updateSettingsModal() {
   const cntEl = document.getElementById('videoCardCountSelect');
   if (cntEl) cntEl.value = localStorage.getItem('videoCardCount') || '3';
-  // アイコンプレビュー
-  const iconUrl = localStorage.getItem('appIconUrl');
-  const prev = document.getElementById('settingsIconPreview');
-  const ph = document.getElementById('settingsIconPlaceholder');
-  if (iconUrl && prev) {
-    prev.src = iconUrl; prev.style.display = 'block';
-    if (ph) ph.style.display = 'none';
-  } else {
-    if (prev) prev.style.display = 'none';
-    if (ph) ph.style.display = 'flex';
-  }
   const aiToggleEl = document.getElementById('settingsAiToggle');
   if (aiToggleEl) {
     const aiVisible = localStorage.getItem('aiVisible') !== '0';
