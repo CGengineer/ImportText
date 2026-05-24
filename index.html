@@ -162,12 +162,17 @@
       --login-register-bg: #1e3254;
     }
 
+    html {
+      overflow-x: hidden;
+    }
+
     body {
       display: flex;
       font-family: "Hiragino Maru Gothic Pro", "Arial Rounded MT", sans-serif;
       margin: 0;
       background: var(--bg);
       color: var(--text-color);
+      overflow-x: hidden;
     }
 
     [data-theme="pink"] body {
@@ -575,10 +580,17 @@
       margin-top: 82px;
     }
 
+    /* 通常モード：グリッドでぴったり収まる */
     #videoArea {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(var(--card-cols, 3), 1fr);
       gap: 10px;
       margin-top: 20px;
+    }
+
+    /* 検索モード：横スクロール */
+    #videoArea.searchMode {
+      display: flex;
       flex-wrap: nowrap;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -796,11 +808,15 @@
       border: 1px solid var(--history-item-border);
       border-radius: 12px;
       padding: 12px;
-      flex: 0 0 var(--video-card-width, 300px);
-      width: var(--video-card-width, 300px);
-      min-width: 240px;
+      min-width: 0;
       display: flex;
       flex-direction: column;
+    }
+
+    /* 検索モード時のカードは固定幅 */
+    #videoArea.searchMode .videoCard {
+      flex: 0 0 280px;
+      width: 280px;
     }
 
     .videoCard .thumbBox {
@@ -1118,9 +1134,6 @@
         max-width: 120px;
       }
 
-      .videoCard {
-        min-width: 240px;
-      }
 
       #login {
         width: calc(100vw - 48px);
@@ -2363,26 +2376,13 @@ function buildVideoCard(v, page) {
 function showVideoCards(vids) {
   const page = data.pages[getIndex()];
   currentVideos = vids.map(v => v.id);
-  document.getElementById("videoArea").innerHTML = vids.map(v => buildVideoCard(v, page)).join("");
-  applyCardSize();
+  const area = document.getElementById("videoArea");
+  area.classList.remove("searchMode");
+  const cols = Math.min(vids.length, parseInt(localStorage.getItem('videoCardCount') || '3'));
+  area.style.setProperty('--card-cols', cols);
+  area.innerHTML = vids.map(v => buildVideoCard(v, page)).join("");
 }
 
-/* ===== カードサイズ適用（表示数に合わせて幅を計算） ===== */
-function applyCardSize() {
-  const area = document.getElementById('videoArea');
-  if (!area) return;
-  const cols = parseInt(localStorage.getItem('videoCardCount') || '3');
-  const totalW = area.offsetWidth || (window.innerWidth - 300);
-  const gap = 10;
-  const w = Math.max(240, Math.floor((totalW - gap * (cols - 1)) / cols));
-  document.documentElement.style.setProperty('--video-card-width', w + 'px');
-}
-
-let _resizeTimer = null;
-window.addEventListener('resize', () => {
-  clearTimeout(_resizeTimer);
-  _resizeTimer = setTimeout(applyCardSize, 180);
-});
 
 function openVideoById(id) {
   const page = data.pages[getIndex()];
@@ -2531,7 +2531,6 @@ function randomPage() {
 function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
   sidebar.classList.toggle("hidden");
-  setTimeout(applyCardSize, 320); // トランジション完了後に再計算
 }
 
 /* ===== サイドバートグル長押しツールチップ ===== */
@@ -3124,12 +3123,17 @@ function showSearchResults() {
   if (!searchQuery || !videos.length) return;
   const pool = buildPool();
   const results = pool.filter(v => v.title.toLowerCase().includes(searchQuery));
+  const area = document.getElementById("videoArea");
   if (!results.length) {
-    document.getElementById("videoArea").innerHTML = `<p style="color:var(--text-light);font-size:13px;">「${searchQuery}」に一致する動画が見つかりません</p>`;
+    area.classList.remove("searchMode");
+    area.innerHTML = `<p style="color:var(--text-light);font-size:13px;">「${searchQuery}」に一致する動画が見つかりません</p>`;
     return;
   }
-  // 検索結果は全件を横スクロールで表示
-  showVideoCards(results);
+  // 検索結果：searchMode クラスで横スクロール、全件表示
+  const page = data.pages[getIndex()];
+  currentVideos = results.map(v => v.id);
+  area.classList.add("searchMode");
+  area.innerHTML = results.map(v => buildVideoCard(v, page)).join("");
 }
 
 async function initApp() {
@@ -3155,7 +3159,6 @@ async function initApp() {
     render();
     setIndex(0);
     updateLevel();
-    setTimeout(applyCardSize, 100);
     return;
   }
 
