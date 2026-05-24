@@ -1541,8 +1541,6 @@ async function loadAppIcon() {
   } catch(e) { console.warn('icon load failed:', e.message); }
 }
 
-loadAppIcon();
-
 /* ===== テーマ ===== */
 const themeSelect = document.getElementById("themeSelect");
 
@@ -1746,6 +1744,7 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 const storage = firebase.storage();
+loadAppIcon();
 
 /* ===== 設定 ===== */
 const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
