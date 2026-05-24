@@ -980,34 +980,45 @@
     }
 
     /* モバイル対応 */
+
     @media (max-width: 680px) {
       #header {
-        padding: 6px 14px;
-        min-height: 62px;
+        height: 82px;        /* ← PC と同じ高さに固定 */
+        min-height: unset;
+        max-height: 82px;
+        padding: 0 14px;     /* ← ボタンが収まるように上下余白をゼロに */
+        overflow-y: hidden;  /* ← はみ出し防止 */
       }
+
+      #sidebar {
+        margin-top: 82px;    /* ← ヘッダーと同じ高さに揃える */
+        width: 260px;
+        min-width: 260px;
+      }
+
+      #main {
+        margin-top: 82px;    /* ← ここが重要。被りが完全に消える */
+        padding: 8px;
+      }
+
+      #userEmail {
+        display: none;
+      }
+
       #appTitle {
         flex: 1;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
+
       #appTitle .headerBtn {
         flex-shrink: 0;
       }
-      #userEmail {
-        display: none;
-      }
-      #sidebar {
-        margin-top: 62px;
-        width: 260px;
-        min-width: 260px;
-      }
-      #main {
-        margin-top: 62px;
-        padding: 8px;
-      }
+
       .videoCard {
         min-width: 280px;
       }
+
       #login {
         width: calc(100vw - 48px);
         max-width: 380px;
@@ -1016,7 +1027,7 @@
 
       /* モバイル: コンテンツモーダルを全幅に */
       #helpModal, #meritModal, #statusModal, #levelModal, #settingsModal {
-        top: 62px;
+        top: 82px;           /* ← ここも 82px に合わせる */
         max-height: 52vh;
         border-radius: 0 0 16px 16px;
         border-top: none;
@@ -1025,6 +1036,7 @@
         left: 0;
         transform: none;
       }
+
       #helpModal.modal-anim, #meritModal.modal-anim,
       #statusModal.modal-anim, #levelModal.modal-anim,
       #settingsModal.modal-anim {
