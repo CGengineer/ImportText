@@ -8,8 +8,9 @@
   <meta name="apple-mobile-web-app-title" content="未知リンク">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#ffd0e6">
-  <title>♾️未知リンク</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♾️</text></svg>">
+  <title>未知リンク</title>
+  <link rel="icon" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
 
   <style>
     /* ===== テーマ変数 ===== */
@@ -225,12 +226,13 @@
     /* ヘッダー内の子要素は横スクロール領域内で折り返さない */
     #appTitle > * { flex: 0 0 auto; }
 
-    /* 長いアプリ名は省略表示 */
-    #appName { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
-
     #appName {
-      font-weight: bold;
-      font-size: 24px;
+      height: 56px;
+      width: auto;
+      max-width: 160px;
+      object-fit: contain;
+      flex-shrink: 0;
+      display: block;
     }
 
     #userArea {
@@ -1113,6 +1115,11 @@
         flex-shrink: 0;
       }
 
+      #appName {
+        height: 44px;
+        max-width: 120px;
+      }
+
       .videoCard {
         min-width: 240px;
       }
@@ -1172,7 +1179,7 @@
 
 <div id="header">
   <div id="appTitle">
-    <div id="appName">♾️未知リンク</div>
+    <img id="appName" src="icon.png" alt="未知リンク">
     <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
     <button id="meritBtn" class="headerBtn">機能概要</button>
     <button id="helpBtn" class="headerBtn">使用方法</button>
@@ -1393,15 +1400,6 @@
     </div>
     <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
     <div style="margin-bottom:20px;">
-      <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:10px;">📐 動画カードサイズ</div>
-      <select id="videoCardSizeSelect" onchange="localStorage.setItem('videoCardSize', this.value); applyCardSize();" style="background:var(--select-bg);border:1px solid var(--select-border);color:var(--select-color);font-size:16px;padding:10px 14px;border-radius:12px;cursor:pointer;outline:none;font-family:inherit;width:100%;box-sizing:border-box;">
-        <option value="1">大（1枚分の幅）</option>
-        <option value="2">中（2枚分の幅）</option>
-        <option value="3">小（3枚分の幅）</option>
-      </select>
-    </div>
-    <hr style="border:none;border-top:1px solid var(--modal-border);margin:0 0 16px;">
-    <div style="margin-bottom:20px;">
       <div style="font-size:12px;font-weight:bold;color:var(--text-light);letter-spacing:0.06em;margin-bottom:12px;">🤖 AIアシスタント</div>
       <div id="settingsAiToggle"></div>
     </div>
@@ -1444,7 +1442,7 @@
 
   <hr>
 
-  <div class="tabBar" style="margin-bottom:8px; justify-content:flex-end;">
+  <div class="tabBar" style="margin-bottom:8px;">
     <button class="tabBtn active" id="filterUnseen" onclick="toggleVideoFilter('unseen')">🎬 未視聴</button>
     <button class="tabBtn" id="filterSeen" onclick="toggleVideoFilter('seen')">✅ 視聴済み</button>
     <button class="tabBtn" id="filterFav" onclick="toggleVideoFilter('favorites')">❤️ お気に入り</button>
@@ -1454,7 +1452,6 @@
 
   <div style="display:flex;align-items:center;gap:8px;margin:24px 0 4px;flex-wrap:wrap;">
     <h3 style="margin:0;flex-shrink:0;font-size:36px;">✨ 今日のオススメ</h3>
-    <button onclick="randomVideo()" class="headerBtn" style="margin:0;flex-shrink:0;">更新 ›</button>
     <input id="searchInput" placeholder="🔍 チャンネル内検索..." style="width:220px;flex:0 1 220px;font-size:24px;padding:8px 14px;">
     <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
   </div>
@@ -1635,8 +1632,6 @@ function toggleAiVisibility(show) {
 function updateSettingsModal() {
   const cntEl = document.getElementById('videoCardCountSelect');
   if (cntEl) cntEl.value = localStorage.getItem('videoCardCount') || '3';
-  const sizeEl = document.getElementById('videoCardSizeSelect');
-  if (sizeEl) sizeEl.value = localStorage.getItem('videoCardSize') || '3';
   const aiToggleEl = document.getElementById('settingsAiToggle');
   if (aiToggleEl) {
     const aiVisible = localStorage.getItem('aiVisible') !== '0';
@@ -2286,14 +2281,14 @@ function showVideoCards(vids) {
   applyCardSize();
 }
 
-/* ===== カードサイズ適用 ===== */
+/* ===== カードサイズ適用（表示数に合わせて幅を計算） ===== */
 function applyCardSize() {
   const area = document.getElementById('videoArea');
   if (!area) return;
-  const sizeCol = parseInt(localStorage.getItem('videoCardSize') || '3');
+  const cols = parseInt(localStorage.getItem('videoCardCount') || '3');
   const totalW = area.offsetWidth || (window.innerWidth - 300);
   const gap = 10;
-  const w = Math.max(240, Math.floor((totalW - gap * (sizeCol - 1)) / sizeCol));
+  const w = Math.max(240, Math.floor((totalW - gap * (cols - 1)) / cols));
   document.documentElement.style.setProperty('--video-card-width', w + 'px');
 }
 
@@ -3100,55 +3095,21 @@ async function initApp() {
   setTimeout(applyCardSize, 100);
 }
 
-/* ===== PWA ホームスクリーンアイコン ===== */
+/* ===== PWA マニフェスト ===== */
 (function() {
-  function generateAppIcon(size) {
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-    const r = size * 0.22;
-    ctx.beginPath();
-    ctx.moveTo(r, 0);
-    ctx.lineTo(size - r, 0);
-    ctx.arcTo(size, 0, size, r, r);
-    ctx.lineTo(size, size - r);
-    ctx.arcTo(size, size, size - r, size, r);
-    ctx.lineTo(r, size);
-    ctx.arcTo(0, size, 0, size - r, r);
-    ctx.lineTo(0, r);
-    ctx.arcTo(0, 0, r, 0, r);
-    ctx.closePath();
-    ctx.fillStyle = '#ffd0e6';
-    ctx.fill();
-    ctx.font = `${Math.round(size * 0.56)}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('♾️', size / 2, size / 2 + size * 0.04);
-    return canvas.toDataURL('image/png');
-  }
-
-  const icon180 = generateAppIcon(180);
-  if (!icon180) return;
-
-  const touchIcon = document.createElement('link');
-  touchIcon.rel = 'apple-touch-icon';
-  touchIcon.href = icon180;
-  document.head.appendChild(touchIcon);
-
+  const iconUrl = new URL('icon.png', location.href).href;
   try {
     const manifest = {
-      name: '♾️未知リンク',
+      name: '未知リンク',
       short_name: '未知リンク',
       icons: [
-        { src: generateAppIcon(192), sizes: '192x192', type: 'image/png' },
-        { src: generateAppIcon(512), sizes: '512x512', type: 'image/png' }
+        { src: iconUrl, sizes: '192x192', type: 'image/png' },
+        { src: iconUrl, sizes: '512x512', type: 'image/png' }
       ],
       start_url: location.href,
       display: 'standalone',
-      background_color: '#ffd0e6',
-      theme_color: '#ffd0e6'
+      background_color: '#000000',
+      theme_color: '#000000'
     };
     const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
     const manifestLink = document.createElement('link');
