@@ -187,16 +187,16 @@
       top: 0;
       left: 0;
       right: 0;
-      min-height: 60px;
+      min-height: 72px;
       background: var(--header-bg);
       border-bottom: 1px solid var(--header-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 16px;
+      padding: 0 20px;
       z-index: 1000;
       flex-wrap: wrap;
-      gap: 4px;
+      gap: 6px;
     }
 
     #appTitle {
@@ -292,14 +292,11 @@
       background: var(--header-btn-bg);
       border: 1px solid var(--header-btn-border);
       color: var(--btn-color);
-      padding: 6px 10px;
-      font-size: 12px;
-      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 14px;
+      border-radius: 14px;
       box-shadow: none;
-    }
-
-    #appTitle .headerBtn {
-      transform: translateY(6px);
+      margin-bottom: 0;
     }
 
     .headerBtn:hover {
@@ -371,19 +368,18 @@
     }
 
     /* モーダル共通 */
-    #helpModal, #meritModal, #statusModal {
+    #helpModal, #meritModal, #statusModal, #levelModal {
       position: fixed;
-      top: 60px;
-      left: 0;
-      right: 0;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 720px;
       background: var(--modal-bg);
-      border-radius: 0 0 16px 16px;
+      border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid var(--modal-border);
-      border-top: none;
-      width: 100%;
-      max-width: 100%;
-      max-height: calc(100vh - 60px);
+      max-height: calc(100vh - 80px);
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -393,17 +389,7 @@
     .modalBody {
       overflow-y: auto;
       flex: 1;
-      padding: 16px 16px 0;
-    }
-
-    .modalFooter {
-      padding: 10px 16px 12px;
-      flex-shrink: 0;
-      text-align: center;
-    }
-
-    .modalFooter button {
-      margin: 0;
+      padding: 16px;
     }
 
     /* ローディング */
@@ -482,7 +468,7 @@
       min-width: 300px;
       border-right: 1px solid var(--sidebar-border);
       padding: 10px;
-      margin-top: 60px;
+      margin-top: 72px;
       overflow: hidden;
       transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease;
     }
@@ -556,7 +542,7 @@
     #main {
       flex: 1;
       padding: 10px;
-      margin-top: 60px;
+      margin-top: 72px;
     }
 
     #videoArea {
@@ -830,24 +816,22 @@
       color: var(--text-light);
     }
 
-    /* AIモーダル */
+    /* AIモーダル（右下ポップアップ） */
     #aiModal {
       position: fixed;
-      top: 60px;
-      left: 0;
-      right: 0;
+      bottom: 90px;
+      right: 16px;
+      width: 340px;
+      max-width: calc(100vw - 32px);
+      height: 440px;
+      max-height: calc(100vh - 110px);
       background: var(--modal-bg);
-      border-radius: 0 0 16px 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.28);
       border: 2px solid var(--modal-border);
-      border-top: none;
-      width: 100%;
-      max-width: 100%;
-      height: 520px;
-      max-height: calc(100vh - 60px);
       display: none;
       flex-direction: column;
-      z-index: 1002;
+      z-index: 1004;
       color: var(--text-color);
     }
 
@@ -914,26 +898,6 @@
       flex-shrink: 0;
     }
 
-    /* レベルモーダル */
-    #levelModal {
-      position: fixed;
-      top: 60px;
-      left: 0;
-      right: 0;
-      background: var(--modal-bg);
-      border-radius: 0 0 16px 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      border: 2px solid var(--modal-border);
-      border-top: none;
-      width: 100%;
-      max-width: 100%;
-      max-height: calc(100vh - 60px);
-      display: none;
-      flex-direction: column;
-      z-index: 1002;
-      color: var(--text-color);
-    }
-
     /* AI FAB */
     #aiBtn {
       position: fixed;
@@ -963,20 +927,29 @@
       transform: scale(0.95);
     }
 
-    /* モーダル開くアニメーション */
+    /* モーダル開くアニメーション（センタリング済み） */
     @keyframes modalDrop {
-      from { opacity: 0; transform: translateY(-10px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
     .modal-anim {
       animation: modalDrop 0.22s ease forwards;
+    }
+    /* AI右下ポップアップアニメーション */
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.88) translateY(12px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-anim-pop {
+      animation: modalPop 0.2s ease forwards;
+      transform-origin: bottom right;
     }
 
     /* モバイル対応 */
     @media (max-width: 680px) {
       #header {
-        padding: 6px 10px;
-        min-height: 52px;
+        padding: 6px 12px;
+        min-height: 56px;
       }
       #appTitle .headerBtn {
         display: none;
@@ -992,12 +965,12 @@
         padding: 4px 8px;
       }
       #sidebar {
-        margin-top: 52px;
+        margin-top: 56px;
         width: 260px;
         min-width: 260px;
       }
       #main {
-        margin-top: 52px;
+        margin-top: 56px;
         padding: 8px;
       }
       .videoCard {
@@ -1099,13 +1072,32 @@
         font-size: 16px;
       }
 
-      /* モバイル: ヘッダーが低いので top を調整 */
-      #helpModal, #meritModal, #statusModal, #aiModal, #levelModal {
-        top: 52px;
-        max-height: calc(100vh - 52px);
+      /* モバイル: コンテンツモーダルを全幅に */
+      #helpModal, #meritModal, #statusModal, #levelModal {
+        top: 56px;
+        max-height: calc(100vh - 64px);
+        border-radius: 0 0 16px 16px;
+        border-top: none;
+        max-width: 100%;
+        width: 100%;
+        left: 0;
+        transform: none;
       }
+      #helpModal.modal-anim, #meritModal.modal-anim,
+      #statusModal.modal-anim, #levelModal.modal-anim {
+        animation: modalDropMobile 0.22s ease forwards;
+      }
+      @keyframes modalDropMobile {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      /* モバイル: AI modalはそのまま右下 */
       #aiModal {
-        height: calc(100vh - 52px);
+        bottom: 78px;
+        right: 8px;
+        left: 8px;
+        width: auto;
+        height: calc(100vh - 130px);
       }
       #aiBtn {
         bottom: 16px;
@@ -1199,9 +1191,6 @@
     <h3>🏆 レベルシステム</h3>
     <p>動画を視聴するとレベルが上がります。ヘッダーの「Lv.バッジ」をタップするとレベル一覧と次のレベルまでの本数が確認できます。</p>
   </div>
-  <div class="modalFooter">
-    <button onclick="closeHelp()">閉じる</button>
-  </div>
 </div>
 
 <div id="meritModal">
@@ -1254,9 +1243,6 @@
 
     <p>📱 スマホでよく動画を見る人<br>
     → ショートのURLをそのまま貼ってチャンネル登録OK！</p>
-  </div>
-  <div class="modalFooter">
-    <button onclick="closeMerit()">閉じる</button>
   </div>
 </div>
 
@@ -1311,9 +1297,6 @@
       </tbody>
     </table>
   </div>
-  <div class="modalFooter">
-    <button onclick="closeStatus()">閉じる</button>
-  </div>
 </div>
 
 <div id="login">
@@ -1346,9 +1329,6 @@
 <!-- レベルモーダル -->
 <div id="levelModal">
   <div class="modalBody" id="levelModalBody"></div>
-  <div class="modalFooter">
-    <button onclick="closeLevelModal()">閉じる</button>
-  </div>
 </div>
 
 <!-- AI FAB -->
@@ -1356,9 +1336,8 @@
 
 <!-- AIアシスタントモーダル -->
 <div id="aiModal">
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px;border-bottom:1px solid var(--modal-border);flex-shrink:0;">
-    <span style="font-weight:bold;font-size:15px;">🤖 AIアシスタント</span>
-    <button onclick="closeAiModal()" style="background:none;border:none;box-shadow:none;font-size:20px;padding:0;margin:0;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;min-height:unset;">✕</button>
+  <div style="padding:12px 14px 8px;border-bottom:1px solid var(--modal-border);flex-shrink:0;">
+    <span style="font-weight:bold;font-size:14px;">🤖 AIアシスタント</span>
   </div>
   <div id="aiMessages"></div>
   <div id="aiInputRow">
@@ -1492,24 +1471,35 @@ function closeAllModals() {
   CONTENT_MODALS.forEach(id => {
     const el = document.getElementById(id);
     el.style.display = 'none';
-    el.classList.remove('modal-anim');
+    el.classList.remove('modal-anim', 'modal-anim-pop', 'modal-visible');
   });
   document.getElementById('overlay').style.display = 'none';
 }
 
 function toggleModal(id, onOpen) {
   const el = document.getElementById(id);
-  const isOpen = el.style.display === 'flex';
+  const isOpen = el.classList.contains('modal-visible');
   closeAllModals();
   if (!isOpen) {
     if (onOpen) onOpen();
     el.style.display = 'flex';
-    el.classList.remove('modal-anim');
+    el.classList.add('modal-visible');
+    const animClass = id === 'aiModal' ? 'modal-anim-pop' : 'modal-anim';
+    el.classList.remove('modal-anim', 'modal-anim-pop');
     void el.offsetWidth;
-    el.classList.add('modal-anim');
-    document.getElementById('overlay').style.display = 'block';
+    el.classList.add(animClass);
+    if (id !== 'aiModal') {
+      document.getElementById('overlay').style.display = 'block';
+    }
   }
 }
+
+document.getElementById('overlay').addEventListener('click', () => {
+  const anyOpen = CONTENT_MODALS.some(id =>
+    document.getElementById(id).classList.contains('modal-visible')
+  );
+  if (anyOpen) closeAllModals();
+});
 
 const helpBtn = document.getElementById("helpBtn");
 helpBtn.onclick = () => toggleModal('helpModal');
