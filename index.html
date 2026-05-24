@@ -250,10 +250,10 @@
     button {
       background: var(--btn-bg);
       border: 1px solid var(--btn-border);
-      padding: 10px 14px;
+      padding: 20px 28px;
       border-radius: 20px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 28px;
       color: var(--btn-color);
       box-shadow: 0 4px 10px var(--btn-shadow);
       transition: all 0.2s ease;
@@ -292,8 +292,8 @@
       background: var(--header-btn-bg);
       border: 1px solid var(--header-btn-border);
       color: var(--btn-color);
-      padding: 10px 20px;
-      font-size: 15px;
+      padding: 20px 40px;
+      font-size: 30px;
       border-radius: 16px;
       box-shadow: none;
       margin-bottom: 0;
@@ -302,6 +302,12 @@
 
     .headerBtn:hover {
       background: var(--header-btn-hover);
+    }
+
+    .headerBtn.btn-active {
+      background: var(--btn-bg);
+      border-color: var(--btn-border);
+      box-shadow: 0 0 0 2px var(--btn-border);
     }
 
     /* テーマ選択 */
@@ -786,8 +792,8 @@
 
     .videoActions button {
       flex: 1;
-      font-size: 10px;
-      padding: 6px 4px;
+      font-size: 20px;
+      padding: 12px 8px;
       margin-bottom: 0;
       white-space: normal;
       word-break: keep-all;
@@ -986,19 +992,19 @@
         margin: 12px 0 8px;
       }
       button {
-        font-size: 15px;
-        padding: 12px 16px;
-        min-height: 44px;
+        font-size: 24px;
+        padding: 18px 24px;
+        min-height: 60px;
       }
       .headerBtn {
-        font-size: 13px;
-        padding: 8px 12px;
-        min-height: 40px;
+        font-size: 22px;
+        padding: 14px 22px;
+        min-height: 56px;
       }
       .tabBtn {
-        font-size: 14px;
-        padding: 10px 16px;
-        min-height: 44px;
+        font-size: 22px;
+        padding: 14px 22px;
+        min-height: 56px;
       }
       input {
         font-size: 16px;
@@ -1023,9 +1029,9 @@
         font-size: 20px;
       }
       .videoActions button {
-        font-size: 13px;
-        padding: 10px 6px;
-        min-height: 44px;
+        font-size: 20px;
+        padding: 14px 10px;
+        min-height: 56px;
       }
       .historyItem {
         gap: 10px;
@@ -1038,9 +1044,9 @@
         font-size: 14px;
       }
       .historyItem button {
-        font-size: 13px;
-        padding: 8px 12px;
-        min-height: 40px;
+        font-size: 22px;
+        padding: 14px 20px;
+        min-height: 56px;
       }
       #sidebarToggle {
         width: 48px;
@@ -1061,9 +1067,9 @@
         gap: 4px;
       }
       #pageList button {
-        font-size: 15px;
-        padding: 13px 14px;
-        min-height: 48px;
+        font-size: 26px;
+        padding: 22px 24px;
+        min-height: 72px;
       }
       #add {
         padding: 16px !important;
@@ -1372,7 +1378,7 @@
   <hr>
 
   <div style="display:flex;align-items:center;gap:8px;margin:24px 0 4px;flex-wrap:wrap;">
-    <h3 style="margin:0;flex-shrink:0;">✨ 今日のオススメ 3本</h3>
+    <h3 style="margin:0;flex-shrink:0;">✨ 今日のオススメ</h3>
     <button onclick="randomVideo()" class="headerBtn" style="margin:0;flex-shrink:0;">更新 ›</button>
     <input id="searchInput" placeholder="🔍 チャンネル内検索..." style="width:140px;flex:0 1 140px;font-size:12px;padding:5px 10px;">
     <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
@@ -1468,6 +1474,20 @@ themeSelect.onchange = () => applyTheme(themeSelect.value);
 /* ===== モーダル トグル共通 ===== */
 const CONTENT_MODALS = ['helpModal', 'meritModal', 'statusModal', 'aiModal', 'levelModal'];
 
+const MODAL_BTN_MAP = {
+  helpModal: 'helpBtn',
+  meritModal: 'meritBtn',
+  statusModal: 'statusBtn',
+  levelModal: 'levelBadge',
+  aiModal: 'aiBtn',
+};
+
+function clearAllBtnActive() {
+  Object.values(MODAL_BTN_MAP).forEach(btnId => {
+    document.getElementById(btnId)?.classList.remove('btn-active');
+  });
+}
+
 function closeAllModals() {
   CONTENT_MODALS.forEach(id => {
     const el = document.getElementById(id);
@@ -1475,6 +1495,7 @@ function closeAllModals() {
     el.classList.remove('modal-anim', 'modal-anim-pop', 'modal-visible');
   });
   document.getElementById('overlay').style.display = 'none';
+  clearAllBtnActive();
 }
 
 function toggleModal(id, onOpen) {
@@ -1492,6 +1513,8 @@ function toggleModal(id, onOpen) {
     if (id !== 'aiModal') {
       document.getElementById('overlay').style.display = 'block';
     }
+    const btnId = MODAL_BTN_MAP[id];
+    if (btnId) document.getElementById(btnId)?.classList.add('btn-active');
   }
 }
 
@@ -2157,7 +2180,7 @@ async function randomVideo() {
   }
 
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  const picked = shuffled.slice(0, 3);
+  const picked = shuffled.slice(0, 1); // 将来複数にする場合はここを変える
   showVideoCards(picked);
 }
 
@@ -2678,22 +2701,9 @@ async function sendAiMessage() {
 
   sendBtn.disabled = true;
   sendBtn.textContent = "…";
-  const loadingDiv = appendAiMessage("bot", "⏳ リクエストを構築中…");
-
-  const steps = [];
-  function renderSteps(detail) {
-    const lines = steps.map(s =>
-      `${s.ok === true ? "✅" : s.ok === false ? "❌" : "⏳"} ${s.label}`
-    );
-    if (detail) lines.push("", detail);
-    loadingDiv.textContent = lines.join("\n");
-    document.getElementById("aiMessages").scrollTop = document.getElementById("aiMessages").scrollHeight;
-  }
+  const loadingDiv = appendAiMessage("bot", "⏳ 考え中…");
 
   try {
-    // Step 1: リクエスト構築
-    steps.push({ label: "リクエストを構築", ok: null });
-    renderSteps();
     const reqBody = {
       contents: [
         { role: "user", parts: [{ text: AI_SYSTEM_PROMPT }] },
@@ -2702,49 +2712,31 @@ async function sendAiMessage() {
       ],
       generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
     };
-    steps[0].ok = true;
 
-    // Step 2: API送信
-    steps.push({ label: "Gemini API へ送信 (gemini-2.5-flash)", ok: null });
-    renderSteps();
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
       { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(reqBody) }
     );
-    steps[1].ok = true;
 
-    // Step 3: レスポンス解析
-    steps.push({ label: `レスポンス受信 (HTTP ${res.status})`, ok: null });
-    renderSteps();
     const d = await res.json();
     console.log("Gemini response:", JSON.stringify(d));
 
     if (d.error) {
-      steps[2].ok = false;
-      renderSteps(JSON.stringify(d.error, null, 2));
+      loadingDiv.textContent = "⚠️ エラー: " + (d.error.message || JSON.stringify(d.error));
       return;
     }
-    steps[2].ok = true;
 
-    // Step 4: 返答取得
-    steps.push({ label: "返答を取得", ok: null });
-    renderSteps();
     const reply = d.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!reply) {
-      steps[3].ok = false;
-      renderSteps("candidates[0].content.parts[0].text が存在しない\n" + JSON.stringify(d, null, 2));
+      loadingDiv.textContent = "⚠️ 返答が取得できませんでした";
       return;
     }
-    steps[3].ok = true;
-    renderSteps();
 
     loadingDiv.textContent = reply;
     aiHistory.push({ role: "model", parts: [{ text: reply }] });
 
   } catch(e) {
-    const last = steps[steps.length - 1];
-    if (last && last.ok === null) last.ok = false;
-    renderSteps(String(e));
+    loadingDiv.textContent = "⚠️ " + String(e);
   } finally {
     sendBtn.disabled = false;
     sendBtn.textContent = "➤";
