@@ -523,11 +523,20 @@
     }
 
     #sidebarToggle {
-      font-size: 22px;
-      padding: 8px 14px;
+      position: fixed;
+      bottom: 24px;
+      left: 20px;
+      font-size: 28px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
       margin: 0;
-      border-radius: 20px;
-      box-shadow: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      z-index: 998;
     }
 
     #editCh {
@@ -1044,7 +1053,7 @@
   <input id="password" type="password" placeholder="パスワード"><br><br>
 
   <button id="googleLoginBtn" class="fullBtn">
-    Googleでログイン（登録不要）
+    Googleでログイン(新規登録不要)
   </button>
 
   <div class="rowBtns">
@@ -1061,19 +1070,20 @@
 
 <div id="sidebarTooltip"></div>
 
+<button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
+
 <div id="sidebar">
-  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
-    <button id="add" class="headerBtn">チャンネル追加</button>
-    <button id="remove" class="headerBtn">チャンネル削除</button>
-    <!-- <button onclick="randomPage()" class="headerBtn">🎲 チャンネルランダム</button> -->
-  </div>
+  <button id="add" style="width:100%;border-radius:14px;padding:14px 16px;font-size:14px;font-weight:bold;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <span>新規チャンネル追加</span>
+    <span style="font-size:26px;line-height:1;">+</span>
+  </button>
   <div id="pageList"></div>
 </div>
 
 <div id="main">
   <div id="topControls">
-    <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
     <button id="editCh">チャンネルID設定</button>
+    <button id="urlToChBtn" class="headerBtn" style="margin:0;white-space:nowrap;">🔗 URLから取得</button>
     <input id="searchInput" placeholder="🔍 チャンネル内検索...">
     <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;">✕</button>
   </div>
@@ -1150,6 +1160,10 @@
     <div id="favActions" style="display:none; border-top:1px solid var(--sidebar-border); padding-top:10px; margin-top:10px; text-align:center;">
       <button onclick="resetFavorites()" style="font-size:12px; padding:6px 16px; margin:0; border-radius:12px; box-shadow:none;">🗑 お気に入り全リセット</button>
     </div>
+  </div>
+
+  <div style="text-align:center;padding:24px 0 80px;border-top:1px solid var(--sidebar-border);margin-top:24px;">
+    <button onclick="removeChannel()" style="background:none;border:none;color:#e53935;font-size:13px;cursor:pointer;box-shadow:none;padding:6px 12px;margin:0;font-family:inherit;">🗑 このチャンネルを削除する</button>
   </div>
 </div>
 
@@ -1247,6 +1261,7 @@ const db = firebase.firestore();
 /* ===== 設定 ===== */
 const API_KEY = "AIzaSyCVHzLcLLahGb87ulV-kRlR16pxP7ISbC4";
 let currentUser = null;
+let isGuest = false;
 
 /* ===== 状態 ===== */
 let data = { pages: [] };
@@ -1288,9 +1303,27 @@ async function init() {
 
 init();
 
-// 1チャンネル1ドキュメント（ドキュメント名 = チャンネル名）
-// oldTitle を渡すとタイトル変更時に旧ドキュメントを削除する
+/* ===== ゲスト用ローカル保存ヘルパー ===== */
+function deleteChannelData(title) {
+  if (isGuest) {
+    localStorage.removeItem("GUEST_ch_" + title);
+  } else {
+    chRef(title).delete().catch(() => {});
+    db.collection(currentUser).doc(title).delete().catch(() => {});
+  }
+}
+
 function savePage(page, oldTitle) {
+  if (isGuest) {
+    if (oldTitle && oldTitle !== page.title) {
+      const oldVids = localStorage.getItem("GUEST_ch_" + oldTitle);
+      if (oldVids) localStorage.setItem("GUEST_ch_" + page.title, oldVids);
+      localStorage.removeItem("GUEST_ch_" + oldTitle);
+    }
+    const slim = data.pages.map(({ videos: _v, ...p }) => ({...p}));
+    localStorage.setItem("GUEST_pages", JSON.stringify(slim));
+    return Promise.resolve();
+  }
   const { videos: _v, ...slim } = page;
   const newRef = db.collection(currentUser).doc(page.title);
   const pr = newRef.set(slim);
@@ -1302,6 +1335,12 @@ function savePage(page, oldTitle) {
 }
 
 function save() {
+  if (isGuest) {
+    data.pages.forEach((page, i) => { page.order = i; });
+    const slim = data.pages.map(({ videos: _v, ...p }) => ({...p}));
+    localStorage.setItem("GUEST_pages", JSON.stringify(slim));
+    return Promise.resolve();
+  }
   return Promise.all(data.pages.map((page, i) => {
     page.order = i;
     return savePage(page);
@@ -1313,6 +1352,10 @@ function chRef(pageTitle) {
 }
 
 async function saveChannelVideos(pageTitle, vids) {
+  if (isGuest) {
+    localStorage.setItem("GUEST_ch_" + pageTitle, JSON.stringify(vids));
+    return;
+  }
   await chRef(pageTitle).set({ items: vids });
 }
 
@@ -1449,18 +1492,19 @@ add.onclick = () => {
   });
 };
 
-remove.onclick = () => {
+function removeChannel() {
   const ok = confirm("今開いてるチャンネルページを削除するよ。ほんとに大丈夫？");
   if (!ok) return;
   const idx = getIndex();
   const page = data.pages[idx];
-  // チャンネルドキュメントと動画サブコレクションを削除
-  chRef(page.title).delete().catch(() => {});
-  db.collection(currentUser).doc(page.title).delete().catch(() => {});
+  deleteChannelData(page.title);
   data.pages.splice(idx, 1);
-  save(); // 残りページのorderを更新
+  if (!data.pages.length) {
+    data.pages.push({ title: "チャンネル１", channelId: "", seen: [], skipped: [], favorites: [], order: 0 });
+  }
+  save();
   setIndex(0);
-};
+}
 
 editCh.onclick = async () => {
   const i = getIndex();
@@ -1475,7 +1519,7 @@ editCh.onclick = async () => {
 
   // チャンネルIDが変わったら動画キャッシュをクリア
   if (oldChId !== id) {
-    chRef(p.title).delete().catch(() => {});
+    deleteChannelData(p.title);
   }
 
   p.channelId = id;
@@ -1506,12 +1550,14 @@ async function loadVideo() {
   try {
     // Step1: セッション内メモリキャッシュがなければFirestoreサブコレクションを確認
     if (!p.videos || !p.videos.length) {
-      showLoading("Firestore から動画リストを確認中…");
-      const chDoc = await chRef(p.title).get();
-      if (chDoc.exists && chDoc.data().items?.length > 0) {
-        p.videos = chDoc.data().items;
+      if (!isGuest) {
+        showLoading("Firestore から動画リストを確認中…");
+        const chDoc = await chRef(p.title).get();
+        if (chDoc.exists && chDoc.data().items?.length > 0) {
+          p.videos = chDoc.data().items;
+        }
+        hideLoading();
       }
-      hideLoading();
     }
 
     if (p.videos && p.videos.length > 0) {
@@ -1657,7 +1703,6 @@ function buildVideoCard(v, page) {
     ${v.title}
   </a>
   <div class="videoActions">
-    <button onclick="skipCard('${v.id}')">🚫 今後表示しない</button>
     <button onclick="markAsSeenCard('${v.id}')">✅ 視聴済み</button>
     <button class="favCardBtn" onclick="toggleFavCard('${v.id}')">${isFav ? "❤️ お気に入り" : "🤍 お気に入り"}</button>
   </div>
@@ -2118,13 +2163,41 @@ googleLoginBtn.onclick = async () => {
   }
 };
 
-document.getElementById("guestLoginBtn").onclick = async () => {
-  try {
-    await firebase.auth().signInAnonymously();
-  } catch (e) {
-    console.error(e);
-    alert("ゲストログインに失敗しました: " + e.message);
+document.getElementById("guestLoginBtn").onclick = () => {
+  isGuest = true;
+  currentUser = "GUEST";
+  document.getElementById("login").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("userEmail").textContent = "ゲスト";
+  const icon = document.getElementById("userIcon");
+  icon.style.background = "#888888";
+  icon.style.backgroundImage = "none";
+  initApp();
+};
+
+/* ===== URLからチャンネルID取得ボタン ===== */
+document.getElementById("urlToChBtn").onclick = async () => {
+  const url = prompt("YouTubeのチャンネルURLを入力してください\n例: https://youtube.com/@channelname");
+  if (!url) return;
+  showLoading("チャンネルIDを解析中…");
+  const id = await resolveChannelId(url.trim());
+  hideLoading();
+  if (!id || !id.startsWith("UC")) {
+    alert("チャンネルIDを取得できませんでした。\nURLを確認してください。");
+    return;
   }
+  const i = getIndex();
+  const p = data.pages[i];
+  const oldChId = p.channelId;
+  if (oldChId !== id) deleteChannelData(p.title);
+  p.channelId = id;
+  p.seen = [];
+  p.videos = [];
+  videos = [];
+  render();
+  showLoading("保存中…");
+  await savePage(p);
+  await loadVideo();
 };
 
 /* ===== URL からチャンネルID解析 ===== */
@@ -2211,6 +2284,31 @@ function showSearchResults() {
 }
 
 async function initApp() {
+  if (isGuest) {
+    const saved = localStorage.getItem("GUEST_pages");
+    if (saved) {
+      try {
+        const pages = JSON.parse(saved).map(p => ({ videos: [], ...p }));
+        pages.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+        pages.forEach(p => {
+          const vids = localStorage.getItem("GUEST_ch_" + p.title);
+          if (vids) p.videos = JSON.parse(vids);
+        });
+        data = { pages };
+      } catch(e) {
+        data = { pages: [{ title: "チャンネル１", channelId: "", seen: [], skipped: [], favorites: [], order: 0 }] };
+        save();
+      }
+    } else {
+      data = { pages: [{ title: "チャンネル１", channelId: "", seen: [], skipped: [], favorites: [], order: 0 }] };
+      save();
+    }
+    render();
+    setIndex(0);
+    updateLevel();
+    return;
+  }
+
   showLoading("Firebase からデータを読み込み中…");
   const snapshot = await db.collection(currentUser).get();
   hideLoading();
