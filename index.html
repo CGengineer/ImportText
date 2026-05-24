@@ -834,6 +834,22 @@
       pointer-events: none;
     }
 
+    .durationBadge {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      background: rgba(0,0,0,0.82);
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 2px 5px;
+      border-radius: 3px;
+      pointer-events: none;
+      font-family: Arial, sans-serif;
+      letter-spacing: 0.02em;
+      line-height: 1.4;
+    }
+
     /* 動画アクションボタン */
     .videoActions {
       display: flex;
@@ -2195,15 +2211,59 @@ async function loadVideo() {
   }
 }
 
+/* ===== 動画尺フォーマット ===== */
+function formatDuration(iso) {
+  if (!iso) return '';
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return '';
+  const h = parseInt(m[1] || 0);
+  const min = parseInt(m[2] || 0);
+  const sec = parseInt(m[3] || 0);
+  if (h > 0) return `${h}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return `${min}:${String(sec).padStart(2,'0')}`;
+}
+
+async function fetchAndUpdateDurations(vids) {
+  const toFetch = vids.filter(v => !v.duration);
+  if (!toFetch.length) return;
+  const ids = toFetch.map(v => v.id).join(',');
+  try {
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${ids}&key=${API_KEY}`
+    );
+    const d = await res.json();
+    if (d.error || !d.items) return;
+    d.items.forEach(item => {
+      const v = videos.find(x => x.id === item.id);
+      if (v) {
+        v.duration = item.contentDetails.duration;
+        document.querySelectorAll(`.durationBadge[data-dur-vid="${item.id}"]`).forEach(badge => {
+          badge.textContent = formatDuration(v.duration);
+          badge.removeAttribute('data-dur-vid');
+        });
+      }
+    });
+    const page = data.pages[getIndex()];
+    if (page) {
+      page.videos = videos;
+      saveChannelVideos(page.title, videos);
+    }
+  } catch(e) {}
+}
+
 /* ===== 動画カード表示 ===== */
 function buildVideoCard(v, page) {
   const isFav = (page.favorites || []).includes(v.id);
+  const durHtml = v.duration
+    ? `<div class="durationBadge">${formatDuration(v.duration)}</div>`
+    : `<div class="durationBadge" data-dur-vid="${v.id}"></div>`;
   return `
 <div class="videoCard" data-card-id="${v.id}">
   <div class="thumbBox" data-thumb="${v.thumb}" data-vid="${v.id}"
     onclick="openVideoById('${v.id}')" style="cursor:pointer;">
     <img src="${v.thumb}">
     <div class="playBtn">▶</div>
+    ${durHtml}
   </div>
   <a href="#" onclick="event.preventDefault();openVideoById('${v.id}')" style="display:block;margin-top:8px;font-size:28px;line-height:1.4;color:var(--link-color);text-decoration:none;">
     ${v.title}
@@ -2219,6 +2279,7 @@ function showVideoCards(vids) {
   const page = data.pages[getIndex()];
   currentVideos = vids.map(v => v.id);
   document.getElementById("videoArea").innerHTML = vids.map(v => buildVideoCard(v, page)).join("");
+  fetchAndUpdateDurations(vids);
 }
 
 function openVideoById(id) {
@@ -2466,6 +2527,7 @@ function updateFavorites() {
         onclick="window.open('https://youtube.com/watch?v=${v.id}')" style="cursor:pointer;">
         <img src="${v.thumb}" alt="">
         <div class="playBtn">▶</div>
+        ${v.duration ? `<div class="durationBadge">${formatDuration(v.duration)}</div>` : ''}
       </div>
       <div style="flex:1; min-width:0;">
         <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
@@ -2624,6 +2686,7 @@ function updateHistory() {
             onclick="window.open('https://youtube.com/watch?v=${v.id}')" style="cursor:pointer;">
             <img src="${v.thumb}" alt="">
             <div class="playBtn">▶</div>
+            ${v.duration ? `<div class="durationBadge">${formatDuration(v.duration)}</div>` : ''}
           </div>
           <div style="flex:1; min-width:0;">
             <a href="https://youtube.com/watch?v=${v.id}" target="_blank">${v.title}</a>
