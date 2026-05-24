@@ -1247,8 +1247,6 @@
 
 <div id="login">
   <h3>ログイン</h3>
-  <input id="email" placeholder="メール"><br><br>
-  <input id="password" type="password" placeholder="パスワード"><br><br>
 
   <button id="googleLoginBtn" class="fullBtn">
     Googleでログイン(新規登録不要)
@@ -1257,6 +1255,12 @@
   <div class="rowBtns">
     <button id="loginBtn">その他メールでログイン</button>
     <button id="registerBtn">新規登録</button>
+  </div>
+
+  <div id="emailSection" style="display:none;margin-top:4px;">
+    <input id="email" placeholder="メールアドレス" style="width:100%;box-sizing:border-box;margin-bottom:8px;display:block;"><br>
+    <input id="password" type="password" placeholder="パスワード" style="width:100%;box-sizing:border-box;display:block;"><br>
+    <button id="emailSubmitBtn" class="fullBtn" style="margin-top:4px;">ログイン</button>
   </div>
 
   <hr style="margin:14px 0; border:none; border-top:1px solid var(--input-border);">
@@ -1370,10 +1374,10 @@
     <hr>
     <div id="historyArea"></div>
     <div id="favoritesArea" style="display:none;"></div>
-    <div id="historyActions" style="border-top:1px solid var(--sidebar-border); padding-top:10px; margin-top:10px; text-align:center;">
+    <div id="historyActions" style="border-bottom:1px solid var(--sidebar-border); padding-bottom:10px; margin-bottom:10px; text-align:center;">
       <button onclick="resetHistory()" style="font-size:12px; padding:6px 16px; margin:0; border-radius:12px; box-shadow:none;">🗑 視聴済み全リセット</button>
     </div>
-    <div id="favActions" style="display:none; border-top:1px solid var(--sidebar-border); padding-top:10px; margin-top:10px; text-align:center;">
+    <div id="favActions" style="display:none; border-bottom:1px solid var(--sidebar-border); padding-bottom:10px; margin-bottom:10px; text-align:center;">
       <button onclick="resetFavorites()" style="font-size:12px; padding:6px 16px; margin:0; border-radius:12px; box-shadow:none;">🗑 お気に入り全リセット</button>
     </div>
   </div>
@@ -2373,13 +2377,33 @@ function resetHistory() {
 
 /* ===== ログイン ===== */
 const loginBtn = document.getElementById("loginBtn");
+let emailMode = "login";
 
-loginBtn.onclick = async () => {
-  await firebase.auth().signInWithEmailAndPassword(email.value, password.value);
-};
+function showEmailSection(mode) {
+  emailMode = mode;
+  const section = document.getElementById("emailSection");
+  const submitBtn = document.getElementById("emailSubmitBtn");
+  submitBtn.textContent = mode === "login" ? "ログイン" : "新規登録する";
+  section.style.display = "block";
+  document.getElementById("email").focus();
+}
 
-registerBtn.onclick = async () => {
-  await firebase.auth().createUserWithEmailAndPassword(email.value, password.value);
+loginBtn.onclick = () => showEmailSection("login");
+
+registerBtn.onclick = () => showEmailSection("register");
+
+document.getElementById("emailSubmitBtn").onclick = async () => {
+  const e = document.getElementById("email").value;
+  const p = document.getElementById("password").value;
+  try {
+    if (emailMode === "login") {
+      await firebase.auth().signInWithEmailAndPassword(e, p);
+    } else {
+      await firebase.auth().createUserWithEmailAndPassword(e, p);
+    }
+  } catch(err) {
+    alert(err.message);
+  }
 };
 
 const googleProvider = new firebase.auth.GoogleAuthProvider();
@@ -2520,7 +2544,7 @@ function closeLevelModal() {
 }
 
 /* ===== AI アシスタント (Gemini) ===== */
-const GEMINI_KEY = "AIzaSyAXklkKmj2TTL1y_xEr5XoQ0Xe2J__mc1E";
+const GEMINI_KEY = "AIzaSyDg185zyidvjdEBiWNMksTSR39b4t5QA4s";
 
 const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTube動画管理アプリのサポートAIです。
 このアプリの主な機能：
