@@ -246,6 +246,14 @@
       flex-shrink: 0; /* ユーザーエリアは縮めすぎない */
     }
 
+    #userAccountArea:hover {
+      background: var(--header-btn-hover);
+    }
+    #userAccountArea.btn-active {
+      background: var(--header-btn-hover);
+      box-shadow: 0 0 0 2px var(--btn-border);
+    }
+
     #userIcon {
       width: 32px;
       height: 32px;
@@ -1198,8 +1206,10 @@
     <button id="statusBtn" class="headerBtn">通信状態</button>
   </div>
   <div id="userArea">
-    <span id="userEmail" style="display:none;"></span>
-    <div id="userIcon" onclick="toggleMenu()" style="position:absolute;width:0;height:0;overflow:hidden;"></div>
+    <div id="userAccountArea" onclick="toggleMenu()" style="display:none;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border-radius:20px;transition:background 0.15s;">
+      <div id="userIcon"></div>
+      <span id="userEmail" style="font-size:13px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    </div>
     <button id="settingsBtn" class="headerBtn">⚙️ 設定</button>
   </div>
 </div>
@@ -1646,7 +1656,7 @@ function clearAllBtnActive() {
   Object.values(MODAL_BTN_MAP).forEach(btnId => {
     document.getElementById(btnId)?.classList.remove('btn-active');
   });
-  document.getElementById('userIcon')?.classList.remove('btn-active');
+  document.getElementById('userAccountArea')?.classList.remove('btn-active');
 }
 
 function closeAllModals() {
@@ -1693,7 +1703,7 @@ document.getElementById('overlay').addEventListener('click', () => {
 function closeLoginPopup() {
   document.getElementById('login').style.display = 'none';
   document.getElementById('overlay').style.display = 'none';
-  document.getElementById('userIcon').classList.remove('btn-active');
+  document.getElementById('userAccountArea')?.classList.remove('btn-active');
 }
 
 const helpBtn = document.getElementById("helpBtn");
@@ -1786,7 +1796,7 @@ function toggleMenu() {
   } else {
     loginEl.style.display = 'block';
     document.getElementById('overlay').style.display = 'block';
-    document.getElementById('userIcon').classList.add('btn-active');
+    document.getElementById('userAccountArea')?.classList.add('btn-active');
   }
 }
 
@@ -1850,6 +1860,8 @@ async function init() {
       document.getElementById("userEmail").textContent = user.isAnonymous ? "ゲスト" : user.email;
 
       const icon = document.getElementById("userIcon");
+      const accountArea = document.getElementById("userAccountArea");
+      if (accountArea) accountArea.style.display = "flex";
 
       if (user.photoURL) {
         icon.style.backgroundImage = `url(${user.photoURL})`;
@@ -2857,6 +2869,8 @@ document.getElementById("guestLoginBtn").onclick = () => {
   const icon = document.getElementById("userIcon");
   icon.style.background = "#888888";
   icon.style.backgroundImage = "none";
+  const accountArea = document.getElementById("userAccountArea");
+  if (accountArea) accountArea.style.display = "flex";
   initApp();
 };
 
