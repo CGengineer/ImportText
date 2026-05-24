@@ -2604,8 +2604,11 @@ async function sendAiMessage() {
 
   try {
     const reqBody = {
-      system_instruction: { parts: [{ text: AI_SYSTEM_PROMPT }] },
-      contents: aiHistory,
+      contents: [
+        { role: "user", parts: [{ text: AI_SYSTEM_PROMPT }] },
+        { role: "model", parts: [{ text: "了解しました。♾️未知リンクのサポートAIとしてご質問にお答えします！" }] },
+        ...aiHistory
+      ],
       generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
     };
     const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
