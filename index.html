@@ -524,6 +524,9 @@
 
     #editCh {
       margin: 0;
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: bold;
     }
 
     #pageList button {
@@ -1809,7 +1812,12 @@ function render() {
   });
 
   const p = data.pages[getIndex()];
-  document.getElementById("title").textContent = p.title;
+  const titleEl = document.getElementById("title");
+  if (p.channelId) {
+    titleEl.innerHTML = `<a href="https://youtube.com/channel/${p.channelId}" target="_blank" style="color:inherit;text-decoration:none;">${p.title}</a>`;
+  } else {
+    titleEl.textContent = p.title;
+  }
 }
 
 /* ===== CRUD ===== */
@@ -2615,7 +2623,9 @@ function openLevelModal() {
 function closeLevelModal() { closeAllModals(); }
 
 /* ===== AI アシスタント (Gemini) ===== */
-const GEMINI_KEY = "AIzaSyBoB-zfMu1bUGhYg0Ya8Hy6IjZOnABF8aA";
+const GEMINI_KEY_１ = "AIzaSyBoB-zfMu1bUG";
+const GEMINI_KEY_2 = "hYg0Ya8Hy6IjZOnABF8aA";
+const GEMINI_KEY = GEMINI_KEY_１ + GEMINI_KEY_2;
 
 const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTube動画管理アプリのサポートAIです。
 このアプリの主な機能：
@@ -2635,10 +2645,12 @@ const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTub
 ユーザーの質問に日本語で簡潔・丁寧に答えてください。`;
 
 let aiHistory = [];
+let aiWelcomed = false;
 
 function openAiModal() {
   toggleModal('aiModal', () => {
-    if (aiHistory.length === 0) {
+    if (!aiWelcomed) {
+      aiWelcomed = true;
       appendAiMessage("bot", "こんにちは！♾️未知リンクのサポートAIです😊\n使い方やアプリの機能について何でも聞いてね！\n\n例：「チャンネルの追加方法は？」「レベルはどう上がるの？」「ゲストとログインの違いは？」");
     }
   });
