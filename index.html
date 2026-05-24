@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-title" content="未知リンク">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#ffd0e6">
-  <title>♾️未知リンク</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♾️</text></svg>">
+  <title>未知リンク</title>
+  <link rel="icon" href="https://firebasestorage.googleapis.com/v0/b/importtext-b229d.firebasestorage.app/o/%E7%84%A1%E9%A1%8C28_20260525014230.png?alt=media">
 
   <style>
     /* ===== テーマ変数 ===== */
@@ -1078,7 +1078,7 @@
 
 <div id="header">
   <div id="appTitle">
-    <div id="appName">♾️未知リンク</div>
+    <div id="appName"><img id="appIconImg" src="" style="height:56px;width:56px;vertical-align:middle;object-fit:contain;border-radius:6px;display:none;margin-right:4px;"> 未知リンク</div>
     <span id="levelBadge" onclick="openLevelModal()" title="レベル詳細">Lv.1</span>
     <button id="meritBtn" class="headerBtn">機能概要</button>
     <button id="helpBtn" class="headerBtn">使用方法</button>
@@ -1638,14 +1638,16 @@ firebase.initializeApp({
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-// Firebase StorageのアイコンをfaviconとApple Touch Iconに適用
+// Firebase StorageのアイコンをfaviconとApple Touch Iconとヘッダーアイコンに適用
 (async function loadFavicon() {
   try {
-    const url = await storage.ref('916A94F1-98DF-4DB2-AF62-200F47161312.PNG').getDownloadURL();
+    const url = await storage.ref('無題28_20260525014230.png').getDownloadURL();
     const iconEl = document.querySelector("link[rel='icon']");
     if (iconEl) iconEl.href = url;
     const touchEl = document.querySelector("link[rel='apple-touch-icon']");
     if (touchEl) touchEl.href = url;
+    const imgEl = document.getElementById('appIconImg');
+    if (imgEl) { imgEl.src = url; imgEl.style.display = 'inline'; }
   } catch(e) {}
 })();
 
@@ -2988,7 +2990,7 @@ async function initApp() {
 
   try {
     const manifest = {
-      name: '♾️未知リンク',
+      name: '未知リンク',
       short_name: '未知リンク',
       icons: [
         { src: generateAppIcon(192), sizes: '192x192', type: 'image/png' },
