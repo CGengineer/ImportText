@@ -1534,18 +1534,11 @@ function applyAppIcon(url) {
 
 async function loadAppIcon() {
   const cached = localStorage.getItem('appIconUrl');
-  if (cached && !cached.startsWith('gs://')) applyAppIcon(cached);
+  if (cached) applyAppIcon(cached);
   try {
-    const doc = await db.collection('_app').doc('settings').get();
-    if (doc.exists && doc.data().iconUrl) {
-      let url = doc.data().iconUrl;
-      if (url.startsWith('gs://')) {
-        url = await storage.refFromURL(url).getDownloadURL();
-        localStorage.setItem('appIconUrl', url);
-      }
-      applyAppIcon(url);
-    }
-  } catch(e) {}
+    const url = await storage.ref('916A94F1-98DF-4DB2-AF62-200F47161312.PNG').getDownloadURL();
+    applyAppIcon(url);
+  } catch(e) { console.warn('icon load failed:', e.message); }
 }
 
 loadAppIcon();
