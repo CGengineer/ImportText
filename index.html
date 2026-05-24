@@ -1054,11 +1054,12 @@
         from { opacity: 0; transform: translateY(-10px); }
         to   { opacity: 1; transform: translateY(0); }
       }
-      /* モバイル: AI modalはAIボタンのすぐ左上 */
+      /* モバイル: AI modalは画面左上 */
       #aiModal {
-        bottom: 132px;
-        right: 8px;
+        top: 90px;
         left: 8px;
+        right: 8px;
+        bottom: auto;
         width: auto;
         height: calc(100vh - 180px);
         max-height: 70vh;
@@ -2192,26 +2193,41 @@ function skipCard(id) {
 
 function markAsSeenCard(id) {
   const page = data.pages[getIndex()];
-  if (!page.seen.includes(id)) {
+  const card = document.querySelector(`.videoCard[data-card-id="${id}"]`);
+  if (page.seen.includes(id)) {
+    // 解除
+    page.seen = page.seen.filter(sid => sid !== id);
+    page.history = (page.history || []).filter(e => e.id !== id);
+    save();
+    updateProgress();
+    updateHistory();
+    if (card) {
+      card.classList.remove('viewed');
+      const overlay = card.querySelector('.viewedOverlay');
+      if (overlay) overlay.remove();
+      const seenBtn = card.querySelector('.seenCardBtn');
+      if (seenBtn) seenBtn.textContent = '☑️ 視聴済み';
+    }
+  } else {
+    // 記録
     page.seen.push(id);
     if (!page.history) page.history = [];
     page.history.push({ id, at: Date.now() });
     save();
     updateProgress();
     updateHistory();
-  }
-  const card = document.querySelector(`.videoCard[data-card-id="${id}"]`);
-  if (card) {
-    card.classList.add('viewed');
-    const thumbBox = card.querySelector('.thumbBox');
-    if (thumbBox && !thumbBox.querySelector('.viewedOverlay')) {
-      const overlay = document.createElement('div');
-      overlay.className = 'viewedOverlay';
-      overlay.textContent = '✅';
-      thumbBox.appendChild(overlay);
+    if (card) {
+      card.classList.add('viewed');
+      const thumbBox = card.querySelector('.thumbBox');
+      if (thumbBox && !thumbBox.querySelector('.viewedOverlay')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'viewedOverlay';
+        overlay.textContent = '✅';
+        thumbBox.appendChild(overlay);
+      }
+      const seenBtn = card.querySelector('.seenCardBtn');
+      if (seenBtn) seenBtn.textContent = '✅ 視聴済み';
     }
-    const seenBtn = card.querySelector('.seenCardBtn');
-    if (seenBtn) seenBtn.textContent = '✅ 視聴済み';
   }
 }
 
