@@ -373,16 +373,17 @@
     /* モーダル共通 */
     #helpModal, #meritModal, #statusModal {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      top: 60px;
+      left: 0;
+      right: 0;
       background: var(--modal-bg);
-      border-radius: 12px;
+      border-radius: 0 0 16px 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid var(--modal-border);
-      width: 760px;
-      max-width: 96%;
-      max-height: 70vh;
+      border-top: none;
+      width: 100%;
+      max-width: 100%;
+      max-height: calc(100vh - 60px);
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -832,17 +833,18 @@
     /* AIモーダル */
     #aiModal {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      top: 60px;
+      left: 0;
+      right: 0;
       background: var(--modal-bg);
-      border-radius: 16px;
+      border-radius: 0 0 16px 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid var(--modal-border);
-      width: 340px;
-      max-width: 94vw;
-      height: 70vh;
-      max-height: 560px;
+      border-top: none;
+      width: 100%;
+      max-width: 100%;
+      height: 520px;
+      max-height: calc(100vh - 60px);
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -915,16 +917,17 @@
     /* レベルモーダル */
     #levelModal {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      top: 60px;
+      left: 0;
+      right: 0;
       background: var(--modal-bg);
-      border-radius: 16px;
+      border-radius: 0 0 16px 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid var(--modal-border);
-      width: 600px;
-      max-width: 96%;
-      max-height: 80vh;
+      border-top: none;
+      width: 100%;
+      max-width: 100%;
+      max-height: calc(100vh - 60px);
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -1058,23 +1061,13 @@
         font-size: 16px;
       }
 
-      /* モーダルをヘッダー直下に全幅展開 */
+      /* モバイル: ヘッダーが低いので top を調整 */
       #helpModal, #meritModal, #statusModal, #aiModal, #levelModal {
         top: 52px;
-        left: 0;
-        right: 0;
-        transform: none;
-        width: 100%;
-        max-width: 100%;
         max-height: calc(100vh - 52px);
-        border-radius: 0 0 16px 16px;
-        border-left: none;
-        border-right: none;
-        border-top: none;
       }
       #aiModal {
         height: calc(100vh - 52px);
-        max-height: calc(100vh - 52px);
       }
     }
   </style>
@@ -1445,41 +1438,36 @@ applyTheme(localStorage.getItem("theme") || "pink");
 
 themeSelect.onchange = () => applyTheme(themeSelect.value);
 
-const helpBtn = document.getElementById("helpBtn");
+/* ===== モーダル トグル共通 ===== */
+const CONTENT_MODALS = ['helpModal', 'meritModal', 'statusModal', 'aiModal', 'levelModal'];
 
-helpBtn.onclick = () => {
-  document.getElementById("helpModal").style.display = "flex";
-  document.getElementById("overlay").style.display = "block";
-};
-
-function closeHelp() {
-  document.getElementById("helpModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
+function closeAllModals() {
+  CONTENT_MODALS.forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('overlay').style.display = 'none';
 }
+
+function toggleModal(id, onOpen) {
+  const el = document.getElementById(id);
+  const isOpen = el.style.display === 'flex';
+  closeAllModals();
+  if (!isOpen) {
+    if (onOpen) onOpen();
+    el.style.display = 'flex';
+    document.getElementById('overlay').style.display = 'block';
+  }
+}
+
+const helpBtn = document.getElementById("helpBtn");
+helpBtn.onclick = () => toggleModal('helpModal');
+function closeHelp() { closeAllModals(); }
 
 const meritBtn = document.getElementById("meritBtn");
-
-meritBtn.onclick = () => {
-  document.getElementById("meritModal").style.display = "flex";
-  document.getElementById("overlay").style.display = "block";
-};
-
-function closeMerit() {
-  document.getElementById("meritModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-}
+meritBtn.onclick = () => toggleModal('meritModal');
+function closeMerit() { closeAllModals(); }
 
 const statusBtn = document.getElementById("statusBtn");
-
-statusBtn.onclick = () => {
-  document.getElementById("statusModal").style.display = "flex";
-  document.getElementById("overlay").style.display = "block";
-};
-
-function closeStatus() {
-  document.getElementById("statusModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-}
+statusBtn.onclick = () => toggleModal('statusModal');
+function closeStatus() { closeAllModals(); }
 
 function toggleMenu() {
   const menu = document.getElementById("userMenu");
@@ -2577,17 +2565,13 @@ function openLevelModal() {
       </tbody>
     </table>
   `;
-  document.getElementById("levelModal").style.display = "flex";
-  document.getElementById("overlay").style.display = "block";
+  toggleModal('levelModal');
 }
 
-function closeLevelModal() {
-  document.getElementById("levelModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-}
+function closeLevelModal() { closeAllModals(); }
 
 /* ===== AI アシスタント (Gemini) ===== */
-const GEMINI_KEY = "AIzaSyAnG_LRncrMKqFmrgdSyQm5-9kb7HZ2yBs";
+const GEMINI_KEY = "AIzaSyBoB-zfMu1bUGhYg0Ya8Hy6IjZOnABF8aA";
 
 const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTube動画管理アプリのサポートAIです。
 このアプリの主な機能：
@@ -2609,17 +2593,14 @@ const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTub
 let aiHistory = [];
 
 function openAiModal() {
-  document.getElementById("aiModal").style.display = "flex";
-  document.getElementById("overlay").style.display = "block";
-  if (aiHistory.length === 0) {
-    appendAiMessage("bot", "こんにちは！♾️未知リンクのサポートAIです😊\n使い方やアプリの機能について何でも聞いてね！\n\n例：「チャンネルの追加方法は？」「レベルはどう上がるの？」「ゲストとログインの違いは？」");
-  }
+  toggleModal('aiModal', () => {
+    if (aiHistory.length === 0) {
+      appendAiMessage("bot", "こんにちは！♾️未知リンクのサポートAIです😊\n使い方やアプリの機能について何でも聞いてね！\n\n例：「チャンネルの追加方法は？」「レベルはどう上がるの？」「ゲストとログインの違いは？」");
+    }
+  });
 }
 
-function closeAiModal() {
-  document.getElementById("aiModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-}
+function closeAiModal() { closeAllModals(); }
 
 function appendAiMessage(role, text) {
   const area = document.getElementById("aiMessages");
