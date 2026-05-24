@@ -603,7 +603,7 @@
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       padding-bottom: 8px;
-      align-items: flex-start;
+      align-items: stretch;
     }
 
     .thumbBox {
@@ -3146,20 +3146,12 @@ function showSearchResults() {
   }
   const page = data.pages[getIndex()];
   currentVideos = results.map(v => v.id);
-  if (results.length <= 3) {
-    // 3件以下は通常グリッドと同じサイズで表示
-    area.classList.remove("searchMode");
-    area.style.removeProperty('--search-card-width');
-    area.style.setProperty('--card-cols', results.length);
-    area.innerHTML = results.map(v => buildVideoCard(v, page)).join("");
-  } else {
-    // 4件以上は横スクロール、カード幅はコンテナの1/3
-    area.classList.remove("searchMode"); // 一旦外してoffsetWidth取得
-    const cardWidth = Math.floor(area.offsetWidth / 3) - 7;
-    area.style.setProperty('--search-card-width', cardWidth + 'px');
-    area.classList.add("searchMode");
-    area.innerHTML = results.map(v => buildVideoCard(v, page)).join("");
-  }
+  // 常に横スクロール、カード幅はコンテナ実幅の1/3
+  area.classList.remove("searchMode");
+  const cardWidth = Math.floor(area.offsetWidth / 3) - 7;
+  area.style.setProperty('--search-card-width', cardWidth + 'px');
+  area.classList.add("searchMode");
+  area.innerHTML = results.map(v => buildVideoCard(v, page)).join("");
 }
 
 async function initApp() {
