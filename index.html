@@ -525,8 +525,8 @@
     #sidebarToggle {
       position: fixed;
       bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 20px;
+      transform: none;
       font-size: 24px;
       width: 56px;
       height: 56px;
@@ -1307,7 +1307,7 @@
 
 <div id="main">
   <div id="topControls">
-    <button id="editCh">チャンネルID設定</button>
+    <button id="editCh">チャンネル設定</button>
   </div>
   <h1 id="title"></h1>
 
@@ -1324,7 +1324,7 @@
   <div style="display:flex;align-items:center;gap:8px;margin:24px 0 4px;flex-wrap:wrap;">
     <h3 style="margin:0;flex-shrink:0;">✨ 今日のオススメ 3本</h3>
     <button onclick="randomVideo()" class="headerBtn" style="margin:0;flex-shrink:0;">更新 ›</button>
-    <input id="searchInput" placeholder="🔍 検索..." style="width:140px;flex:0 1 140px;font-size:12px;padding:5px 10px;">
+    <input id="searchInput" placeholder="🔍 チャンネル内検索..." style="width:140px;flex:0 1 140px;font-size:12px;padding:5px 10px;">
     <button id="clearSearchBtn" onclick="clearSearch()" class="headerBtn" style="display:none;margin:0;padding:5px 10px;flex-shrink:0;">✕</button>
   </div>
   <p class="videoHint" style="margin-top:14px;">👆 サムネイルをタップすると動画が開いて視聴済みに記録されます&nbsp;&nbsp;🔗 タイトルのリンクから直接開いた場合は記録されません</p>
@@ -1834,6 +1834,7 @@ async function loadVideo() {
 
       if (now - lastCheck < 3600000) {
         updateProgress();
+        if (videos.length === 0) randomVideo();
         return;
       }
 
@@ -2487,13 +2488,23 @@ function openLevelModal() {
     </div>
     <hr style="border:none;border-top:1px solid var(--history-item-border);margin:6px 0 8px;">
     <div style="font-size:11px;color:var(--text-light);margin-bottom:6px;font-weight:bold;letter-spacing:0.05em;">LEVEL TABLE（全100段階）</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">
-    ${LEVEL_TABLE.map(l => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;border-radius:6px;background:${l.lv===level?'rgba(255,140,0,0.15)':'transparent'};opacity:${l.lv<=level?'1':'0.3'};">
-        <span style="font-size:11px;">${l.lv<=level?'✅':'⬜'} <b>Lv.${l.lv}</b></span>
-        <span style="font-size:10px;color:var(--text-light);margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">${l.name}</span>
-      </div>`).join("")}
-    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead><tr style="border-bottom:1px solid var(--history-item-border);text-align:left;">
+        <th style="padding:3px 4px;font-size:11px;color:var(--text-light);">状態</th>
+        <th style="padding:3px 4px;font-size:11px;color:var(--text-light);">Lv</th>
+        <th style="padding:3px 4px;font-size:11px;color:var(--text-light);">称号</th>
+        <th style="padding:3px 4px;font-size:11px;color:var(--text-light);">必要本数</th>
+      </tr></thead>
+      <tbody>
+      ${LEVEL_TABLE.map(l => `
+        <tr style="opacity:${l.lv<=level?'1':'0.3'};background:${l.lv===level?'rgba(255,140,0,0.15)':'transparent'};">
+          <td style="padding:3px 4px;">${l.lv<=level?'✅':'⬜'}</td>
+          <td style="padding:3px 4px;font-weight:bold;">${l.lv}</td>
+          <td style="padding:3px 4px;">${l.name}</td>
+          <td style="padding:3px 4px;color:var(--text-light);">${l.need}本〜</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>
   `;
   document.getElementById("levelModal").style.display = "flex";
   document.getElementById("overlay").style.display = "block";
@@ -2572,12 +2583,22 @@ async function sendAiMessage() {
       body: JSON.stringify(reqBody)
     });
     const d = await res.json();
-    if (d.error) throw new Error(d.error.message);
+    if (d.error) {
+      const msg = d.error.message || "";
+      if (msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED") || d.error.code === 429) {
+        throw new Error("QUOTA");
+      }
+      throw new Error(msg);
+    }
     const reply = d.candidates?.[0]?.content?.parts?.[0]?.text || "返答を取得できませんでした。";
     loadingDiv.textContent = reply;
     aiHistory.push({ role: "model", parts: [{ text: reply }] });
   } catch(e) {
-    loadingDiv.textContent = "エラー: " + e.message;
+    if (e.message === "QUOTA") {
+      loadingDiv.textContent = "⚠️ AIサービスの無料枠の上限に達しました。しばらく時間をおいてからお試しください。";
+    } else {
+      loadingDiv.textContent = "エラー: " + e.message;
+    }
   }
   document.getElementById("aiMessages").scrollTop = document.getElementById("aiMessages").scrollHeight;
 }
