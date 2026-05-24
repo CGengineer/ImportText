@@ -1961,10 +1961,13 @@ function render() {
 
   const p = data.pages[getIndex()];
   const titleEl = document.getElementById("title");
+  const chThumb = p.thumbnailUrl
+    ? `<img src="${p.thumbnailUrl}" style="width:64px;height:64px;border-radius:50%;vertical-align:middle;object-fit:cover;margin-right:12px;flex-shrink:0;">`
+    : '';
   if (p.channelId) {
-    titleEl.innerHTML = `<a href="https://youtube.com/channel/${p.channelId}" target="_blank" style="color:inherit;text-decoration:none;">${p.title}</a>`;
+    titleEl.innerHTML = `${chThumb}<a href="https://youtube.com/channel/${p.channelId}" target="_blank" style="color:inherit;text-decoration:none;vertical-align:middle;">${p.title}</a>`;
   } else {
-    titleEl.textContent = p.title;
+    titleEl.innerHTML = `${chThumb}<span style="vertical-align:middle;">${p.title}</span>`;
   }
 }
 
@@ -2121,6 +2124,10 @@ async function loadVideo() {
     const uploadsId = chData.items[0].contentDetails.relatedPlaylists.uploads;
     const oldTitle = p.title;
     p.title = chData.items[0].snippet.title;
+    p.thumbnailUrl = chData.items[0].snippet.thumbnails?.high?.url
+      || chData.items[0].snippet.thumbnails?.medium?.url
+      || chData.items[0].snippet.thumbnails?.default?.url
+      || '';
     savePage(p, oldTitle); // タイトルが変わった場合は旧ドキュメントを削除
     render();
 
