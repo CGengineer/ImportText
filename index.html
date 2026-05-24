@@ -2611,25 +2611,26 @@ async function sendAiMessage() {
       ],
       generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
     };
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reqBody)
     });
     const d = await res.json();
+    console.log("Gemini response:", JSON.stringify(d));
     if (d.error) {
-      const msg = d.error.message || "";
-      if (msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED") || d.error.code === 429) {
+      const status = d.error.status || "";
+      if (d.error.code === 429 || status === "RESOURCE_EXHAUSTED") {
         throw new Error("QUOTA");
       }
-      throw new Error(msg);
+      throw new Error(`[${d.error.code}] ${d.error.message}`);
     }
     const reply = d.candidates?.[0]?.content?.parts?.[0]?.text || "返答を取得できませんでした。";
     loadingDiv.textContent = reply;
     aiHistory.push({ role: "model", parts: [{ text: reply }] });
   } catch(e) {
     if (e.message === "QUOTA") {
-      loadingDiv.textContent = "⚠️ AIが使えません。Google Cloud Console でこのAPIキーのプロジェクトに「Generative Language API」が有効になっているか確認してください。";
+      loadingDiv.textContent = "⚠️ クォータ超過。しばらく時間をおいてから試してください。";
     } else {
       loadingDiv.textContent = "エラー: " + e.message;
     }
