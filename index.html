@@ -1206,9 +1206,9 @@
     <button id="statusBtn" class="headerBtn">通信状態</button>
   </div>
   <div id="userArea">
-    <div id="userAccountArea" onclick="toggleMenu()" style="display:none;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border-radius:20px;transition:background 0.15s;">
+    <div id="userAccountArea" style="display:none;">
       <div id="userIcon"></div>
-      <span id="userEmail" style="font-size:13px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <span id="userEmail"></span>
     </div>
     <button id="settingsBtn" class="headerBtn">⚙️ 設定</button>
   </div>
@@ -1862,9 +1862,6 @@ async function init() {
       document.getElementById("userEmail").textContent = user.isAnonymous ? "ゲスト" : user.email;
 
       const icon = document.getElementById("userIcon");
-      const accountArea = document.getElementById("userAccountArea");
-      if (accountArea) accountArea.style.display = "flex";
-
       currentUserPhotoURL = user.photoURL || null;
       if (user.photoURL) {
         icon.style.backgroundImage = `url(${user.photoURL})`;
@@ -2872,8 +2869,6 @@ document.getElementById("guestLoginBtn").onclick = () => {
   const icon = document.getElementById("userIcon");
   icon.style.background = "#888888";
   icon.style.backgroundImage = "none";
-  const accountArea = document.getElementById("userAccountArea");
-  if (accountArea) accountArea.style.display = "flex";
   initApp();
 };
 
