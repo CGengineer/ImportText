@@ -1150,6 +1150,62 @@
         height: 440px;
         max-height: calc(100vh - 170px);
       }
+
+      /* モバイル: フォントサイズ縮小 */
+      h1 { font-size: 28px; }
+      h2 { font-size: 20px; }
+      h3 { font-size: 16px; }
+
+      #sidebarToggle {
+        font-size: 24px;
+        width: 60px;
+        height: 60px;
+      }
+
+      #editCh {
+        font-size: 16px;
+        padding: 10px 18px;
+      }
+
+      .tabBtn {
+        font-size: 14px;
+        padding: 8px 14px;
+      }
+
+      .statsCardHeader { font-size: 14px; }
+
+      .statsGrid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+      }
+
+      .statIconWrap {
+        width: 48px;
+        height: 48px;
+        font-size: 26px;
+        border-radius: 12px;
+      }
+
+      .statValue { font-size: 22px; }
+      .statUnit  { font-size: 12px; }
+      .statLabel { font-size: 11px; }
+
+      .statsProgressHeader { font-size: 14px; margin-bottom: 8px; }
+
+      .videoActions button {
+        font-size: 13px;
+        padding: 8px 6px;
+      }
+
+      .historyItem a { font-size: 15px; }
+
+      .historyThumb { width: 120px; }
+
+      #videoArea {
+        gap: 6px;
+      }
+
+      .videoCard { padding: 8px; }
     }
   </style>
 
@@ -2285,7 +2341,7 @@ function buildVideoCard(v, page) {
     <img src="${v.thumb}">
     <div class="playBtn">▶</div>
   </div>
-  <a href="https://youtube.com/watch?v=${v.id}" target="_blank" onclick="markAsSeenCard('${v.id}')" style="display:block;margin-top:8px;font-size:28px;line-height:1.4;">
+  <a href="https://youtube.com/watch?v=${v.id}" target="_blank" onclick="markAsSeenCard('${v.id}')" style="display:block;margin-top:8px;font-size:clamp(13px,2vw,18px);line-height:1.4;">
     ${v.title}
   </a>
   <div class="videoActions">
