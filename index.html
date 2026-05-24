@@ -3140,8 +3140,7 @@ function clearSearch() {
 
 function showSearchResults() {
   if (!searchQuery || !videos.length) return;
-  const pool = buildPool();
-  const results = pool.filter(v => v.title.toLowerCase().includes(searchQuery));
+  const results = videos.filter(v => v.title.toLowerCase().includes(searchQuery));
   const area = document.getElementById("videoArea");
   if (!results.length) {
     area.classList.remove("searchMode");
