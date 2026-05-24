@@ -523,21 +523,16 @@
     }
 
     #sidebarToggle {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      transform: none;
-      font-size: 24px;
-      width: 56px;
-      height: 56px;
+      font-size: 20px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       padding: 0;
       margin: 0;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.28);
-      z-index: 998;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
     }
 
     #editCh {
@@ -1030,10 +1025,9 @@
         min-height: 40px;
       }
       #sidebarToggle {
-        width: 52px;
-        height: 52px;
-        font-size: 22px;
-        bottom: 16px;
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
       }
       .videoHint {
         font-size: 12px;
@@ -1303,8 +1297,6 @@
   <div id="pageList"></div>
 </div>
 
-<button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
-
 <div id="main">
   <div id="topControls">
     <button id="editCh">チャンネル設定</button>
@@ -1386,8 +1378,14 @@
     </div>
   </div>
 
-  <div style="text-align:center;padding:24px 0 80px;border-top:1px solid var(--sidebar-border);margin-top:24px;">
-    <button onclick="removeChannel()" style="background:none;border:none;color:#e53935;font-size:13px;cursor:pointer;box-shadow:none;padding:6px 12px;margin:0;font-family:inherit;">🗑 このチャンネルを削除する</button>
+  <div style="padding:24px 0 0;border-top:1px solid var(--sidebar-border);margin-top:24px;">
+    <div style="display:flex;align-items:center;gap:12px;padding-bottom:16px;">
+      <button id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉">☰</button>
+      <button onclick="removeChannel()" style="background:none;border:none;color:#e53935;font-size:13px;cursor:pointer;box-shadow:none;padding:6px 12px;margin:0;font-family:inherit;">🗑 このチャンネルを削除する</button>
+    </div>
+    <div style="text-align:center;padding:14px 0 40px;border-top:1px solid var(--history-item-border);font-size:11px;color:var(--text-light);">
+      Made with ❤️ by <a href="https://www.youtube.com/@Kororin" target="_blank" style="color:var(--text-light);text-decoration:none;font-weight:bold;">@Kororin</a>
+    </div>
   </div>
 </div>
 
@@ -1517,11 +1515,14 @@ async function init() {
         icon.style.backgroundImage = "none";
       }
 
-      // ゲストデータの引き継ぎ確認
+      // ゲストデータの引き継ぎ確認（アカウントにデータがない初回ログイン時のみ）
       const guestPages = localStorage.getItem("GUEST_pages");
       if (guestPages && !user.isAnonymous) {
-        const migrate = confirm("ゲストで保存したデータをこのアカウントに引き継ぎますか？\n（引き継ぐとゲストデータは削除されます）");
-        if (migrate) await migrateGuestData();
+        const existingSnap = await db.collection(user.email || ("guest_" + user.uid)).limit(1).get();
+        if (existingSnap.empty) {
+          const migrate = confirm("初回ログインです！\nゲストで保存したデータをこのアカウントに引き継ぎますか？\n（引き継ぐとゲストデータは削除されます）");
+          if (migrate) await migrateGuestData();
+        }
       }
 
       initApp();
@@ -2516,7 +2517,7 @@ function closeLevelModal() {
 }
 
 /* ===== AI アシスタント (Gemini) ===== */
-const GEMINI_KEY = "AIzaSyB84Y0O_qGHqSR0YTEzAwqt6ifgt6-xCrw";
+const GEMINI_KEY = "AIzaSyAXklkKmj2TTL1y_xEr5XoQ0Xe2J__mc1E";
 
 const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTube動画管理アプリのサポートAIです。
 このアプリの主な機能：
