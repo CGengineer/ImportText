@@ -187,16 +187,16 @@
       top: 0;
       left: 0;
       right: 0;
-      min-height: 72px;
+      min-height: 82px;
       background: var(--header-bg);
       border-bottom: 1px solid var(--header-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 24px;
       z-index: 1000;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
     }
 
     #appTitle {
@@ -207,7 +207,7 @@
 
     #appName {
       font-weight: bold;
-      font-size: 18px;
+      font-size: 24px;
     }
 
     #userArea {
@@ -292,11 +292,12 @@
       background: var(--header-btn-bg);
       border: 1px solid var(--header-btn-border);
       color: var(--btn-color);
-      padding: 8px 14px;
-      font-size: 14px;
-      border-radius: 14px;
+      padding: 10px 20px;
+      font-size: 15px;
+      border-radius: 16px;
       box-shadow: none;
       margin-bottom: 0;
+      font-weight: 500;
     }
 
     .headerBtn:hover {
@@ -370,7 +371,7 @@
     /* モーダル共通 */
     #helpModal, #meritModal, #statusModal, #levelModal {
       position: fixed;
-      top: 72px;
+      top: 82px;
       left: 50%;
       transform: translateX(-50%);
       width: 100%;
@@ -379,7 +380,7 @@
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid var(--modal-border);
-      max-height: calc(100vh - 80px);
+      max-height: 52vh;
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -468,7 +469,7 @@
       min-width: 300px;
       border-right: 1px solid var(--sidebar-border);
       padding: 10px;
-      margin-top: 72px;
+      margin-top: 82px;
       overflow: hidden;
       transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease;
     }
@@ -545,7 +546,7 @@
     #main {
       flex: 1;
       padding: 10px;
-      margin-top: 72px;
+      margin-top: 82px;
     }
 
     #videoArea {
@@ -799,11 +800,11 @@
       background: linear-gradient(135deg, #ff8c00, #ffd700);
       color: white;
       font-weight: bold;
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 10px;
+      font-size: 14px;
+      padding: 5px 12px;
+      border-radius: 12px;
       white-space: nowrap;
-      display: none;
+      display: inline-block;
       cursor: pointer;
       user-select: none;
     }
@@ -951,14 +952,14 @@
     /* モバイル対応 */
     @media (max-width: 680px) {
       #header {
-        padding: 6px 12px;
-        min-height: 56px;
+        padding: 6px 14px;
+        min-height: 62px;
       }
       #appTitle .headerBtn {
         display: none;
       }
       #appName {
-        font-size: 16px;
+        font-size: 20px;
       }
       #userEmail {
         display: none;
@@ -968,12 +969,12 @@
         padding: 4px 8px;
       }
       #sidebar {
-        margin-top: 56px;
+        margin-top: 62px;
         width: 260px;
         min-width: 260px;
       }
       #main {
-        margin-top: 56px;
+        margin-top: 62px;
         padding: 8px;
       }
       .videoCard {
@@ -1053,8 +1054,8 @@
         font-size: 16px;
       }
       #levelBadge {
-        font-size: 13px;
-        padding: 4px 10px;
+        font-size: 14px;
+        padding: 5px 11px;
       }
       .statsGrid {
         gap: 4px;
@@ -1077,8 +1078,8 @@
 
       /* モバイル: コンテンツモーダルを全幅に */
       #helpModal, #meritModal, #statusModal, #levelModal {
-        top: 56px;
-        max-height: calc(100vh - 64px);
+        top: 62px;
+        max-height: 52vh;
         border-radius: 0 0 16px 16px;
         border-top: none;
         max-width: 100%;
@@ -1198,54 +1199,51 @@
 
 <div id="meritModal">
   <div class="modalBody">
-    <h3>✨ 未知リンクでできること</h3>
-
-    <p>📺 <b>未視聴の動画をランダムで表示</b><br>
-    好きなYouTubeチャンネルを登録しておけば、まだ見ていない動画を3本ランダムで選んでくれる。「何見よう」って悩まなくていい！</p>
-
-    <p>🔗 <b>URLをそのまま貼るだけで登録完了</b><br>
-    チャンネルURL・動画URL・ショートURL、どれを貼ってもそのチャンネルを自動登録。チャンネルIDを調べる手間なし！</p>
-
-    <p>✅ <b>見た動画を自動で記録</b><br>
-    サムネイルをタップして再生すると「視聴済み」として記録される。同じ動画が何度も出てこないから快適！</p>
-
-    <p>🎬 <b>未視聴・視聴済み・お気に入りで切り替え</b><br>
-    タブで絞り込んでからランダムを押せる。見返したい動画だけをシャッフルしたり、お気に入りだけから選んだりできるよ。</p>
-
-    <p>❤️ <b>お気に入り登録</b><br>
-    動画カードの♡ボタンでお気に入り登録。後から一覧で確認したり、お気に入りだけランダム再生もできる。</p>
-
-    <p>🔍 <b>チャンネル内キーワード検索</b><br>
-    動画タイトルで絞り込み検索できる。「あの動画どこだっけ」がすぐ見つかる。</p>
-
-    <p>📊 <b>進捗・残り本数をひと目で確認</b><br>
-    あと何本残っているか、何本見たかをバーとカウントで表示。全部見終わるまでのモチベになる！</p>
-
-    <p>📝 <b>視聴履歴を時期ごとに整理</b><br>
-    今日・昨日・1週間前・1ヶ月前…のように時期別で履歴が整理されて表示されるよ。</p>
-
-    <p>🆕 <b>新着動画を自動で検出</b><br>
-    アプリを開くたびに最新動画をチェックして、新しくアップされた本数を表示してくれる。</p>
-
-    <p>🔥 <b>連続視聴日数を記録</b><br>
-    毎日続けて見ていると連続視聴日数が増えていく。習慣化のモチベにしよう！</p>
-
-    <p>🏆 <b>レベルシステム</b><br>
-    視聴本数が増えるとLv.1〜100でレベルアップ。称号もついてくる。ヘッダーのバッジをタップで確認！</p>
-
-    <h3>💡 こんなときにおすすめ</h3>
-
-    <p>🤔 「何見よう…」って毎回迷う人<br>
-    → 更新ボタン1回で即決定！選ぶ手間ゼロ</p>
-
-    <p>📦 好きなチャンネルの過去動画を全部見たい人<br>
-    → 視聴済み管理してくれるから取りこぼしなし</p>
-
-    <p>🕐 隙間時間にサクッと動画を見たい人<br>
-    → 開いてボタン押すだけ、すぐ始められる</p>
-
-    <p>📱 スマホでよく動画を見る人<br>
-    → ショートのURLをそのまま貼ってチャンネル登録OK！</p>
+    <h3 style="margin-top:0;">✨ 未知リンクでできること</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;line-height:1.5;">
+      <tbody>
+        <tr style="border-bottom:1px solid var(--history-item-border);">
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;width:32px;">📺</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>未視聴動画をランダム表示</b><br><span style="color:var(--text-light);font-size:12px;">「何見よう」と悩まずに済む。3本をすぐ提案してくれる。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--history-item-border);">
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">🔗</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>URLをそのまま貼るだけで登録</b><br><span style="color:var(--text-light);font-size:12px;">チャンネルURL・動画URL・ショートURL、どれでも自動でチャンネル登録。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--history-item-border);">
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">✅</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>視聴記録を自動管理</b><br><span style="color:var(--text-light);font-size:12px;">サムネタップで「視聴済み」に自動登録。同じ動画が繰り返し出てこない。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--history-item-border);">
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">🎬</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>未視聴 / 視聴済み / お気に入りで切替</b><br><span style="color:var(--text-light);font-size:12px;">タブで絞り込んでからランダム再生。見返したい動画だけをシャッフルできる。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--history-item-border);">
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">❤️</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>お気に入り保存 & ランダム再生</b><br><span style="color:var(--text-light);font-size:12px;">♡ボタンで保存。お気に入りだけからランダムで選ぶことも可能。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--history-item-border);">
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">🔍</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>チャンネル内キーワード検索</b><br><span style="color:var(--text-light);font-size:12px;">タイトルで絞り込み検索。「あの動画どこだっけ」がすぐ見つかる。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--history-item-border);">
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">📊</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>進捗 & 視聴履歴</b><br><span style="color:var(--text-light);font-size:12px;">残り本数・視聴済み本数をひと目で確認。今日・昨日・先週ごとに履歴を整理。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--history-item-border);">
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">🆕</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>新着動画を自動検出</b><br><span style="color:var(--text-light);font-size:12px;">起動時に最新動画をチェック。新着本数をサマリーに表示してくれる。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--history-item-border);">
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">🔥</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>連続視聴日数 & レベルシステム</b><br><span style="color:var(--text-light);font-size:12px;">毎日続けるとストリークが増える。視聴本数に応じてLv.1〜100まで成長。</span></td>
+        </tr>
+        <tr>
+          <td style="padding:9px 6px 9px 2px;font-size:20px;vertical-align:top;">☁️</td>
+          <td style="padding:9px 4px;vertical-align:top;"><b>クラウド保存 & どの端末でも同期</b><br><span style="color:var(--text-light);font-size:12px;">Googleログインでどこからでも同じデータ。ゲストモードでもすぐ使える。</span></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -2623,8 +2621,8 @@ function openLevelModal() {
 function closeLevelModal() { closeAllModals(); }
 
 /* ===== AI アシスタント (Gemini) ===== */
-const GEMINI_KEY_１ = "AIzaSyBoB-zfMu1bUG";
-const GEMINI_KEY_2 = "hYg0Ya8Hy6IjZOnABF8aA";
+const GEMINI_KEY_１ = "AIzaSyCRp8";
+const GEMINI_KEY_2 = "VcII585f9VD9QyEtuFfHhFj-JUdkE";
 const GEMINI_KEY = GEMINI_KEY_１ + GEMINI_KEY_2;
 
 const AI_SYSTEM_PROMPT = `あなたは「♾️未知リンク」というYouTube動画管理アプリのサポートAIです。
