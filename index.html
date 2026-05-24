@@ -401,7 +401,7 @@
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       border: 2px solid var(--modal-border);
-      max-height: 52vh;
+      max-height: 75vh;
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -861,12 +861,12 @@
     /* AIモーダル（右下ポップアップ） */
     #aiModal {
       position: fixed;
-      bottom: 140px;
-      right: 16px;
+      bottom: 132px;
+      right: 24px;
       width: 340px;
       max-width: calc(100vw - 32px);
-      height: 440px;
-      max-height: calc(100vh - 110px);
+      height: 480px;
+      max-height: calc(100vh - 150px);
       background: var(--modal-bg);
       border-radius: 16px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.28);
@@ -1036,7 +1036,7 @@
       /* モバイル: コンテンツモーダルを全幅に */
       #helpModal, #meritModal, #statusModal, #levelModal, #settingsModal {
         top: 82px;           /* ← ここも 82px に合わせる */
-        max-height: 52vh;
+        max-height: 72vh;
         border-radius: 0 0 16px 16px;
         border-top: none;
         max-width: 100%;
@@ -1054,13 +1054,14 @@
         from { opacity: 0; transform: translateY(-10px); }
         to   { opacity: 1; transform: translateY(0); }
       }
-      /* モバイル: AI modalはそのまま右下 */
+      /* モバイル: AI modalはAIボタンのすぐ左上 */
       #aiModal {
-        bottom: 78px;
+        bottom: 132px;
         right: 8px;
         left: 8px;
         width: auto;
-        height: calc(100vh - 130px);
+        height: calc(100vh - 180px);
+        max-height: 70vh;
       }
     }
   </style>
@@ -2191,8 +2192,6 @@ function skipCard(id) {
 
 function markAsSeenCard(id) {
   const page = data.pages[getIndex()];
-  const btn = document.querySelector(`.videoCard[data-card-id="${id}"] .seenCardBtn`);
-  if (btn) btn.textContent = "✅ 視聴済み";
   if (!page.seen.includes(id)) {
     page.seen.push(id);
     if (!page.history) page.history = [];
@@ -2201,7 +2200,19 @@ function markAsSeenCard(id) {
     updateProgress();
     updateHistory();
   }
-  setTimeout(() => replaceCard(id), 400);
+  const card = document.querySelector(`.videoCard[data-card-id="${id}"]`);
+  if (card) {
+    card.classList.add('viewed');
+    const thumbBox = card.querySelector('.thumbBox');
+    if (thumbBox && !thumbBox.querySelector('.viewedOverlay')) {
+      const overlay = document.createElement('div');
+      overlay.className = 'viewedOverlay';
+      overlay.textContent = '✅';
+      thumbBox.appendChild(overlay);
+    }
+    const seenBtn = card.querySelector('.seenCardBtn');
+    if (seenBtn) seenBtn.textContent = '✅ 視聴済み';
+  }
 }
 
 function toggleFavCard(id) {
